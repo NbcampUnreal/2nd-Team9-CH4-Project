@@ -1,4 +1,7 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿#include "SSBPlayerController.h"
+#include "Input/PlayerInputComponent.h"
 
-
-#include "SSBPlayerController.h"
+ASSBPlayerController::ASSBPlayerController()
+{
+	PlayerInputComponent = CreateDefaultSubobject<UPlayerInputComponent>(TEXT("PlayerInputComponent"));
+}

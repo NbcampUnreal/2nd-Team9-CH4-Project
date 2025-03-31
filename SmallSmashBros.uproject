@@ -17,7 +17,10 @@
 		{
 			"Name": "Gameplay",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"EnhancedInput"
+			]
 		},
 		{
 			"Name": "GameUI",

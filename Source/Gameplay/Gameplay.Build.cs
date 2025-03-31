@@ -19,7 +19,8 @@ public class Gameplay : ModuleRules
                 "CoreUObject",
                 "Engine",
                 "Slate",
-                "SlateCore"
+                "SlateCore",
+                "GameCore"
             }
         );
     }
