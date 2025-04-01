@@ -1,8 +1,8 @@
 ﻿using UnrealBuildTool;
 
-public class Gameplay : ModuleRules
+public class MessageBus : ModuleRules
 {
-    public Gameplay(ReadOnlyTargetRules Target) : base(Target)
+    public MessageBus(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
@@ -19,9 +19,7 @@ public class Gameplay : ModuleRules
                 "CoreUObject",
                 "Engine",
                 "Slate",
-                "SlateCore",
-                "GameCore",
-                "MessageBus"
+                "SlateCore"
             }
         );
     }

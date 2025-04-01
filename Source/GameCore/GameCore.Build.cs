@@ -20,7 +20,8 @@ public class GameCore : ModuleRules
                 "Engine",
                 "Slate",
                 "SlateCore", 
-                "EnhancedInput"
+                "EnhancedInput",
+                "MessageBus"
             }
         );
     }

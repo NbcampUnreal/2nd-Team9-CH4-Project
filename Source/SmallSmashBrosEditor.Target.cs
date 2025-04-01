@@ -16,6 +16,6 @@ public class SmallSmashBrosEditorTarget : TargetRules
 
 	private void RegisterModulesCreatedByRider()
 	{
-		ExtraModuleNames.AddRange(new string[] { "GameCore", "Gameplay", "GameUI", "GameInfrastructure" });
+		ExtraModuleNames.AddRange(new string[] { "GameCore", "Gameplay", "GameUI", "GameInfrastructure", "MessageBus" });
 	}
 }

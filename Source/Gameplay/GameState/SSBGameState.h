@@ -13,4 +13,6 @@ UCLASS()
 class GAMEPLAY_API ASSBGameState : public AGameState
 {
 	GENERATED_BODY()
+
+	
 };

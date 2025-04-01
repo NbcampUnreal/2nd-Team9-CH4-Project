@@ -1,5 +1,5 @@
 ﻿#include "PlayerInputComponent.h"
-#include "../SSBPlayerController.h"
+#include "../../SSBPlayerController.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameCore/Fighter/Fighter.h"

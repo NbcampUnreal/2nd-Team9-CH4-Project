@@ -1,4 +1,17 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿#include "SSBPlayerState.h"
+#include "MessageBus/MessageBus.h"
 
+ASSBPlayerState::ASSBPlayerState()
+{
+	
+}
 
-#include "SSBPlayerState.h"
+void ASSBPlayerState::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	if(UMessageBus* MessageBus = UMessageBus::GetInstance())
+	{
+		MessageBus->BroadcastMessage(TEXT("Test"), this);
+	}
+}
