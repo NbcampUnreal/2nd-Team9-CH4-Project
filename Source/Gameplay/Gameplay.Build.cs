@@ -21,7 +21,8 @@ public class Gameplay : ModuleRules
                 "Slate",
                 "SlateCore",
                 "GameCore",
-                "MessageBus"
+                "MessageBus",
+                "GameplayTags"
             }
         );
     }

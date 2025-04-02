@@ -4,6 +4,7 @@
 #include "Components/ActorComponent.h"
 #include "PlayerInputComponent.generated.h"
 
+struct FInputActionValue;
 class ASSBPlayerController;
 class UInputMappingContext;
 class UInputAction;

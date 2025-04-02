@@ -4,6 +4,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "GameCore/Fighter/Fighter.h"
 #include "InputActionValue.h"
+#include "Gameplay/Defines/InputBuffer/InputBufferEntry.h"
 
 UPlayerInputComponent::UPlayerInputComponent()
 {
