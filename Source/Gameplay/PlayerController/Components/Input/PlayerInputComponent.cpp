@@ -33,6 +33,11 @@ void UPlayerInputComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	
 }
 
+void UPlayerInputComponent::MoveInput(const FInputActionValue& InputValue)
+{
+	
+}
+
 void UPlayerInputComponent::AddMappingContext(const ASSBPlayerController* PlayerController) const
 {
 	if (const ULocalPlayer* LocalPlayer = PlayerController->GetLocalPlayer())
@@ -53,7 +58,7 @@ void UPlayerInputComponent::BindActions(const ASSBPlayerController* PlayerContro
 	{
 		if (UEnhancedInputComponent* InputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
 		{
-			InputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, Fighter, &AFighter::Move);
+			InputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &UPlayerInputComponent::MoveInput);
 			InputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, Fighter, &AFighter::StartJump);
 		}
 	}

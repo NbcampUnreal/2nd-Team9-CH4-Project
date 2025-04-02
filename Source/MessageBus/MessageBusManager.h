@@ -2,16 +2,16 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
-#include "MessageBus.generated.h"
+#include "MessageBusManager.generated.h"
 
 DECLARE_DELEGATE_TwoParams(FMessageDelegate, const FString&, UObject*);
 
 UCLASS()
-class MESSAGEBUS_API UMessageBus : public UObject
+class MESSAGEBUS_API UMessageBusManager : public UObject
 {
 	GENERATED_BODY()
 public:
-	static UMessageBus* GetInstance();
+	static UMessageBusManager* GetInstance();
 
 public:
 	void BroadcastMessage(const FString& MessageType, UObject* Payload) const;

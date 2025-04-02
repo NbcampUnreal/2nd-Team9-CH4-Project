@@ -1,5 +1,5 @@
 ﻿#include "SSBPlayerState.h"
-#include "MessageBus/MessageBus.h"
+#include "MessageBus/MessageBusManager.h"
 
 ASSBPlayerState::ASSBPlayerState()
 {
@@ -10,8 +10,10 @@ void ASSBPlayerState::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if(UMessageBus* MessageBus = UMessageBus::GetInstance())
+	if(UMessageBusManager* MessageBus = UMessageBusManager::GetInstance())
 	{
-		MessageBus->BroadcastMessage(TEXT("Test"), this);
+		MessageBus->BroadcastMessage(TEXT("Test1"), this);
+		MessageBus->BroadcastMessage(TEXT("Test2"), this);
+		MessageBus->BroadcastMessage(TEXT("Test3"), this);
 	}
 }
