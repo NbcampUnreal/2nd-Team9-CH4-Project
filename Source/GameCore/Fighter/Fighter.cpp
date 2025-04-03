@@ -1,6 +1,7 @@
 ﻿#include "Fighter.h"
+#include "GameFramework/PlayerState.h"
 #include "GameCore/Interface/PlayerStateInterface.h"
-#include "MessageBus/MessageBus.h"
+#include "MessageBus/MessageBusManager.h"
 #include "InputActionValue.h"
 
 AFighter::AFighter()
@@ -12,11 +13,11 @@ void AFighter::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if(UMessageBus* MessageBus = UMessageBus::GetInstance())
+	if(UMessageBusManager* MessageBus = UMessageBusManager::GetInstance())
 	{
 		FMessageDelegate Delegate;
 		Delegate.BindUObject(this, &AFighter::ImSleepy);
-		MessageBus->Subscribe(TEXT("Test"), Delegate);
+		MessageBus->Subscribe(TEXT("Test1"), Delegate);
 	}
 }
 
@@ -37,9 +38,9 @@ void AFighter::ImSleepy(const FString& MessageType, UObject* Payload)
 
 void AFighter::IWantToSleep() const
 {
-	if (APlayerState* PlayerState = GetPlayerState())
+	if (APlayerState* PS = GetPlayerState())
 	{
-		if (const IPlayerStateInterface* PlayerStateInterface = Cast<IPlayerStateInterface>(PlayerState))
+		if (const IPlayerStateInterface* PlayerStateInterface = Cast<IPlayerStateInterface>(PS))
 		{
 			UE_LOG(LogTemp, Log, TEXT("Player Score: %d"), PlayerStateInterface->GetPlayerScore());
 		}	
@@ -59,5 +60,4 @@ void AFighter::StartJump(const FInputActionValue& InputValue)
 {
 	// Jump...
 }
-
 
