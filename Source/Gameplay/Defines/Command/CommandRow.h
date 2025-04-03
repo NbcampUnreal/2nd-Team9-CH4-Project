@@ -15,6 +15,9 @@ struct FCommandRow : public FTableRowBase
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Command")
 	FGameplayTag  CommandName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Command")
+	FGameplayTag  AttackTag;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Command")
 	TArray<FGameplayTag> InputSequence;

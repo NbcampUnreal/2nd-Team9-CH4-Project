@@ -3,7 +3,10 @@
 UMessageBusManager* UMessageBusManager::GetInstance()
 {
 	static UMessageBusManager* Instance = NewObject<UMessageBusManager>();
-	
+	if (Instance && !Instance->IsRooted())
+	{
+		Instance->AddToRoot();
+	}
 	return Instance;
 }
 

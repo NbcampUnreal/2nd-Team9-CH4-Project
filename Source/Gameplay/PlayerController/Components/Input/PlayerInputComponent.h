@@ -1,13 +1,15 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Components/ActorComponent.h"
 #include "PlayerInputComponent.generated.h"
 
-struct FInputActionValue;
 class ASSBPlayerController;
 class UInputMappingContext;
 class UInputAction;
+struct FCommandRow;
+struct FInputActionValue;
 struct FInputBufferEntry;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -23,22 +25,43 @@ protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 							   FActorComponentTickFunction* ThisTickFunction) override;
 
-private:
+protected: /* Command Input */
 	void MoveInput(const FInputActionValue& InputValue);
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
-	TArray<FInputBufferEntry> MoveInputBuffer;
+	void AttackInput(const FInputActionValue& InputValue, const FGameplayTag& AttackTag);
 	
-private:
+	FGameplayTag GetInputTagFromValue(const FInputActionValue& InputValue);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input")
+	TArray<FInputBufferEntry> MoveInputBuffer;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Command")
+	TSoftObjectPtr<UDataTable> CommandTable;
+	TArray<FCommandRow*> CommandRows;
+
+private: /* Key Input */
 	void AddMappingContext(const ASSBPlayerController* PlayerController) const;
 	void BindActions(const ASSBPlayerController* PlayerController);
 
+	void OnWeakAttack(const FInputActionValue& InputValue);
+	void OnHeavyAttack(const FInputActionValue& InputValue);
+	void OnSmashAttack(const FInputActionValue& InputValue);
+	void OnGrabAttack(const FInputActionValue& InputValue);
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* InputMappingContext{ nullptr };
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
-	UInputAction* JumpAction{ nullptr };
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* MoveAction{ nullptr };
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* WeakAttackAction{ nullptr };
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* HeavyAttackAction{ nullptr };
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* SmashAttackAction{ nullptr };
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* GrabAttackAction{ nullptr };
 };

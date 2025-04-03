@@ -4,7 +4,6 @@
 #include "GameplayTagContainer.h"
 #include "InputBufferEntry.generated.h"
 
-
 USTRUCT(BlueprintType)
 struct GAMEPLAY_API FInputBufferEntry
 {
@@ -15,7 +14,9 @@ struct GAMEPLAY_API FInputBufferEntry
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
     float InputTime;
-
+    
     FInputBufferEntry() : InputTag(FGameplayTag()), InputTime(0.f) {}
     FInputBufferEntry(FGameplayTag InTag, float InTime) : InputTag(InTag), InputTime(InTime) {}
 };
+
+

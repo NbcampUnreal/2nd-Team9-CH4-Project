@@ -23,7 +23,7 @@ public:
 public: /* IPlayerStateInterface */
 	virtual int32 GetPlayerScore() const override { return PlayerScore; }
 	virtual void SetPlayerScore(int32 NewScore) override { PlayerScore = NewScore; }
-
+	
 private:
 	int32 PlayerScore;
 };
