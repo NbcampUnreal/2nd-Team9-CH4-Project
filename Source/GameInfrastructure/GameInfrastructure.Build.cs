@@ -19,7 +19,8 @@ public class GameInfrastructure : ModuleRules
                 "CoreUObject",
                 "Engine",
                 "Slate",
-                "SlateCore"
+                "SlateCore",
+                "GameplayTags"
             }
         );
     }

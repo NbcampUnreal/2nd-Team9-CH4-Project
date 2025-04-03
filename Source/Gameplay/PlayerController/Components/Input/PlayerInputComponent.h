@@ -4,9 +4,11 @@
 #include "Components/ActorComponent.h"
 #include "PlayerInputComponent.generated.h"
 
+struct FInputActionValue;
 class ASSBPlayerController;
 class UInputMappingContext;
 class UInputAction;
+struct FInputBufferEntry;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class GAMEPLAY_API UPlayerInputComponent : public UActorComponent
@@ -20,6 +22,12 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 							   FActorComponentTickFunction* ThisTickFunction) override;
+
+private:
+	void MoveInput(const FInputActionValue& InputValue);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	TArray<FInputBufferEntry> MoveInputBuffer;
 	
 private:
 	void AddMappingContext(const ASSBPlayerController* PlayerController) const;

@@ -13,4 +13,6 @@ UCLASS()
 class GAMEUI_API ASSBHUD : public AHUD
 {
 	GENERATED_BODY()
+
+	
 };
