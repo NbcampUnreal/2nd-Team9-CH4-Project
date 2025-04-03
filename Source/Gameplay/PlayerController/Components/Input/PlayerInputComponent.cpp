@@ -21,6 +21,7 @@ void UPlayerInputComponent::BeginPlay()
 	{
 		if (PC->IsLocalController())
 		{
+			Player = PC->GetPawn<AFighter>(); 
 			AddMappingContext(PC);
 			BindActions(PC);	
 		}
@@ -70,6 +71,8 @@ void UPlayerInputComponent::MoveInput(const FInputActionValue& InputValue)
 		MoveInputBuffer.Add(BufferEntry);
 		UE_LOG(LogTemp, Warning, TEXT("Add Input Tag: %s \n Input Time: %f"), *BufferEntry.InputTag.ToString(), BufferEntry.InputTime);
 	}
+
+	Player->Move(InputValue);
 }
 
 void UPlayerInputComponent::AttackInput(const FInputActionValue& InputValue, const FGameplayTag& AttackTag)
@@ -176,11 +179,13 @@ void UPlayerInputComponent::AddMappingContext(const ASSBPlayerController* Player
 
 void UPlayerInputComponent::BindActions(const ASSBPlayerController* PlayerController)
 {
-	if (AFighter* Fighter = Cast<AFighter>(PlayerController->GetPawn()))
+	if (Player.IsValid())
 	{
 		if (UEnhancedInputComponent* InputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
 		{
 			InputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &UPlayerInputComponent::MoveInput);
+			InputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, Player.Get(), &AFighter::Move);
+			InputComponent->BindAction(JumpAction, ETriggerEvent::Started, Player.Get(), &AFighter::StartJump);
 			
 			InputComponent->BindAction(WeakAttackAction, ETriggerEvent::Started, this, &UPlayerInputComponent::OnWeakAttack);
 			InputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Started, this, &UPlayerInputComponent::OnHeavyAttack);

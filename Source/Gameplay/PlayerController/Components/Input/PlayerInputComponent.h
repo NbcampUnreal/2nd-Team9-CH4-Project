@@ -5,6 +5,7 @@
 #include "Components/ActorComponent.h"
 #include "PlayerInputComponent.generated.h"
 
+class AFighter;
 class ASSBPlayerController;
 class UInputMappingContext;
 class UInputAction;
@@ -28,16 +29,15 @@ protected:
 protected: /* Command Input */
 	void MoveInput(const FInputActionValue& InputValue);
 	void AttackInput(const FInputActionValue& InputValue, const FGameplayTag& AttackTag);
-	
 	FGameplayTag GetInputTagFromValue(const FInputActionValue& InputValue);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input")
-	TArray<FInputBufferEntry> MoveInputBuffer;
-
+	TArray<FInputBufferEntry>	MoveInputBuffer;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Command")
-	TSoftObjectPtr<UDataTable> CommandTable;
-	TArray<FCommandRow*> CommandRows;
+	TSoftObjectPtr<UDataTable>	CommandTable;
+	TArray<FCommandRow*>		CommandRows;
 
+	TWeakObjectPtr<AFighter> Player;
 private: /* Key Input */
 	void AddMappingContext(const ASSBPlayerController* PlayerController) const;
 	void BindActions(const ASSBPlayerController* PlayerController);
@@ -52,6 +52,9 @@ private: /* Key Input */
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* MoveAction{ nullptr };
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* JumpAction{ nullptr };
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* WeakAttackAction{ nullptr };

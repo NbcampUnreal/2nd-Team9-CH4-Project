@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "Fighter.generated.h"
 
+class UCameraComponent;
+class USpringArmComponent;
 struct FInputActionValue;
 
 UCLASS()
@@ -32,4 +34,10 @@ public:
 
 	UFUNCTION()
 	virtual void StartJump(const FInputActionValue& InputValue);
+
+private:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+	USpringArmComponent* SpringArm;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+	UCameraComponent* Camera;
 };

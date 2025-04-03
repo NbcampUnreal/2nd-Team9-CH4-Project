@@ -1,12 +1,28 @@
 ﻿#include "Fighter.h"
-#include "GameFramework/PlayerState.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GameCore/Interface/PlayerStateInterface.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "MessageBus/MessageBusManager.h"
+#include "GameFramework/PlayerState.h"
+#include "Camera/CameraComponent.h"
 #include "InputActionValue.h"
 
 AFighter::AFighter()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SpringArm->SetupAttachment(RootComponent);
+	SpringArm->SetWorldRotation(FRotator(-5.f, -90.f, 0.f));
+	SpringArm->SetAbsolute(false, false, false);
+	SpringArm->TargetArmLength = 1000.0f;
+	SpringArm->bDoCollisionTest = false;
+
+	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	Camera->SetupAttachment(SpringArm);
+	Camera->SetFieldOfView(40.0f);
+	
+	GetCharacterMovement()->MaxWalkSpeed = 600.0f;
 }
 
 void AFighter::BeginPlay()
@@ -50,15 +66,22 @@ void AFighter::IWantToSleep() const
 
 void AFighter::Move(const FInputActionValue& InputValue)
 {
-	// Move...
+	/* Allowed only when the State is not Attack
+	 * if(PlayerState == EPlayerState::Attack)
+	 * {
+	 * 		return;
+	 * };
+	*/
+	
 	const FVector2D MovementVector = InputValue.Get<FVector2D>();
 
-	AddMovementInput(FVector(0.0f, 1.0f, 0.0f), MovementVector.Y);
+	AddMovementInput(FVector(1.0f, 0.0f, 0.0f), MovementVector.X);
 }
 
 void AFighter::StartJump(const FInputActionValue& InputValue)
 {
-	// Jump...
+	
+	Jump();
 }
 
 
