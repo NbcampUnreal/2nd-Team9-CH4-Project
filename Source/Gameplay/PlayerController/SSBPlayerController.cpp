@@ -1,5 +1,5 @@
 ﻿#include "SSBPlayerController.h"
-#include "Components/Input/PlayerInputComponent.h"
+#include "Gameplay/Components/Input/PlayerInputComponent.h"
 
 ASSBPlayerController::ASSBPlayerController()
 {

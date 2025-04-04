@@ -27,4 +27,4 @@ void UMessageBusManager::Subscribe(const FString& MessageType, const FMessageDel
 	Subscribers.FindOrAdd(MessageType).Add(Delegate);
 }
 
-// 필요에 따라 try-catch나 조건 검사를 추가할 수 있음.
+// 필요에 따라 try-catch나 조건 검사를 추가할 수 있음
