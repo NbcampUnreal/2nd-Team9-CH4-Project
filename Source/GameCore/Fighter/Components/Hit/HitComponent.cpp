@@ -1,5 +1,6 @@
 ﻿#include "HitComponent.h"
 
+#include "Blueprint/UserWidget.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -11,7 +12,7 @@ UHitComponent::UHitComponent()
 
 	bIsHit = false;
 	LaunchThreshold = 1000.0f;
-	AccumulatedDamage = 0;
+	DamageAmplificationPercent = 0.0f;
 
 	DamageScales = {
 		1.0f,
@@ -108,40 +109,41 @@ void UHitComponent::ApplyKnockback(const FHitDataInfo& HitDataInfo)
 			CharacterMovementComponent->SetMovementMode(MOVE_Falling);
 
 			const float DamageScale = GetDamageScale(HitDataInfo.HitAbilityTagName);
-			const float KnockbackDistance = CalculateKnockbackDistance(DamageScale, HitDataInfo.HitDamageAmount);
+			const float KnockbackDistance = CalculateKnockbackDistance(DamageScale, HitDataInfo.HitDamageAmount.KnockbackAmount);
 
 			if (KnockbackDistance > LaunchThreshold)
 			{
 				// TODO 캐릭터 상태 launch로 설정
 			}
 
-			const FVector LaunchVector = CalculateLaunchVector(HitDataInfo.HitDirection.HitAngle, KnockbackDistance);
+			// TODO 정해둔 각도 이내의 공격이 들어오면 아래 방향으로 각도 고정
+			
+			const FVector LaunchVector = CalculateLaunchVector(HitDataInfo.HitDirection, KnockbackDistance);
 			const bool bIsFalling = CharacterMovementComponent->IsFalling();
 			OwnerCharacter->LaunchCharacter(LaunchVector, bIsFalling, bIsFalling);
 
 			// TODO FloorBounce
 
 			LastHitAbilityTagNameArray.AddHitAbilityTagName(HitDataInfo.HitAbilityTagName);
-			AccumulatedDamage += HitDataInfo.HitDamageAmount.HitDamageAmount;
+			DamageAmplificationPercent += HitDataInfo.HitDamageAmount.HitDamageAmount * DamageScale;
 		}
 	}
 }
 
-float UHitComponent::CalculateKnockbackDistance(const float DamageScale, const FHitDamageAmount& HitDamageAmount) const
+float UHitComponent::CalculateKnockbackDistance(const float DamageScale, const float KnockbackAmount) const
 {
-	float KnockbackDistance = HitDamageAmount.KnockbackAmount;
-
-	KnockbackDistance += DamageScale * (AccumulatedDamage * (2 + HitDamageAmount.HitDamageAmount)) / 20.0f;
+	const float KnockbackDistance = KnockbackAmount * DamageScale * (DamageAmplificationPercent + 100.0f) / 100.0f;
 
 	UKismetSystemLibrary::PrintString(GetOwner(), FString::Printf(TEXT("Knockback Distance: %.2f"), KnockbackDistance));
-
+	
 	return KnockbackDistance;
 }
 
-FVector UHitComponent::CalculateLaunchVector(const float HitAngle, const float KnockbackDistance)
+FVector UHitComponent::CalculateLaunchVector(const FHitDirection& HitDirection, const float KnockbackDistance)
 {
-	const FRotator HitAngleRotator = FRotator(0.0f, 0.0f, FMath::Abs(180 - HitAngle));
-	FVector LaunchVectorFromHitAngle = UKismetMathLibrary::GetRightVector(HitAngleRotator).GetSafeNormal();
+	const float KnockbackDirection = HitDirection.bIsRight ? -1.0f : 1.0f;
+	const FRotator HitAngleRotator = FRotator(90.0f - HitDirection.HitAngle * KnockbackDirection, 0.0f, 0.0f);
+	FVector LaunchVectorFromHitAngle = UKismetMathLibrary::GetUpVector(HitAngleRotator).GetSafeNormal();
 
 	LaunchVectorFromHitAngle *= KnockbackDistance;
 

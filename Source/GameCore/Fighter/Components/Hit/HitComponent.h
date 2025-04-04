@@ -29,12 +29,12 @@ struct FHitDamageAmount
 {
 	GENERATED_BODY()
 
-	FHitDamageAmount(): HitDamageAmount(0), HitDamageAmountToShield(0), KnockbackAmount(0.0f)
+	FHitDamageAmount(): HitDamageAmount(0.0f), HitDamageAmountToShield(0.0f), KnockbackAmount(0.0f)
 	{
 	}
 
-	FHitDamageAmount(const int32 InHitDamageAmount,
-	                 const int32 InHitDamageAmountToShield,
+	FHitDamageAmount(const float InHitDamageAmount,
+	                 const float InHitDamageAmountToShield,
 	                 const float InKnockbackAmount)
 		: HitDamageAmount(InHitDamageAmount),
 		  HitDamageAmountToShield(InHitDamageAmountToShield),
@@ -43,9 +43,9 @@ struct FHitDamageAmount
 	}
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	int32 HitDamageAmount;
+	float HitDamageAmount;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	int32 HitDamageAmountToShield;
+	float HitDamageAmountToShield;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	float KnockbackAmount;
 };
@@ -84,19 +84,6 @@ struct FHitDataInfo
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	float StopDuration;
-};
-
-USTRUCT(BlueprintType)
-struct FFighterKnockbackResult
-{
-	GENERATED_BODY()
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	bool bIsLaunch;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	bool bIsStillLaunched;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	float LaunchDelay;
 };
 
 USTRUCT()
@@ -143,8 +130,8 @@ private:
 
 	void ApplyKnockback(const FHitDataInfo& HitDataInfo);
 
-	float CalculateKnockbackDistance(float DamageScale, const FHitDamageAmount& HitDamageAmount) const;
-	static FVector CalculateLaunchVector(float HitAngle, const float KnockbackDistance);
+	float CalculateKnockbackDistance(const float DamageScale, const float KnockbackAmount) const;
+	static FVector CalculateLaunchVector(const FHitDirection& HitDirection, const float KnockbackDistance);
 
 	float GetDamageScale(const FName InHitAbilityTagName);
 
@@ -159,6 +146,8 @@ private:
 	FLastHitAbilityTagNameArray LastHitAbilityTagNameArray;
 	UPROPERTY(EditDefaultsOnly, Category="HitComponents")
 	TArray<float> DamageScales;
-	UPROPERTY(EditAnywhere, Category="HitComponents")
-	int32 AccumulatedDamage;
+	UPROPERTY(VisibleAnywhere, Category="HitComponents")
+	float DamageAmplificationPercent;
+
+	TSubclassOf<UUserWidget> UserWidgetClass;
 };
