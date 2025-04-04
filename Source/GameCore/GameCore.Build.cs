@@ -10,6 +10,7 @@ public class GameCore : ModuleRules
             new string[]
             {
                 "Core",
+                "GameplayTags"
             }
         );
 
