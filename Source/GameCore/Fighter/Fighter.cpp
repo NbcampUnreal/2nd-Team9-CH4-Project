@@ -84,4 +84,3 @@ void AFighter::StartJump(const FInputActionValue& InputValue)
 	Jump();
 }
 
-
