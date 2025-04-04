@@ -1,11 +1,28 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayTagAssetInterface.h"
 #include "Components/ActorComponent.h"
 
 #include "HitComponent.generated.h"
 
+USTRUCT(BlueprintType)
+struct FHitDirection
+{
+	GENERATED_BODY()
+
+	FHitDirection(): bIsRight(false), HitAngle(0.0f)
+	{
+	}
+
+	FHitDirection(const bool bInIsRight, const float InHitAngle): bIsRight(bInIsRight), HitAngle(InHitAngle)
+	{
+	}
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool bIsRight;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	float HitAngle;
+};
 
 USTRUCT(BlueprintType)
 struct FHitDamageAmount
@@ -25,11 +42,11 @@ struct FHitDamageAmount
 	{
 	}
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	int32 HitDamageAmount;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	int32 HitDamageAmountToShield;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	float KnockbackAmount;
 };
 
@@ -38,47 +55,41 @@ struct FHitDataInfo
 {
 	GENERATED_BODY()
 
-	FHitDataInfo(): bIsRight(false),
-	            HitDamageAmount(FHitDamageAmount()),
-	            HitAngle(0.0f),
-	            StopDuration(0.0f),
-	            StunDuration(0.0f)
+	FHitDataInfo()
+		: HitDirection(FHitDirection()),
+		  HitDamageAmount(FHitDamageAmount()),
+		  StopDuration(0.0f)
 	{
 	}
 
-	FHitDataInfo(const bool bInIsRight,
-	         const FHitDamageAmount& InHitDamageAmount,
-	         const float InHitAngle,
-	         const float InStopDuration,
-	         const float InStunDuration)
-		: bIsRight(bInIsRight),
+	FHitDataInfo(const FName InHitAbilityTagName,
+	             const FHitDirection& InHitDirection,
+	             const FHitDamageAmount& InHitDamageAmount,
+	             const float InStopDuration)
+		: HitAbilityTagName(InHitAbilityTagName),
+		  HitDirection(InHitDirection),
 		  HitDamageAmount(InHitDamageAmount),
-		  HitAngle(InHitAngle),
-		  StopDuration(InStopDuration),
-		  StunDuration(InStunDuration)
+		  StopDuration(InStopDuration)
 	{
 	}
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	bool bIsRight;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	FName HitAbilityTagName;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	FHitDirection HitDirection;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	FHitDamageAmount HitDamageAmount;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	float HitAngle;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	float StopDuration;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	float StunDuration;
 };
 
 USTRUCT(BlueprintType)
 struct FFighterKnockbackResult
 {
 	GENERATED_BODY()
-
-	FFighterKnockbackResult(): bIsLaunch(false), bIsStillLaunched(false), LaunchDelay(0.0f)
-	{
-	}
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bIsLaunch;
@@ -88,7 +99,29 @@ struct FFighterKnockbackResult
 	float LaunchDelay;
 };
 
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+USTRUCT()
+struct FLastHitAbilityTagNameArray
+{
+	GENERATED_BODY()
+
+	void AddHitAbilityTagName(const FName HitAbilityTagName)
+	{
+		if (InfoArray.Num() == 9)
+		{
+			InfoArray.RemoveAt(0);
+		}
+
+		InfoArray.Add(HitAbilityTagName);
+	}
+
+	TArray<FName> GetLastHitAbilityTageNames() const { return InfoArray; }
+
+private:
+	UPROPERTY(visibleAnywhere)
+	TArray<FName> InfoArray;
+};
+
+UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class GAMECORE_API UHitComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -108,17 +141,24 @@ private:
 	void StartHitStop(const float StopDuration);
 	void EndHitStop() const;
 
-	void ApplyKnockback(const bool IsRight, const float HitAngle, const float StunDuration);
-	void FighterKnockback(FFighterKnockbackResult& OutFighterKnockbackResult, const bool IsRight, const float HitAngle);
-	
-	float CalculateKnockbackDistance();
-	static FVector CalculateLaunchVector(const bool bIsRight, const float HitAngle, const float KnockbackDistance);
+	void ApplyKnockback(const FHitDataInfo& HitDataInfo);
 
-	void LaunchBounce();
+	float CalculateKnockbackDistance(float DamageScale, const FHitDamageAmount& HitDamageAmount) const;
+	static FVector CalculateLaunchVector(float HitAngle, const float KnockbackDistance);
+
+	float GetDamageScale(const FName InHitAbilityTagName);
+
 	void FloorBounce();
 
 	bool bIsHit;
 
-	UPROPERTY(EditDefaultsOnly, meta=(ClampMin=500.0, ClampMax = 5000.0))
+	UPROPERTY(EditDefaultsOnly, meta=(ClampMin=500.0, ClampMax = 5000.0), Category="HitComponents")
 	float LaunchThreshold;
+
+	UPROPERTY(VisibleAnywhere, Category="HitComponents")
+	FLastHitAbilityTagNameArray LastHitAbilityTagNameArray;
+	UPROPERTY(EditDefaultsOnly, Category="HitComponents")
+	TArray<float> DamageScales;
+	UPROPERTY(EditAnywhere, Category="HitComponents")
+	int32 AccumulatedDamage;
 };
