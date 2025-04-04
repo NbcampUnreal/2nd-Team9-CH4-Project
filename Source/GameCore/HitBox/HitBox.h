@@ -1,0 +1,41 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "HitboxShape.h"
+#include "HitBox.generated.h"
+
+UCLASS()
+class GAMECORE_API AHitBox : public AActor
+{
+	GENERATED_BODY()
+	
+public:	
+	AHitBox();
+
+protected:
+	virtual void OnConstruction(const FTransform& Transform) override;
+
+public:	
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hitbox")
+    EHitboxShape HitboxShape;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hitbox")
+    FVector BoxExtent = FVector(50.f);
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hitbox")
+    float SphereRadius = 50.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hitbox")
+    float CapsuleRadius = 34.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hitbox")
+    float CapsuleHalfHeight = 88.f;
+
+private:
+    UPROPERTY()
+    class UShapeComponent* CollisionComponent;
+
+    void CreateHitboxShape();
+
+};
