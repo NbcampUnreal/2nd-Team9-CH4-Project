@@ -21,7 +21,8 @@ public class GameCore : ModuleRules
                 "Slate",
                 "SlateCore", 
                 "EnhancedInput",
-                "MessageBus"
+                "MessageBus",
+                "GameplayTags"
             }
         );
     }
