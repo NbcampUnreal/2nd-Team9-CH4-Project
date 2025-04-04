@@ -5,6 +5,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "GameCore/Fighter/Fighter.h"
 #include "InputActionValue.h"
+#include "GameCore/Ability/AbilityManager/AbilityManager.h"
 #include "Gameplay/Defines/InputBuffer/InputBufferEntry.h"
 
 UPlayerInputComponent::UPlayerInputComponent()
@@ -110,7 +111,7 @@ void UPlayerInputComponent::AttackInput(const FInputActionValue& InputValue, con
 		if (bMatch)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Command Matching!!: %s"), *Row->CommandName.ToString());
-			// AbilityManage->RequestCreateAbility(Row->CommandName);
+			//UAbilityManager::GetInstance()->RequestCreateAbility(Row->CommandName);
 			return;
 		}
 	}

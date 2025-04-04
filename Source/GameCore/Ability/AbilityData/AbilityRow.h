@@ -20,5 +20,5 @@ public:
 	FGameplayTag CommandTag;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability")
-	TSubclassOf<UAbilityBase> AbilityClass; //수정
+	TSubclassOf<UAbilityBase> AbilityClass; // *****소프트레퍼런스로 수정
 };

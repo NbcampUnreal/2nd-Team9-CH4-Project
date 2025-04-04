@@ -6,6 +6,8 @@
 #include "GameFramework/PlayerState.h"
 #include "Camera/CameraComponent.h"
 #include "InputActionValue.h"
+//Test
+#include "GameCore/Ability/AbilityManager/AbilityManager.h"
 
 AFighter::AFighter()
 {
@@ -35,6 +37,9 @@ void AFighter::BeginPlay()
 		Delegate.BindUObject(this, &AFighter::ImSleepy);
 		MessageBus->Subscribe(TEXT("Test1"), Delegate);
 	}
+	
+	//Test
+	UAbilityManager::GetInstance()->Initialize(this);
 }
 
 void AFighter::Tick(float DeltaTime)
