@@ -83,11 +83,7 @@ void UPlayerInputComponent::AttackInput(const FInputActionValue& InputValue, con
 		{
 			continue;
 		}
-        
-		/*
-		 * 이거 고민해봐야 할듯 각 Row의 Sequence의 길이만큼 짤라서 쓸지
-		 * for문 밖에서 역순으로 할지
-		 */
+		
 		const TArray<FGameplayTag>& CommandSequence = Row->InputSequence;
 		int32 SeqLength = CommandSequence.Num();
 		if (MoveInputBuffer.Num() < SeqLength)
@@ -114,7 +110,7 @@ void UPlayerInputComponent::AttackInput(const FInputActionValue& InputValue, con
 		if (bMatch)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Command Matching!!: %s"), *Row->CommandName.ToString());
-			//ExecuteCommand(Row->CommandName);
+			// AbilityManage->RequestCreateAbility(Row->CommandName);
 			return;
 		}
 	}
