@@ -20,6 +20,8 @@ bool UAbilityBase::CanActivate()
 
 void UAbilityBase::Activate()
 {
+	CanActivate();
+	int a= 0;
 }
 
 void UAbilityBase::PlayMontage()

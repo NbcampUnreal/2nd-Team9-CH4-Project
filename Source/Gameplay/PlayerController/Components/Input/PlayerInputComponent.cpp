@@ -111,7 +111,7 @@ void UPlayerInputComponent::AttackInput(const FInputActionValue& InputValue, con
 		if (bMatch)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Command Matching!!: %s"), *Row->CommandName.ToString());
-			//UAbilityManager::GetInstance()->RequestCreateAbility(Row->CommandName);
+			UAbilityManager::GetInstance()->RequestCreateAbility(Row->CommandName);
 			return;
 		}
 	}

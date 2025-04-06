@@ -18,7 +18,11 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability")
 	FGameplayTag CommandTag;
-	
+
+	/*
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability")
-	TSubclassOf<UAbilityBase> AbilityClass; // *****소프트레퍼런스로 수정
+	TSubclassOf<UAbilityBase> AbilityClass; 강참조
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability")
+	TSoftClassPtr<UAbilityBase> ClassTag; // 약참조로 바꿈 -> 데이터 테이블에 직접 클래스 경로 넣어줄 필요있음
 };
