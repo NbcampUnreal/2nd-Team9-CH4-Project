@@ -10,7 +10,7 @@
 class UAnimInstance;
 class UAnimMontage;
 
-UCLASS(Blueprintable)
+UCLASS(Abstract, Blueprintable)
 class GAMECORE_API UAbilityBase : public UObject
 {
 	GENERATED_BODY()
@@ -45,6 +45,7 @@ public:
 
 	UFUNCTION()
 	virtual void OnAbilityFinished(); //어빌리티 사용이 끝나면 사용한 변수들 초기화, Initialization of variables used after the use of abilities
+	
 protected: //잊지말자 소프트레퍼런스
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tags")
 	FGameplayTagContainer UnqiueRequiredTags; //각 어빌리티 발동에 필요한 태그들, 아마 플레이어 상태 태그들(지상, 도발, 필살기...),Tags needed for each Ability trigger, maybe player state tags (ground, provocation, killing ...)
@@ -56,7 +57,7 @@ protected: //잊지말자 소프트레퍼런스
 	FGameplayTagContainer CommonBlockedTags; // 어빌리티가 절대 발동되지 않는 공통의 태그들(스턴,죽음...), Common tags that absolute abilities (stun, death ...)
 
 	
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
 	UAnimMontage* AbilityMontage; //재생될 애니메이션, Animation to be played
 

@@ -4,11 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+//Test
+#include "GameplayTagContainer.h"
 #include "Fighter.generated.h"
 
 class UCameraComponent;
 class USpringArmComponent;
 struct FInputActionValue;
+
+//Test
+class UAbilityManager;
+
 
 UCLASS()
 class GAMECORE_API AFighter : public ACharacter
@@ -40,4 +46,10 @@ private:
 	USpringArmComponent* SpringArm;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* Camera;
+
+
+	//Test
+	public:
+	FGameplayTagContainer AbilityTagContainer;
+	FGameplayTagContainer& GetCurrentTags() { return AbilityTagContainer; }
 };
