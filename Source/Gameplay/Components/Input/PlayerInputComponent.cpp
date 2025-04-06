@@ -30,7 +30,7 @@ void UPlayerInputComponent::BeginPlay()
 
 	if (CommandTable)
 	{
-		if (UDataTable* CommandDataTable = CommandTable.LoadSynchronous())
+		if (const UDataTable* CommandDataTable = CommandTable.LoadSynchronous())
 		{
 			const FString ContextString(TEXT("Command Table AttackInput"));
 			CommandDataTable->GetAllRows<FCommandRow>(ContextString, CommandRows);	
