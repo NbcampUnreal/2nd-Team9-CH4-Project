@@ -26,6 +26,11 @@ void AHitBox::OnConstruction(const FTransform& Transform)
     CreateHitboxShape();
 }
 
+void AHitBox::Init(const FHitDataInfo& HitData)
+{
+    HitDataInfo = HitData;
+}
+
 void AHitBox::CreateHitboxShape()
 {
     if (CollisionComponent)

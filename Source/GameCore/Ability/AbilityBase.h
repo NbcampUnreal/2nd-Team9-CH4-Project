@@ -3,12 +3,15 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "GameplayTagContainer.h" // 대부분 인라인 함수로 구현되어 있고 FGameplayTag, FGameplayTagContainer, FGameplayTagQuery 모두 포함
+#include "GameCore/Components/Hit/HitComponent.h"
 #include "GameFramework/Actor.h"
 #include "AbilityBase.generated.h"
- 
 
+
+class AFighter;
 class UAnimInstance;
 class UAnimMontage;
+struct FHitDataInfo;
 
 UCLASS(Abstract, Blueprintable)
 class GAMECORE_API UAbilityBase : public UObject
@@ -32,13 +35,13 @@ public:
 //실행해도 되는지 상태 체크 + 해당 "캐릭터"의 애니메이션 재생 + 특정 애니메이션 프레임에서 타이밍 조절, 이벤트 발생시킴, Check the status of whether you can run + the timing adjustment in the "character" animation + specific animation frame
 public:
 	UFUNCTION()
-	void Initialize(ACharacter* InOwner);
+	void Initialize();
 
 	UFUNCTION()
 	 bool CanActivate();
 	
 	UFUNCTION()
-	void Activate();
+	void Activate(AFighter* Player); //어빌리티 사용, Ability use
 
 	UFUNCTION()
 	void PlayMontage(); 
@@ -68,9 +71,14 @@ protected: //잊지말자 소프트레퍼런스
 	UAnimMontage* AbilityMontage; //재생될 애니메이션, Animation to be played
 
 	UPROPERTY()
-	ACharacter* OwnerCharacter; //들고있는게맞는가, Is it right to hold
+	AFighter* OwnerCharacter; //들고있는게맞는가, Is it right to hold
 
 	UPROPERTY()
 	bool bIsActive = false; //필요하다면 사용, Use if necessary
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
+	FHitDataInfo HitDataInfo; //히트박스 정보, Hitbox information
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
+	TSubclassOf<class AActor> HitBoxClass;
 };

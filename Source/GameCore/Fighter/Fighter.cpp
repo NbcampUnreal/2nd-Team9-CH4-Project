@@ -49,7 +49,7 @@ void AFighter::BeginPlay()
 	CurrentStandTag = "Stand";
 
 	
-	GetGameInstance()->GetSubsystem<UAbilityManager>()->InitializeManager();
+	//GetGameInstance()->GetSubsystem<UAbilityManager>()->InitializeManager();
 	//Test
 	GetGameInstance()->GetSubsystem<UAbilityManager>()->UpdateCharacter(this);
 }

@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "HitboxShape.h"
+#include "GameCore/Components/Hit/HitComponent.h"
 #include "HitBox.generated.h"
 
 UCLASS()
@@ -12,12 +13,14 @@ class GAMECORE_API AHitBox : public AActor
 	
 public:	
 	AHitBox();
-
+	
 protected:
     virtual void BeginPlay();
 	virtual void OnConstruction(const FTransform& Transform) override;
 
-public:	
+public:
+	void Init(const FHitDataInfo& HitData); 
+	
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hitbox")
     EHitboxShape HitboxShape;
 
@@ -43,4 +46,5 @@ private:
 
     void CreateHitboxShape();
 
+	FHitDataInfo HitDataInfo;
 };

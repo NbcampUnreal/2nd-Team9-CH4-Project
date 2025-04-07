@@ -1,8 +1,9 @@
 ﻿#include "AbilityBase.h"
-
-#include "GameCore/Fighter/Fighter.h"
-#include "GameFramework/Character.h"
 #include "Runtime/VerseCompiler/Public/uLang/Parser/VerseGrammar.h"
+#include "GameCore/Components/Hit/HitComponent.h"
+#include "GameCore/Fighter/Fighter.h"
+#include "GameCore/HitBox/HitBox.h"
+#include "GameFramework/Character.h"
 
 UAbilityBase::UAbilityBase()
 {
@@ -10,7 +11,7 @@ UAbilityBase::UAbilityBase()
 	OwnerCharacter = nullptr; //임시
 }
 
-void UAbilityBase::Initialize(ACharacter* InOwner)
+void UAbilityBase::Initialize()
 {
 	bIsActive = false;
 
@@ -30,27 +31,37 @@ bool UAbilityBase::CanActivate()
 	{
 		return false;
 	}
-	const FGameplayTag GameplayTag = Cast<AFighter>(OwnerCharacter)->GetGameplayTag(); // 가져오는 건 앉았는지, 좌우이동인지
-	if (BlockedTag.MatchesTag(GameplayTag)) //예를 들어, 내가 앉은 상태에서는 사용 못하는데, 너는 앉아있는 상태니? ->응 
-	{
-		return false;	//그럼 돌아가
-	}
-	if (UnqiueBlockedTags.HasTag(GameplayTag)) //예를 들어, 내가 "앉은 상태, 뒤로가기" 에서는 사용 못하는데, 너는 이중에 하나라도 포함되니? ->응
-	{
-		return false;	//그럼 돌아가
-	}
-	if (UnqiueRequiredTags.HasTag(GameplayTag)) //예를 들어, 내가 "idle , 앞으로가기" 에서만 사용 가능한데, 너는 이중에 하나라도 포함되니? ->응
-	{
-		return true;	//그럼 진행해
-	}
+	// const FGameplayTag GameplayTag = Cast<AFighter>(OwnerCharacter)->GetGameplayTag(); // 가져오는 건 앉았는지, 좌우이동인지
+	// if (BlockedTag.MatchesTag(GameplayTag)) //예를 들어, 내가 앉은 상태에서는 사용 못하는데, 너는 앉아있는 상태니? ->응 
+	// {
+	// 	return false;	//그럼 돌아가
+	// }
+	// if (UnqiueBlockedTags.HasTag(GameplayTag)) //예를 들어, 내가 "앉은 상태, 뒤로가기" 에서는 사용 못하는데, 너는 이중에 하나라도 포함되니? ->응
+	// {
+	// 	return false;	//그럼 돌아가
+	// }
+	// if (UnqiueRequiredTags.HasTag(GameplayTag)) //예를 들어, 내가 "idle , 앞으로가기" 에서만 사용 가능한데, 너는 이중에 하나라도 포함되니? ->응
+	// {
+	// 	return true;	//그럼 진행해
+	// }
 
-	return false;
+	return true;
 }
 
-void UAbilityBase::Activate()
+void UAbilityBase::Activate(AFighter* Player)
 {
+	if (!OwnerCharacter)
+	{
+		OwnerCharacter = Player;
+		Initialize();
+	}
+	
 	if(CanActivate()) //태그 체크, Tag check
 	{
+		//히트박스생성
+		//NewObject<AHitBox>(OwnerCharacter, HitBoxClass, NAME_None, RF_Transient, nullptr, false);
+		AHitBox* Instance = Cast<AHitBox>(GetWorld()->SpawnActor(HitBoxClass));
+		Instance->Init(HitDataInfo);
 		PlayMontage(); //몽타주에서 특정 프레임에 이펙트 생성 등등 이벤트
 	}
 }

@@ -1,6 +1,14 @@
 #include "AbilityManager.h"
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
+#include "GameCore/Fighter/Fighter.h"
+
+void UAbilityManager::Initialize(FSubsystemCollectionBase& Collection)
+{
+	Super::Initialize(Collection);
+	
+	InitializeManager();
+}
 
 void UAbilityManager::InitializeManager()
 {
@@ -28,7 +36,7 @@ void UAbilityManager::RequestCreateAbility(const FGameplayTag& CommandTag)
 	{
 		if (UAbilityBase* Ability = AbilityMap[*MappedTag])
 		{
-			Ability->Activate();
+			Ability->Activate(PlayerInstance.Get()); //어빌리티 활성화
 		}
 	}
 	else
@@ -93,10 +101,16 @@ void UAbilityManager::OnAbilityTableLoaded() //게임 쓰레드에서 실행됨-
 
 void UAbilityManager::UpdateCharacter(ACharacter* InOwner) //매핑이 완료되고 각 어빌리티들의 오너를 설정해줌
 {
+	PlayerInstance = Cast<AFighter>(InOwner);
+	if (!PlayerInstance.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AbilityManager : PlayerInstance is not valid!"));
+		return;
+	}
 	//OnAbilityTableLoaded() 이 완료되면 캐릭터에게 알림을 보내야함
 	//알림 받은 캐릭터거 매지저 호출하면서 this 넘겨줌
-	for (auto& it : AbilityMap)
-	{
-		it.Value->Initialize(InOwner); // player 알아야함, 몽타주아웃이벤트바인딩
-	}
+	// for (auto& it : AbilityMap)
+	// {
+	// 	it.Value->Initialize(InOwner); // player 알아야함, 몽타주아웃이벤트바인딩
+	// }
 }
