@@ -2,6 +2,7 @@
 
 #include "GameCore/Fighter/Fighter.h"
 #include "GameFramework/Character.h"
+#include "Runtime/VerseCompiler/Public/uLang/Parser/VerseGrammar.h"
 
 UAbilityBase::UAbilityBase()
 {
@@ -11,7 +12,6 @@ UAbilityBase::UAbilityBase()
 
 void UAbilityBase::Initialize(ACharacter* InOwner)
 {
-	OwnerCharacter = InOwner;
 	bIsActive = false;
 
 	if (UAnimInstance* AnimInst = OwnerCharacter->GetMesh()->GetAnimInstance())
@@ -26,17 +26,42 @@ void UAbilityBase::Initialize(ACharacter* InOwner)
 
 bool UAbilityBase::CanActivate()
 {
-	return true;
+	if (!OwnerCharacter)
+	{
+		return false;
+	}
+	const FGameplayTag GameplayTag = Cast<AFighter>(OwnerCharacter)->GetGameplayTag(); // 가져오는 건 앉았는지, 좌우이동인지
+	if (BlockedTag.MatchesTag(GameplayTag)) //예를 들어, 내가 앉은 상태에서는 사용 못하는데, 너는 앉아있는 상태니? ->응 
+	{
+		return false;	//그럼 돌아가
+	}
+	if (UnqiueBlockedTags.HasTag(GameplayTag)) //예를 들어, 내가 "앉은 상태, 뒤로가기" 에서는 사용 못하는데, 너는 이중에 하나라도 포함되니? ->응
+	{
+		return false;	//그럼 돌아가
+	}
+	if (UnqiueRequiredTags.HasTag(GameplayTag)) //예를 들어, 내가 "idle , 앞으로가기" 에서만 사용 가능한데, 너는 이중에 하나라도 포함되니? ->응
+	{
+		return true;	//그럼 진행해
+	}
+
+	return false;
 }
 
 void UAbilityBase::Activate()
 {
-	CanActivate();
-	int a= 0;
+	if(CanActivate()) //태그 체크, Tag check
+	{
+		PlayMontage(); //몽타주에서 특정 프레임에 이펙트 생성 등등 이벤트
+	}
 }
 
 void UAbilityBase::PlayMontage()
 {
+	if (AFighter* Fighter = Cast<AFighter>(OwnerCharacter))
+	{
+		Fighter->AddAttackTag();
+		Fighter->PlayAnimMontage(AbilityMontage);
+	}
 }
 
 
