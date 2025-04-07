@@ -11,16 +11,8 @@ UHitComponent::UHitComponent()
 
 	bIsHit = false;
 	LaunchThreshold = 1000.0f;
-	AccumulatedDamage = 0;
-
-	DamageScales = {
-		1.0f,
-		0.9f,
-		0.8f,
-		0.7f,
-		0.6f,
-		0.5f
-	};
+	MaxPenaltyCount = 5;
+	DamageAmplificationPercent = 0.0f;
 }
 
 void UHitComponent::ServerHit_Implementation(const FHitDataInfo& HitDataInfo)
@@ -108,47 +100,52 @@ void UHitComponent::ApplyKnockback(const FHitDataInfo& HitDataInfo)
 			CharacterMovementComponent->SetMovementMode(MOVE_Falling);
 
 			const float DamageScale = GetDamageScale(HitDataInfo.HitAbilityTagName);
-			const float KnockbackDistance = CalculateKnockbackDistance(DamageScale, HitDataInfo.HitDamageAmount);
+			const float KnockbackDistance = CalculateKnockbackDistance(DamageScale, HitDataInfo.HitDamageAmount.KnockbackAmount);
 
 			if (KnockbackDistance > LaunchThreshold)
 			{
 				// TODO 캐릭터 상태 launch로 설정
 			}
 
-			const FVector LaunchVector = CalculateLaunchVector(HitDataInfo.HitDirection.HitAngle, KnockbackDistance);
+			// TODO 정해둔 각도 이내의 공격이 들어오면 아래 방향으로 각도 고정
+			
+			const FVector LaunchVector = CalculateLaunchVector(HitDataInfo.HitDirection, KnockbackDistance);
 			const bool bIsFalling = CharacterMovementComponent->IsFalling();
 			OwnerCharacter->LaunchCharacter(LaunchVector, bIsFalling, bIsFalling);
 
 			// TODO FloorBounce
 
 			LastHitAbilityTagNameArray.AddHitAbilityTagName(HitDataInfo.HitAbilityTagName);
-			AccumulatedDamage += HitDataInfo.HitDamageAmount.HitDamageAmount;
+			DamageAmplificationPercent += HitDataInfo.HitDamageAmount.HitDamageAmount * DamageScale;
 		}
 	}
 }
 
-float UHitComponent::CalculateKnockbackDistance(const float DamageScale, const FHitDamageAmount& HitDamageAmount) const
+float UHitComponent::CalculateKnockbackDistance(const float DamageScale, const float KnockbackAmount) const
 {
-	float KnockbackDistance = HitDamageAmount.KnockbackAmount;
+	const float DamageAmplification = DamageAmplificationPercent / 100.0f + 1.0f;
+	const float KnockbackDistance = KnockbackAmount * DamageScale * DamageAmplification;
 
-	KnockbackDistance += DamageScale * (AccumulatedDamage * (2 + HitDamageAmount.HitDamageAmount)) / 20.0f;
-
-	UKismetSystemLibrary::PrintString(GetOwner(), FString::Printf(TEXT("Knockback Distance: %.2f"), KnockbackDistance));
-
+	// UKismetSystemLibrary::PrintString(GetOwner(), FString::Printf(TEXT("KnockbackAmount: %.2f"), KnockbackAmount));
+	// UKismetSystemLibrary::PrintString(GetOwner(), FString::Printf(TEXT("DamageScale: %.2f"), DamageScale));
+	// UKismetSystemLibrary::PrintString(GetOwner(), FString::Printf(TEXT("DamageAmplification: %.2f"), DamageAmplification));
+	// UKismetSystemLibrary::PrintString(GetOwner(), FString::Printf(TEXT("Knockback Distance: %.2f"), KnockbackDistance));
+	
 	return KnockbackDistance;
 }
 
-FVector UHitComponent::CalculateLaunchVector(const float HitAngle, const float KnockbackDistance)
+FVector UHitComponent::CalculateLaunchVector(const FHitDirection& HitDirection, const float KnockbackDistance)
 {
-	const FRotator HitAngleRotator = FRotator(0.0f, 0.0f, FMath::Abs(180 - HitAngle));
-	FVector LaunchVectorFromHitAngle = UKismetMathLibrary::GetRightVector(HitAngleRotator).GetSafeNormal();
+	const float KnockbackDirection = HitDirection.bIsRight ? -1.0f : 1.0f;
+	const FRotator HitAngleRotator = FRotator((90.0f - HitDirection.HitAngle) * KnockbackDirection, 0.0f, 0.0f);
+	FVector LaunchVectorFromHitAngle = UKismetMathLibrary::GetUpVector(HitAngleRotator).GetSafeNormal();
 
 	LaunchVectorFromHitAngle *= KnockbackDistance;
 
 	return LaunchVectorFromHitAngle;
 }
 
-float UHitComponent::GetDamageScale(const FName InHitAbilityTagName)
+float UHitComponent::GetDamageScale(const FName InHitAbilityTagName) const
 {
 	// One Pattern Penalty
 	int32 PenaltyCount = 0;
@@ -160,11 +157,11 @@ float UHitComponent::GetDamageScale(const FName InHitAbilityTagName)
 		}
 	}
 
-	PenaltyCount = FMath::Min(PenaltyCount, DamageScales.Num() - 1);
+	PenaltyCount = FMath::Min(PenaltyCount, MaxPenaltyCount);
 
 	UKismetSystemLibrary::PrintString(GetOwner(), FString::Printf(TEXT("PenaltyCount: %d"), PenaltyCount));
-
-	return DamageScales[PenaltyCount];
+	
+	return PenaltyCount == 0.0f ? 1.0f : FMath::Pow(0.88f, PenaltyCount);
 }
 
 void UHitComponent::FloorBounce()
