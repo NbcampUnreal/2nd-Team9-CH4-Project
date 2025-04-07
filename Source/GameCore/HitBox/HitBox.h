@@ -14,6 +14,7 @@ public:
 	AHitBox();
 
 protected:
+    virtual void BeginPlay();
 	virtual void OnConstruction(const FTransform& Transform) override;
 
 public:	
@@ -31,6 +32,10 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hitbox")
     float CapsuleHalfHeight = 88.f;
+
+    UFUNCTION()
+    void OnHitBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+        UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 private:
     UPROPERTY()
