@@ -22,8 +22,10 @@ bool UTestFireball::CanActivate()
 	{
 		return false;
 	}
+	
 	const FGameplayTagContainer& PlayerTagContainer = Cast<AFighter>(OwnerCharacter)->GetCurrentTags(); // 혹은 상태별로 가지는 태그, 플레이어에서 함수 만들기, create a function in a tag, a player
 	return PlayerTagContainer.HasAny(UnqiueRequiredTags); //어빌리티가 필요한 태그를 가지고 있는지, 필요에 따라서 자식에서 부분만족 등 조건 변경, Whether you have a tag that requires Ability, or changes the conditions for partial satisfaction in your child as needed
+	
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 }
 

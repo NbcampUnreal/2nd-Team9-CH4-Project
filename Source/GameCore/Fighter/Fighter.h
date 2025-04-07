@@ -72,6 +72,7 @@ private:
 	static FGameplayTag AttackTag;
 	static FGameplayTag BaseTag;
 	static FGameplayTag JumpTag;
+	
 	FString CurrentStandTag;
 	
 	FGameplayTag CurrentPlayerTag;

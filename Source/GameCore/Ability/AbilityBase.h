@@ -59,9 +59,7 @@ protected: //잊지말자 소프트레퍼런스
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tags")
 	FGameplayTagContainer CommonBlockedTags; // 어빌리티가 절대 발동되지 않는 공통의 태그들(스턴,죽음...), Common tags that absolute abilities (stun, death ...)
-
 	
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
 	UAnimMontage* AbilityMontage; //재생될 애니메이션, Animation to be played
 
