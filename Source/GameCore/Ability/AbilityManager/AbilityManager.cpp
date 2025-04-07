@@ -2,7 +2,7 @@
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
 
-void UAbilityManager::Initialize()
+void UAbilityManager::InitializeManager()
 {
 	//DT
 	AbilityDataTable = TSoftObjectPtr<UDataTable>(FSoftObjectPath(TEXT("/Game/Data/DT_Ability.DT_Ability"))); //경로만 지정됨, 로드x

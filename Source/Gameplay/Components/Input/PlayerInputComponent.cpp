@@ -114,7 +114,8 @@ void UPlayerInputComponent::AttackInput(const FInputActionValue& InputValue, con
 			UE_LOG(LogTemp, Warning, TEXT("Command Matching!!: %s"), *Row->CommandName.ToString());
 			
 			//Test
-			GetGameInstance()->GetSubsystem<UAbilityManager>()->RequestCreateAbility(Row->CommandName);
+			GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->RequestCreateAbility(Row->CommandName);
+			
 			return;
 		}
 	}

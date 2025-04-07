@@ -12,7 +12,7 @@ class GAMECORE_API UAbilityManager : public UGameInstanceSubsystem
 	GENERATED_BODY()
 	
 public:
-	void Initialize(); // 선택된 직업의 어빌리티들 생성, Create the ability of the selected job
+	void InitializeManager(); // 선택된 직업의 어빌리티들 생성, Create the ability of the selected job
 	void RequestCreateAbility(const FGameplayTag& CommandTag); //들어오는건 컨맨드태그
 	void OnAbilityTableLoaded();
 

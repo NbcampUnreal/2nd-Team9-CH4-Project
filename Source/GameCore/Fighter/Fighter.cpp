@@ -31,7 +31,7 @@ AFighter::AFighter()
 	GetCharacterMovement()->MaxWalkSpeed = 600.0f;
 
 	//Test
-	GetGameInstance()->GetSubsystem<UAbilityManager>()->Initialize();
+	
 }
 
 void AFighter::BeginPlay()
@@ -47,7 +47,9 @@ void AFighter::BeginPlay()
 
 	CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.Base.Stand.Idle"));
 	CurrentStandTag = "Stand";
+
 	
+	GetGameInstance()->GetSubsystem<UAbilityManager>()->InitializeManager();
 	//Test
 	GetGameInstance()->GetSubsystem<UAbilityManager>()->UpdateCharacter(this);
 }
