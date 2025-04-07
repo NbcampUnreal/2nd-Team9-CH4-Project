@@ -33,6 +33,7 @@ protected: /* Command Input */
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input")
 	TArray<FInputBufferEntry>	MoveInputBuffer;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Command")
 	TSoftObjectPtr<UDataTable>	CommandTable;
 	TArray<FCommandRow*>		CommandRows;
@@ -56,6 +57,9 @@ private: /* Key Input */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* JumpAction{ nullptr };
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* CrouchAction{ nullptr };
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* WeakAttackAction{ nullptr };
 

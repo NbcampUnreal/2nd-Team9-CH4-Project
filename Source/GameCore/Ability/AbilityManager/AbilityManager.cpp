@@ -27,58 +27,106 @@ UAbilityManager* UAbilityManager::GetInstance()
 	}
 	return Instance;
 }
-
 void UAbilityManager::Initialize(ACharacter* InOwner)
 {
-	//스킬 객체들 생성
 	static const FString ContextString(TEXT("AbilityManager::Initialize"));
-	if (AbilityDataTable.IsValid())
+	const UDataTable* Table = AbilityDataTable.LoadSynchronous();
+	
+	TArray<FAbilityRow*> Rows;
+	Table->GetAllRows<FAbilityRow>(ContextString, Rows);
+
+	FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
+	for (const FAbilityRow* Row : Rows)
 	{
-		TArray<FAbilityRow*> AbilityRows;
-		AbilityDataTable->GetAllRows(ContextString, AbilityRows);
-		for (auto& Ability : AbilityRows)
+		FGameplayTag AbilityTag = Row->AbilityTag;
+		TSoftClassPtr<UAbilityBase> ClassTag = Row->ClassTag;
+
+		if (!ClassTag.ToSoftObjectPath().IsValid())
 		{
-			FGameplayTag SkillTag = Ability->AbilityTag;
-			
-			FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
-			
-			Streamable.RequestAsyncLoad(
-						Ability->ClassTag.ToSoftObjectPath(),
-			FStreamableDelegate::CreateLambda
-					([=,this]()
-						{
-							UClass* LoadedClass = Ability->ClassTag.Get();
-							if (LoadedClass)
-							{
-								UAbilityBase* Instance = NewObject<UAbilityBase>(LoadedClass); // 여기 수정 -> 결국은 모든 태그마다 cast 하드코딩 개오반데
-								AbilityMap.Add(SkillTag, Instance);
-								Instance->Initialize(InOwner);
-							}
-						}
-					)
-			);
+			UE_LOG(LogTemp, Warning, TEXT("AbilityManager ClassTag is not valid! : %s"), *ClassTag.ToString());
+			continue;
 		}
-			
+
+		Streamable.RequestAsyncLoad(ClassTag.ToSoftObjectPath(),
+		FStreamableDelegate::CreateLambda([this, AbilityTag, InOwner, ClassTag]()
+		{
+			UClass* LoadedClass = ClassTag.Get();
+			if (!LoadedClass || !LoadedClass->IsChildOf(UAbilityBase::StaticClass()))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("AbilityManager : Loaded failed : %s"), *AbilityTag.ToString());
+				return;
+			}
+
+			UAbilityBase* Instance = NewObject<UAbilityBase>(this, LoadedClass);
+			if (!Instance)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("AbilityManager : NewObject failed : %s"), *AbilityTag.ToString());
+				return;
+			}
+
+			AbilityMap.Add(AbilityTag, Instance);
+			Instance->Initialize(InOwner);
+		}));
 	}
 }
 
+// void UAbilityManager::Initialize(ACharacter* InOwner)
+// {
+// 	//스킬 객체들 생성
+// 	static const FString ContextString(TEXT("AbilityManager::Initialize"));
+// 	if (AbilityDataTable.ToSoftObjectPath().IsValid())
+// 	{
+// 		TArray<FAbilityRow*> AbilityRows;
+// 		AbilityDataTable->GetAllRows(ContextString, AbilityRows);
+// 		for (auto& Ability : AbilityRows)
+// 		{
+// 			FGameplayTag SkillTag = Ability->AbilityTag;
+// 			
+// 			FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
+// 			
+// 			Streamable.RequestAsyncLoad(
+// 						Ability->ClassTag.ToSoftObjectPath(),
+// 			FStreamableDelegate::CreateLambda
+// 					([=,this]()
+// 						{
+// 							UClass* LoadedClass = Ability->ClassTag.Get();
+// 							if (LoadedClass)
+// 							{
+// 								UAbilityBase* Instance = NewObject<UAbilityBase>(LoadedClass); // 여기 수정 -> 결국은 모든 태그마다 cast 하드코딩 개오반데
+// 								AbilityMap.Add(SkillTag, Instance);
+// 								Instance->Initialize(InOwner);
+// 							}
+// 						}
+// 					)
+// 			);
+// 		}
+// 			
+// 	}
+// }
+
 void UAbilityManager::RequestCreateAbility(const FGameplayTag& CommandTag)
 {
+/* 임시로 뭐 들어있는지 확인할려고 작성함 */
+#if !UE_BUILD_SHIPPING
+	TArray<FGameplayTag> AbilityMapTags;
+	AbilityMap.GetKeys(AbilityMapTags);
+#endif
+	
 	//요청받은 어빌리티 객체의 Activate() 호출, Activate () call from the requested abilities object
 
 	//컨맨드태그를 직업별스킬태그로 찾아서
-
-	if (CommandTagMap.Find(CommandTag) != nullptr)
+	const FGameplayTag* MappedTag = CommandTagMap.Find(CommandTag);
+	if (MappedTag && AbilityMap.Contains(*MappedTag))
 	{
-		//애니메이션 재생 확인을 위한 임시코드
-		if (UTestFireball* Fireball = Cast<UTestFireball>(AbilityMap[CommandTagMap[CommandTag]]))
+		if (UAbilityBase* Ability = AbilityMap[*MappedTag])
 		{
-			Fireball->Activate();
+			Ability->Activate();
 		}
-		//AbilityMap[CommandTagMap[CommandTag]]->Activate(); //어빌리티베이스지만 자식어빌리티
 	}
-
-	
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AbilityMap does not have a key : %s"), *CommandTag.ToString());
+	}
 }
 
 void UAbilityManager::OnAbilityTableLoaded() //게임 쓰레드에서 실행됨->안전한 객체 생성, 로직처리
@@ -90,7 +138,7 @@ void UAbilityManager::OnAbilityTableLoaded() //게임 쓰레드에서 실행됨-
 		TArray<FAbilityRow*> AbilityRows;
 		AbilityDataTable->GetAllRows(ContextString, AbilityRows);
 
-			for (auto& Ability : AbilityRows)
+			for (const auto& Ability : AbilityRows)
 			{
 				FGameplayTag SkillTag = Ability->AbilityTag;
 				FGameplayTag CommandTag = Ability->CommandTag;

@@ -29,6 +29,14 @@ bool UTestFireball::CanActivate()
 
 void UTestFireball::Activate()
 {
+	/* 애니메이션 실행 테스트*/
+	PlayMontage();
+	if (AFighter* Fighter = Cast<AFighter>(OwnerCharacter))
+	{
+		Fighter->AddAttackTag();
+	}
+	
+	
 	if(CanActivate()) //태그 체크, Tag check
 	{
 		PlayMontage(); //몽타주에서 특정 프레임에 이펙트 생성 등등 이벤트

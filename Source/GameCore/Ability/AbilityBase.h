@@ -46,6 +46,10 @@ public:
 	UFUNCTION()
 	virtual void OnAbilityFinished(); //어빌리티 사용이 끝나면 사용한 변수들 초기화, Initialization of variables used after the use of abilities
 	
+	UFUNCTION()
+	void OnMontageEnd(UAnimMontage* Montage, bool bInterrupted);
+	UFUNCTION()
+	void OnMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);
 protected: //잊지말자 소프트레퍼런스
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tags")
 	FGameplayTagContainer UnqiueRequiredTags; //각 어빌리티 발동에 필요한 태그들, 아마 플레이어 상태 태그들(지상, 도발, 필살기...),Tags needed for each Ability trigger, maybe player state tags (ground, provocation, killing ...)

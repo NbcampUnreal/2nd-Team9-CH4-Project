@@ -9,6 +9,10 @@
 //Test
 #include "GameCore/Ability/AbilityManager/AbilityManager.h"
 
+FGameplayTag AFighter::AttackTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Attack"));
+FGameplayTag AFighter::BaseTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base"));
+FGameplayTag AFighter::JumpTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Jump"));
+
 AFighter::AFighter()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -37,7 +41,9 @@ void AFighter::BeginPlay()
 		Delegate.BindUObject(this, &AFighter::ImSleepy);
 		MessageBus->Subscribe(TEXT("Test1"), Delegate);
 	}
-	
+
+	CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.Base.Stand.Idle"));
+	CurrentStandTag = "Stand";
 	//Test
 	UAbilityManager::GetInstance()->Initialize(this);
 }
@@ -45,6 +51,12 @@ void AFighter::BeginPlay()
 void AFighter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	
+	if (!AbilityTagContainer.HasTag(AttackTag) && CurrentPlayerTag != JumpTag)
+	{
+		CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("PlayerState.Base.%s.Idle"), *CurrentStandTag)));
+	}
 }
 
 void AFighter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -71,21 +83,54 @@ void AFighter::IWantToSleep() const
 
 void AFighter::Move(const FInputActionValue& InputValue)
 {
-	/* Allowed only when the State is not Attack
-	 * if(PlayerState == EPlayerState::Attack)
-	 * {
-	 * 		return;
-	 * };
-	*/
+	/* 공격중에 실제 이동을 처리할건지는 나중에 판단 */
+	if (AbilityTagContainer.HasTag(AttackTag))
+	{
+		return;
+	}
 	
 	const FVector2D MovementVector = InputValue.Get<FVector2D>();
-
 	AddMovementInput(FVector(1.0f, 0.0f, 0.0f), MovementVector.X);
+
+	/* 점프중에는 이동은 하지만 애니메이션은 처리 X */
+	if (CurrentPlayerTag == JumpTag)
+	{
+		return;
+	}
+	
+	CurrentStandTag = "Stand";
+	if (MovementVector.Y < 0.0f)
+	{
+		CurrentStandTag = "Crouch";
+	}
+
+	FString MoveTag = "Idle";
+	if (MovementVector.X > 0.0f)
+	{
+		MoveTag = "WalkForward";
+	}
+	else if (MovementVector.X < 0.0f)
+	{
+		MoveTag = "WalkBackward";
+	}
+	
+	CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("PlayerState.Base.%s.%s"), *CurrentStandTag, *MoveTag)));
 }
 
 void AFighter::StartJump(const FInputActionValue& InputValue)
 {
-	
+	CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.Base.Jump"));
 	Jump();
 }
 
+void AFighter::SetChangeStandTag()
+{
+	if (CurrentStandTag == "Stand")
+	{
+		CurrentStandTag = "Crouch";
+	}
+	else
+	{
+		CurrentStandTag = "Stand";
+	}
+}

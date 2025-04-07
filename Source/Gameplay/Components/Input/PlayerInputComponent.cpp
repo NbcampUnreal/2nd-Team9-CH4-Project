@@ -30,16 +30,15 @@ void UPlayerInputComponent::BeginPlay()
 		}
 	}
 
-	if (CommandTable)
+	if (CommandTable.ToSoftObjectPath().IsValid())
 	{
-		if (const UDataTable* CommandDataTable = CommandTable.LoadSynchronous())
+		if (const UDataTable* Table = CommandTable.LoadSynchronous())
 		{
 			const FString ContextString(TEXT("Command Table AttackInput"));
-			CommandDataTable->GetAllRows<FCommandRow>(ContextString, CommandRows);	
+			Table->GetAllRows<FCommandRow>(ContextString, CommandRows);
 		}
 	}
 }
-
 
 void UPlayerInputComponent::TickComponent(float DeltaTime, ELevelTick TickType,
                                           FActorComponentTickFunction* ThisTickFunction)
@@ -185,6 +184,7 @@ void UPlayerInputComponent::BindActions(const ASSBPlayerController* PlayerContro
 			InputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &UPlayerInputComponent::MoveInput);
 			InputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, Player.Get(), &AFighter::Move);
 			InputComponent->BindAction(JumpAction, ETriggerEvent::Started, Player.Get(), &AFighter::StartJump);
+			InputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, Player.Get(), &AFighter::SetChangeStandTag);
 			
 			InputComponent->BindAction(WeakAttackAction, ETriggerEvent::Started, this, &UPlayerInputComponent::OnWeakAttack);
 			InputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Started, this, &UPlayerInputComponent::OnHeavyAttack);
