@@ -14,4 +14,19 @@ class GAMEUI_API ASSBHUD : public AHUD
 {
 	GENERATED_BODY()
 
+public:
+	virtual void BeginPlay() override;
+
+
+private:
+
+	UFUNCTION(BlueprintCallable)
+	void LoadUI();
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UTitleWidget> TitleWidgetClass;
+
+	UPROPERTY(EditAnywhere)
+	TSoftObjectPtr<UWorld> MainLevel;
+
 };
