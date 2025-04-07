@@ -9,7 +9,10 @@ public class GameUI : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
+                
                 "Core",
+                "InputCore",
+                "UMG"
             }
         );
 
