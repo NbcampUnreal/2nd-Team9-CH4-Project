@@ -133,7 +133,7 @@ private:
 	float CalculateKnockbackDistance(const float DamageScale, const float KnockbackAmount) const;
 	static FVector CalculateLaunchVector(const FHitDirection& HitDirection, const float KnockbackDistance);
 
-	float GetDamageScale(const FName InHitAbilityTagName);
+	float GetDamageScale(const FName InHitAbilityTagName) const;
 
 	void FloorBounce();
 
@@ -144,9 +144,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category="HitComponents")
 	FLastHitAbilityTagNameArray LastHitAbilityTagNameArray;
-	UPROPERTY(EditDefaultsOnly, Category="HitComponents")
-	TArray<float> DamageScales;
-	UPROPERTY(VisibleAnywhere, Category="HitComponents")
+	UPROPERTY(EditDefaultsOnly, Category="HitComponents", meta=(ClampMin="0", ClampMax="9.0"))
+	int32 MaxPenaltyCount;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="HitComponents", meta=(AllowPrivateAccess=true))
 	float DamageAmplificationPercent;
 
 	TSubclassOf<UUserWidget> UserWidgetClass;
