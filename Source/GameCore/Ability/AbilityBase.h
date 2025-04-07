@@ -32,35 +32,37 @@ public:
 //실행해도 되는지 상태 체크 + 해당 "캐릭터"의 애니메이션 재생 + 특정 애니메이션 프레임에서 타이밍 조절, 이벤트 발생시킴, Check the status of whether you can run + the timing adjustment in the "character" animation + specific animation frame
 public:
 	UFUNCTION()
-	virtual void Initialize(ACharacter* InOwner);
+	void Initialize(ACharacter* InOwner);
 
 	UFUNCTION()
-	virtual bool CanActivate();
+	 bool CanActivate();
 	
 	UFUNCTION()
-	virtual void Activate();
+	void Activate();
 
 	UFUNCTION()
-	virtual void PlayMontage(); 
+	void PlayMontage(); 
 
 	UFUNCTION()
-	virtual void OnAbilityFinished(); //어빌리티 사용이 끝나면 사용한 변수들 초기화, Initialization of variables used after the use of abilities
+	void OnAbilityFinished(); //어빌리티 사용이 끝나면 사용한 변수들 초기화, Initialization of variables used after the use of abilities
 	
 	UFUNCTION()
 	void OnMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 	UFUNCTION()
 	void OnMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);
+	
 protected: //잊지말자 소프트레퍼런스
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tags")
 	FGameplayTagContainer UnqiueRequiredTags; //각 어빌리티 발동에 필요한 태그들, 아마 플레이어 상태 태그들(지상, 도발, 필살기...),Tags needed for each Ability trigger, maybe player state tags (ground, provocation, killing ...)
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tags")
-	FGameplayTagContainer UnqiueBlockedTags; // 각 어빌리티가 고유하게 발동되지 않는 태그들, Tags that are not inherently triggered by each Ability
+	FGameplayTagContainer UnqiueBlockedTags;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tags")
-	FGameplayTagContainer CommonBlockedTags; // 어빌리티가 절대 발동되지 않는 공통의 태그들(스턴,죽음...), Common tags that absolute abilities (stun, death ...)
-
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tag")
+	FGameplayTag BlockedTag;
+	//태그 컨테이너 세개씩이나 필요없이
+	//태그 하나로 지상, 공중, 앉기 조건 걸어서 판단해도 충분할거같다.
+	//어빌리티가 절대 발동되지 않는 공통의 태그들(스턴,죽음...) ->이런 애들은 게임스테이트나 다른데서 처리
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
 	UAnimMontage* AbilityMontage; //재생될 애니메이션, Animation to be played
@@ -71,5 +73,4 @@ protected: //잊지말자 소프트레퍼런스
 	UPROPERTY()
 	bool bIsActive = false; //필요하다면 사용, Use if necessary
 
-	//히트박스 구조체? 변수 추가, 데이터데이블에 추가는 하지 않고 멤버변수로 관리, Hitbox structure? Add variables, management as a member variable without adding it to the data day.
 };

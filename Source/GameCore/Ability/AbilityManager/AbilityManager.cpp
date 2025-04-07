@@ -1,108 +1,16 @@
 #include "AbilityManager.h"
-#include "AbilityManager.h"
-
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
-#include "GameCore/Ability/TestFireball.h"
 
-
-UAbilityManager* UAbilityManager::GetInstance()
+void UAbilityManager::Initialize()
 {
-	static UAbilityManager* Instance = NewObject<UAbilityManager>();
-	if (Instance && !Instance->IsRooted())
-	{
-		Instance->AddToRoot();
-		//DT
-		Instance->AbilityDataTable = TSoftObjectPtr<UDataTable>(FSoftObjectPath(TEXT("/Game/Data/DT_Ability.DT_Ability"))); //경로만 지정됨, 로드x
-
-		//질문
-		//지금은 DT가 하나지만 캐릭터 수만큼 늘어날텐데 그럼 결국 캐릭터 직업태그를 인자로 받던가 하고 캐릭터에서 매니저를 생성할텐데
-		//캐릭터는 처음부터 모든 스킬 사용가능한데 약참조, 비동기 하는 의미가 있나? -> 어차피 한번에 로드되어야 하지 않나?
-		//이 목적이 아닌가???????
-		
-		FStreamableManager& Streamable = UAssetManager::GetStreamableManager(); //로드 시작
-		Streamable.RequestAsyncLoad(
-			Instance->AbilityDataTable.ToSoftObjectPath(),
-			FStreamableDelegate::CreateUObject(Instance, &UAbilityManager::OnAbilityTableLoaded)); 
-	}
-	return Instance;
+	//DT
+	AbilityDataTable = TSoftObjectPtr<UDataTable>(FSoftObjectPath(TEXT("/Game/Data/DT_Ability.DT_Ability"))); //경로만 지정됨, 로드x
+	FStreamableManager& Streamable = UAssetManager::GetStreamableManager(); //로드 시작
+	Streamable.RequestAsyncLoad(
+		AbilityDataTable.ToSoftObjectPath(),
+		FStreamableDelegate::CreateUObject(this, &UAbilityManager::OnAbilityTableLoaded));
 }
-void UAbilityManager::Initialize(ACharacter* InOwner)
-{
-	static const FString ContextString(TEXT("AbilityManager::Initialize"));
-	const UDataTable* Table = AbilityDataTable.LoadSynchronous();
-	
-	TArray<FAbilityRow*> Rows;
-	Table->GetAllRows<FAbilityRow>(ContextString, Rows);
-
-	FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
-	for (const FAbilityRow* Row : Rows)
-	{
-		FGameplayTag AbilityTag = Row->AbilityTag;
-		TSoftClassPtr<UAbilityBase> ClassTag = Row->ClassTag;
-
-		if (!ClassTag.ToSoftObjectPath().IsValid())
-		{
-			UE_LOG(LogTemp, Warning, TEXT("AbilityManager ClassTag is not valid! : %s"), *ClassTag.ToString());
-			continue;
-		}
-
-		Streamable.RequestAsyncLoad(ClassTag.ToSoftObjectPath(),
-		FStreamableDelegate::CreateLambda([this, AbilityTag, InOwner, ClassTag]()
-		{
-			UClass* LoadedClass = ClassTag.Get();
-			if (!LoadedClass || !LoadedClass->IsChildOf(UAbilityBase::StaticClass()))
-			{
-				UE_LOG(LogTemp, Warning, TEXT("AbilityManager : Loaded failed : %s"), *AbilityTag.ToString());
-				return;
-			}
-
-			UAbilityBase* Instance = NewObject<UAbilityBase>(this, LoadedClass);
-			if (!Instance)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("AbilityManager : NewObject failed : %s"), *AbilityTag.ToString());
-				return;
-			}
-
-			AbilityMap.Add(AbilityTag, Instance);
-			Instance->Initialize(InOwner);
-		}));
-	}
-}
-
-// void UAbilityManager::Initialize(ACharacter* InOwner)
-// {
-// 	//스킬 객체들 생성
-// 	static const FString ContextString(TEXT("AbilityManager::Initialize"));
-// 	if (AbilityDataTable.ToSoftObjectPath().IsValid())
-// 	{
-// 		TArray<FAbilityRow*> AbilityRows;
-// 		AbilityDataTable->GetAllRows(ContextString, AbilityRows);
-// 		for (auto& Ability : AbilityRows)
-// 		{
-// 			FGameplayTag SkillTag = Ability->AbilityTag;
-// 			
-// 			FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
-// 			
-// 			Streamable.RequestAsyncLoad(
-// 						Ability->ClassTag.ToSoftObjectPath(),
-// 			FStreamableDelegate::CreateLambda
-// 					([=,this]()
-// 						{
-// 							UClass* LoadedClass = Ability->ClassTag.Get();
-// 							if (LoadedClass)
-// 							{
-// 								UAbilityBase* Instance = NewObject<UAbilityBase>(LoadedClass); // 여기 수정 -> 결국은 모든 태그마다 cast 하드코딩 개오반데
-// 								AbilityMap.Add(SkillTag, Instance);
-// 								Instance->Initialize(InOwner);
-// 							}
-// 						}
-// 					)
-// 			);
-// 		}
-// 			
-// 	}
-// }
 
 void UAbilityManager::RequestCreateAbility(const FGameplayTag& CommandTag)
 {
@@ -144,5 +52,51 @@ void UAbilityManager::OnAbilityTableLoaded() //게임 쓰레드에서 실행됨-
 				FGameplayTag CommandTag = Ability->CommandTag;
 				CommandTagMap.Add(CommandTag,SkillTag);
 			}
+	}
+
+	TArray<FAbilityRow*> Rows;
+	AbilityDataTable->GetAllRows<FAbilityRow>(ContextString, Rows);
+	FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
+	
+	for (const FAbilityRow* Row : Rows)
+	{
+		FGameplayTag AbilityTag = Row->AbilityTag;
+		TSoftClassPtr<UAbilityBase> ClassTag = Row->ClassTag;
+
+		if (!ClassTag.ToSoftObjectPath().IsValid())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("AbilityManager ClassTag is not valid! : %s"), *ClassTag.ToString());
+			continue;
+		}
+
+		Streamable.RequestAsyncLoad(ClassTag.ToSoftObjectPath(),
+		FStreamableDelegate::CreateLambda([this, AbilityTag, ClassTag]()
+		{
+			UClass* LoadedClass = ClassTag.Get();
+			if (!LoadedClass || !LoadedClass->IsChildOf(UAbilityBase::StaticClass()))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("AbilityManager : Loaded failed : %s"), *AbilityTag.ToString());
+				return;
+			}
+
+			UAbilityBase* Instance = NewObject<UAbilityBase>(this, LoadedClass);
+			if (!Instance)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("AbilityManager : NewObject failed : %s"), *AbilityTag.ToString());
+				return;
+			}
+
+			AbilityMap.Add(AbilityTag, Instance);
+		}));
+	}
+}
+
+void UAbilityManager::UpdateCharacter(ACharacter* InOwner) //매핑이 완료되고 각 어빌리티들의 오너를 설정해줌
+{
+	//OnAbilityTableLoaded() 이 완료되면 캐릭터에게 알림을 보내야함
+	//알림 받은 캐릭터거 매지저 호출하면서 this 넘겨줌
+	for (auto& it : AbilityMap)
+	{
+		it.Value->Initialize(InOwner); // player 알아야함, 몽타주아웃이벤트바인딩
 	}
 }

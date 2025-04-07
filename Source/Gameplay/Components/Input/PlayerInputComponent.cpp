@@ -7,8 +7,8 @@
 #include "EnhancedInputComponent.h"
 #include "GameCore/Ability/AbilityManager/AbilityManager.h"
 #include "InputActionValue.h"
-#include "GameCore/Ability/AbilityManager/AbilityManager.h"
 #include "Gameplay/Defines/InputBuffer/InputBufferEntry.h"
+#include "Subsystems/GameInstanceSubsystem.h"
 
 UPlayerInputComponent::UPlayerInputComponent()
 {
@@ -112,7 +112,9 @@ void UPlayerInputComponent::AttackInput(const FInputActionValue& InputValue, con
 		if (bMatch)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Command Matching!!: %s"), *Row->CommandName.ToString());
-			UAbilityManager::GetInstance()->RequestCreateAbility(Row->CommandName);
+			
+			//Test
+			GetGameInstance()->GetSubsystem<UAbilityManager>()->RequestCreateAbility(Row->CommandName);
 			return;
 		}
 	}

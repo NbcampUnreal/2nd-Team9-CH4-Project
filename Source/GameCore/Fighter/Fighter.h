@@ -74,10 +74,10 @@ private:
 	static FGameplayTag JumpTag;
 	FString CurrentStandTag;
 	
-	FGameplayTag CurrentPlayerTag;
+	FGameplayTag CurrentPlayerTag; //로코모션담김
 	//jh Test
 public:
-	FGameplayTagContainer AbilityTagContainer;
+	FGameplayTagContainer AbilityTagContainer; //공격중인지, 인트로중인지 태그
 	UFUNCTION(BlueprintCallable)
-	FGameplayTagContainer& GetCurrentTags() { return AbilityTagContainer; }
+	FGameplayTagContainer& GetCurrentTags();
 };

@@ -6,8 +6,8 @@
 #include "GameFramework/PlayerState.h"
 #include "Camera/CameraComponent.h"
 #include "InputActionValue.h"
-//Test
 #include "GameCore/Ability/AbilityManager/AbilityManager.h"
+
 
 FGameplayTag AFighter::AttackTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Attack"));
 FGameplayTag AFighter::BaseTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base"));
@@ -29,6 +29,9 @@ AFighter::AFighter()
 	Camera->SetFieldOfView(40.0f);
 	
 	GetCharacterMovement()->MaxWalkSpeed = 600.0f;
+
+	//Test
+	GetGameInstance()->GetSubsystem<UAbilityManager>()->Initialize();
 }
 
 void AFighter::BeginPlay()
@@ -44,8 +47,9 @@ void AFighter::BeginPlay()
 
 	CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.Base.Stand.Idle"));
 	CurrentStandTag = "Stand";
+	
 	//Test
-	UAbilityManager::GetInstance()->Initialize(this);
+	GetGameInstance()->GetSubsystem<UAbilityManager>()->UpdateCharacter(this);
 }
 
 void AFighter::Tick(float DeltaTime)
@@ -133,4 +137,9 @@ void AFighter::SetChangeStandTag()
 	{
 		CurrentStandTag = "Stand";
 	}
+}
+
+FGameplayTagContainer& AFighter::GetCurrentTags()
+{
+	 return AbilityTagContainer; 
 }
