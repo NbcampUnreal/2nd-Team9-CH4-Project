@@ -63,6 +63,11 @@ void UAbilityManager::OnAbilityTableLoaded() //게임 쓰레드에서 실행됨-
 	}
 
 	TArray<FAbilityRow*> Rows;
+	if (AbilityDataTable.IsNull())
+	{
+		ensureAlways(false); //한번더검증해
+		return;
+	}
 	AbilityDataTable->GetAllRows<FAbilityRow>(ContextString, Rows);
 	FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
 	

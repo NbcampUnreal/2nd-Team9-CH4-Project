@@ -71,7 +71,8 @@ void UAbilityBase::PlayMontage()
 	if (AFighter* Fighter = Cast<AFighter>(OwnerCharacter))
 	{
 		Fighter->AddAttackTag();
-		Fighter->PlayAnimMontage(AbilityMontage);
+		int32 Random = FMath::RandRange(0,AbilityMontage.Num()-1);
+		Fighter->PlayAnimMontage(AbilityMontage[Random]);
 	}
 }
 

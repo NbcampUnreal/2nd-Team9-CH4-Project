@@ -22,7 +22,7 @@ public:
 	void UpdateCharacter(ACharacter* InOwner);
 	
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AbilityTags")
+	UPROPERTY()
 	TSoftObjectPtr<UDataTable> AbilityDataTable;
 	
 	UPROPERTY()

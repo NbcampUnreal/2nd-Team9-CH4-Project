@@ -68,7 +68,7 @@ protected: //잊지말자 소프트레퍼런스
 	//어빌리티가 절대 발동되지 않는 공통의 태그들(스턴,죽음...) ->이런 애들은 게임스테이트나 다른데서 처리
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
-	UAnimMontage* AbilityMontage; //재생될 애니메이션, Animation to be played
+	TArray<UAnimMontage*> AbilityMontage; //재생될 애니메이션, Animation to be played
 
 	UPROPERTY()
 	AFighter* OwnerCharacter; //들고있는게맞는가, Is it right to hold
