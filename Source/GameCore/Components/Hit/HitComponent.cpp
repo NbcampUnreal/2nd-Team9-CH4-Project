@@ -4,6 +4,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Net/UnrealNetwork.h"
 
 UHitComponent::UHitComponent()
 {
@@ -15,7 +16,7 @@ UHitComponent::UHitComponent()
 	DamageAmplificationPercent = 0.0f;
 }
 
-void UHitComponent::ServerHit_Implementation(const FHitDataInfo& HitDataInfo)
+void UHitComponent::ServerHit_Implementation(UHitComponent* AttackerHitComponent, const FHitDataInfo& HitDataInfo)
 {
 	if (bIsHit)
 	{
@@ -27,36 +28,61 @@ void UHitComponent::ServerHit_Implementation(const FHitDataInfo& HitDataInfo)
 
 	if (CanTakeDamage())
 	{
-		Hit(HitDataInfo.HitDamageAmount, HitDataInfo.StopDuration);
+		// Attacker Slowing
+		if (IsValid(AttackerHitComponent))
+		{
+			AttackerHitComponent->MulticastAttackerStartHitStop(0.05f);
+		}
 
-		ApplyKnockback(HitDataInfo);
+		const float DamageScale = GetDamageScale(HitDataInfo.HitAbilityTagName);
+		float KnockbackAmount = DamageScale * HitDataInfo.HitDamageAmount.KnockbackAmount;
+		float HitDamageAmount = DamageScale * HitDataInfo.HitDamageAmount.HitDamageAmount;
+		
+		if (ShieldTags.HasTag(CurrentPlayerStateTag))
+		{
+			UKismetSystemLibrary::PrintString(GetOwner(), FString::Printf(TEXT("Shield!!")));
 
-		bIsHit = false;
+			KnockbackAmount *= 0.1f;
+			HitDamageAmount = DamageScale * HitDataInfo.HitDamageAmount.HitDamageAmountToShield;
+
+			// TODO 실드 차감 처리
+		}
+
+		const float KnockbackDistance = CalculateKnockbackDistance(KnockbackAmount);
+		if (KnockbackDistance > LaunchThreshold)
+		{
+			// TODO 캐릭터 상태 launch로 설정
+		}
+
+		// TODO 정해둔 각도 이내의 공격이 들어오면 아래 방향으로 각도 고정
+
+		const FVector LaunchVector = CalculateLaunchVector(HitDataInfo.HitDirection) * KnockbackDistance;
+		MulticastHandleHit(LaunchVector, HitDataInfo.StopDuration, HitDataInfo.HitAbilityTagName);
+		
+		TakeDamage(HitDamageAmount);
 	}
+	
+	bIsHit = false;
 }
 
-void UHitComponent::BeginPlay()
+void UHitComponent::MulticastHandleHit_Implementation(const FVector& LaunchVector, const float StopDuration, const FName HitAbilityTagName)
 {
-	Super::BeginPlay();
-	SetIsReplicated(true);
-}
-
-bool UHitComponent::CanTakeDamage()
-{
-	// TODO 게임플레이 태그로 저장된 HitState를 가져와서 확인
-
-	// TODO 그 외 다양한 상태에서 공격을 받을 수 있는지 확인
-
-	return true;
-}
-
-void UHitComponent::Hit(const FHitDamageAmount& HitDamageAmount, const float StopDuration)
-{
-	// TODO 현재 방어 중일 경우 처리 추가 -> HitState로 판단
-
-	// TODO 화면 흔들림
-
+	ApplyKnockback(LaunchVector);
+	
+	// Attacked Target Slowing
 	StartHitStop(StopDuration);
+		
+	LastHitAbilityTagNameArray.AddHitAbilityTagName(HitAbilityTagName);
+}
+
+void UHitComponent::MulticastAttackerStartHitStop_Implementation(const float StopDuration)
+{
+	StartHitStop(StopDuration);
+}
+
+void UHitComponent::TakeDamage(const float HitDamageAmount)
+{
+	DamageAmplificationPercent += HitDamageAmount;
 }
 
 void UHitComponent::StartHitStop(const float StopDuration)
@@ -83,6 +109,27 @@ void UHitComponent::StartHitStop(const float StopDuration)
 	}
 }
 
+void UHitComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	SetIsReplicated(true);
+}
+
+void UHitComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(UHitComponent, DamageAmplificationPercent);
+}
+
+bool UHitComponent::CanTakeDamage()
+{
+	// TODO 게임플레이 태그로 저장된 HitState를 가져와서 확인
+
+	// TODO 그 외 다양한 상태에서 공격을 받을 수 있는지 확인
+
+	return true;
+}
+
 void UHitComponent::EndHitStop() const
 {
 	if (GetOwner())
@@ -91,7 +138,7 @@ void UHitComponent::EndHitStop() const
 	}
 }
 
-void UHitComponent::ApplyKnockback(const FHitDataInfo& HitDataInfo)
+void UHitComponent::ApplyKnockback(const FVector& LaunchVector) const
 {
 	if (ACharacter* OwnerCharacter = GetOwner<ACharacter>())
 	{
@@ -99,50 +146,28 @@ void UHitComponent::ApplyKnockback(const FHitDataInfo& HitDataInfo)
 		{
 			CharacterMovementComponent->SetMovementMode(MOVE_Falling);
 
-			const float DamageScale = GetDamageScale(HitDataInfo.HitAbilityTagName);
-			const float KnockbackDistance = CalculateKnockbackDistance(DamageScale, HitDataInfo.HitDamageAmount.KnockbackAmount);
-
-			if (KnockbackDistance > LaunchThreshold)
-			{
-				// TODO 캐릭터 상태 launch로 설정
-			}
-
-			// TODO 정해둔 각도 이내의 공격이 들어오면 아래 방향으로 각도 고정
-			
-			const FVector LaunchVector = CalculateLaunchVector(HitDataInfo.HitDirection, KnockbackDistance);
 			const bool bIsFalling = CharacterMovementComponent->IsFalling();
 			OwnerCharacter->LaunchCharacter(LaunchVector, bIsFalling, bIsFalling);
 
 			// TODO FloorBounce
-
-			LastHitAbilityTagNameArray.AddHitAbilityTagName(HitDataInfo.HitAbilityTagName);
-			DamageAmplificationPercent += HitDataInfo.HitDamageAmount.HitDamageAmount * DamageScale;
 		}
 	}
 }
 
-float UHitComponent::CalculateKnockbackDistance(const float DamageScale, const float KnockbackAmount) const
+float UHitComponent::CalculateKnockbackDistance(const float KnockbackAmount) const
 {
 	const float DamageAmplification = DamageAmplificationPercent / 100.0f + 1.0f;
-	const float KnockbackDistance = KnockbackAmount * DamageScale * DamageAmplification;
+	const float KnockbackDistance = KnockbackAmount * DamageAmplification;
 
-	// UKismetSystemLibrary::PrintString(GetOwner(), FString::Printf(TEXT("KnockbackAmount: %.2f"), KnockbackAmount));
-	// UKismetSystemLibrary::PrintString(GetOwner(), FString::Printf(TEXT("DamageScale: %.2f"), DamageScale));
-	// UKismetSystemLibrary::PrintString(GetOwner(), FString::Printf(TEXT("DamageAmplification: %.2f"), DamageAmplification));
-	// UKismetSystemLibrary::PrintString(GetOwner(), FString::Printf(TEXT("Knockback Distance: %.2f"), KnockbackDistance));
-	
 	return KnockbackDistance;
 }
 
-FVector UHitComponent::CalculateLaunchVector(const FHitDirection& HitDirection, const float KnockbackDistance)
+FVector UHitComponent::CalculateLaunchVector(const FHitDirection& HitDirection)
 {
 	const float KnockbackDirection = HitDirection.bIsRight ? -1.0f : 1.0f;
 	const FRotator HitAngleRotator = FRotator((90.0f - HitDirection.HitAngle) * KnockbackDirection, 0.0f, 0.0f);
-	FVector LaunchVectorFromHitAngle = UKismetMathLibrary::GetUpVector(HitAngleRotator).GetSafeNormal();
 
-	LaunchVectorFromHitAngle *= KnockbackDistance;
-
-	return LaunchVectorFromHitAngle;
+	return UKismetMathLibrary::GetUpVector(HitAngleRotator).GetSafeNormal();
 }
 
 float UHitComponent::GetDamageScale(const FName InHitAbilityTagName) const
@@ -160,10 +185,6 @@ float UHitComponent::GetDamageScale(const FName InHitAbilityTagName) const
 	PenaltyCount = FMath::Min(PenaltyCount, MaxPenaltyCount);
 
 	UKismetSystemLibrary::PrintString(GetOwner(), FString::Printf(TEXT("PenaltyCount: %d"), PenaltyCount));
-	
-	return PenaltyCount == 0.0f ? 1.0f : FMath::Pow(0.88f, PenaltyCount);
-}
 
-void UHitComponent::FloorBounce()
-{
+	return PenaltyCount == 0.0f ? 1.0f : FMath::Pow(0.88f, PenaltyCount);
 }

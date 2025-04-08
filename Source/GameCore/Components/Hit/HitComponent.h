@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Components/ActorComponent.h"
 
 #include "HitComponent.generated.h"
@@ -34,8 +35,8 @@ struct FHitDamageAmount
 	}
 
 	FHitDamageAmount(const float InHitDamageAmount,
-	                 const float InHitDamageAmountToShield,
-	                 const float InKnockbackAmount)
+					 const float InHitDamageAmountToShield,
+					 const float InKnockbackAmount)
 		: HitDamageAmount(InHitDamageAmount),
 		  HitDamageAmountToShield(InHitDamageAmountToShield),
 		  KnockbackAmount(InKnockbackAmount)
@@ -63,9 +64,9 @@ struct FHitDataInfo
 	}
 
 	FHitDataInfo(const FName InHitAbilityTagName,
-	             const FHitDirection& InHitDirection,
-	             const FHitDamageAmount& InHitDamageAmount,
-	             const float InStopDuration)
+				 const FHitDirection& InHitDirection,
+				 const FHitDamageAmount& InHitDamageAmount,
+				 const float InStopDuration)
 		: HitAbilityTagName(InHitAbilityTagName),
 		  HitDirection(InHitDirection),
 		  HitDamageAmount(InHitDamageAmount),
@@ -117,37 +118,59 @@ public:
 	UHitComponent();
 
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category="HitComponents")
-	void ServerHit(const FHitDataInfo& HitDataInfo);
+	void ServerHit(UHitComponent* AttackerHitComponent, const FHitDataInfo& HitDataInfo);
+
+	UFUNCTION(NetMulticast, Reliable, BlueprintCallable, Category="HitComponents")
+	void MulticastHandleHit(const FVector& LaunchVector, float StopDuration, FName HitAbilityTagName);
+	
+	UFUNCTION(NetMulticast, unreliable, BlueprintCallable, Category="HitComponents")
+	void MulticastAttackerStartHitStop(const float StopDuration);
+
+	void StartHitStop(const float StopDuration);
+	
+	UFUNCTION(BlueprintCallable, Category="HitComponents")
+	FORCEINLINE float GetDamageAmplificationPercent() const { return DamageAmplificationPercent; }
+
+	UFUNCTION(BlueprintCallable, Category="HitComponents")
+	FORCEINLINE void SetCurrentPlayerStateTag(const FGameplayTag& NewPlayerStateTag)
+	{
+		CurrentPlayerStateTag = NewPlayerStateTag;
+	}
 
 protected:
 	virtual void BeginPlay() override;
 
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
 private:
 	bool CanTakeDamage();
-	void Hit(const FHitDamageAmount& HitDamageAmount, const float StopDuration);
-	void StartHitStop(const float StopDuration);
+	
+	void TakeDamage(float HitDamageAmount);
+	void ApplyKnockback(const FVector& LaunchVector) const;
 	void EndHitStop() const;
 
-	void ApplyKnockback(const FHitDataInfo& HitDataInfo);
-
-	float CalculateKnockbackDistance(const float DamageScale, const float KnockbackAmount) const;
-	static FVector CalculateLaunchVector(const FHitDirection& HitDirection, const float KnockbackDistance);
+	float CalculateKnockbackDistance(const float KnockbackAmount) const;
+	static FVector CalculateLaunchVector(const FHitDirection& HitDirection);
 
 	float GetDamageScale(const FName InHitAbilityTagName) const;
 
-	void FloorBounce();
-
 	bool bIsHit;
 
-	UPROPERTY(EditDefaultsOnly, meta=(ClampMin=500.0, ClampMax = 5000.0), Category="HitComponents")
+	UPROPERTY(VisibleAnywhere, Category="HitComponents", meta=(ClampMin=500.0, ClampMax = 5000.0))
 	float LaunchThreshold;
-
 	UPROPERTY(VisibleAnywhere, Category="HitComponents")
 	FLastHitAbilityTagNameArray LastHitAbilityTagNameArray;
-	UPROPERTY(EditDefaultsOnly, Category="HitComponents", meta=(ClampMin="0", ClampMax="9.0"))
+	UPROPERTY(VisibleAnywhere, Category="HitComponents", meta=(ClampMin="0", ClampMax="9.0"))
 	int32 MaxPenaltyCount;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="HitComponents", meta=(AllowPrivateAccess=true))
+
+	UPROPERTY(Replicated, VisibleAnywhere, Category="HitComponents")
 	float DamageAmplificationPercent;
 
 	TSubclassOf<UUserWidget> UserWidgetClass;
+
+	UPROPERTY(EditAnywhere, category="HitComponents")
+	FGameplayTag CurrentPlayerStateTag;
+
+	UPROPERTY(EditAnywhere, category="HitComponents")
+	FGameplayTagContainer ShieldTags;
 };
