@@ -45,6 +45,9 @@ public:
 	FGameplayTag GetGameplayTag() const { return CurrentPlayerTag; }
 
 	UFUNCTION(BlueprintCallable)
+	FGameplayTagContainer& GetCurrentTags();
+	
+	UFUNCTION(BlueprintCallable)
 	void SetGameplayTag(const FGameplayTag& GameplayTag) { CurrentPlayerTag = GameplayTag; };
 	void AddAttackTag() { AbilityTagContainer.AddTag(AttackTag); };
 	void RemoveAttackTag() { AbilityTagContainer.RemoveTag(AttackTag); };
@@ -76,9 +79,6 @@ private:
 	FString CurrentStandTag;
 	
 	FGameplayTag CurrentPlayerTag; //로코모션담김
-	//jh Test
-public:
 	FGameplayTagContainer AbilityTagContainer; //공격중인지, 인트로중인지 태그
-	UFUNCTION(BlueprintCallable)
-	FGameplayTagContainer& GetCurrentTags();
+	
 };
