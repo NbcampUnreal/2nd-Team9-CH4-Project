@@ -1,6 +1,7 @@
 #include "AbilityManager.h"
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
+#include "GameCore/Ability/AbilityManagerHelper.h"
 #include "GameCore/Fighter/Fighter.h"
 
 void UAbilityManager::Initialize(FSubsystemCollectionBase& Collection)
@@ -13,10 +14,10 @@ void UAbilityManager::Initialize(FSubsystemCollectionBase& Collection)
 void UAbilityManager::InitializeManager()
 {
 	//DT
-	AbilityDataTable = TSoftObjectPtr<UDataTable>(FSoftObjectPath(TEXT("/Game/Data/DT_Ability.DT_Ability"))); //경로만 지정됨, 로드x
+	HelperInstance = NewObject<UAbilityManagerHelper>(GetTransientPackage(), AbilityManagerHelperClass); //헬프 클래스, GetTransientPackage -> 게임 시작되면 생성되는 가장 원초적인 객체 , "GC가 안된다"
 	FStreamableManager& Streamable = UAssetManager::GetStreamableManager(); //로드 시작
 	Streamable.RequestAsyncLoad(
-		AbilityDataTable.ToSoftObjectPath(),
+		HelperInstance->AbilityDataTable.ToSoftObjectPath(),
 		FStreamableDelegate::CreateUObject(this, &UAbilityManager::OnAbilityTableLoaded));
 }
 
@@ -36,7 +37,12 @@ void UAbilityManager::RequestCreateAbility(const FGameplayTag& CommandTag)
 	{
 		if (UAbilityBase* Ability = AbilityMap[*MappedTag])
 		{
-			Ability->Activate(PlayerInstance.Get()); //어빌리티 활성화
+			const FHitDataInfo* HitData = HitInfoMap.Find(*MappedTag);
+			if (HitData)
+			{
+				CurrentHitInfo = *HitData; // 사용 끝나면 초기화 시키는 코드 추가해야함!!!!!!!!
+				Ability->Activate(PlayerInstance.Get()); //어빌리티 활성화
+			}
 		}
 	}
 	else
@@ -49,10 +55,10 @@ void UAbilityManager::OnAbilityTableLoaded() //게임 쓰레드에서 실행됨-
 {
 	//DT 로드가 완료되면 매핑
 	static const FString ContextString(TEXT("AbilityManager::OnAbilityTableLoaded"));
-	if (AbilityDataTable.IsValid())
+	if (HelperInstance->AbilityDataTable.IsValid())
 	{
 		TArray<FAbilityRow*> AbilityRows;
-		AbilityDataTable->GetAllRows(ContextString, AbilityRows);
+		HelperInstance->AbilityDataTable->GetAllRows(ContextString, AbilityRows);
 
 			for (const auto& Ability : AbilityRows)
 			{
@@ -63,14 +69,21 @@ void UAbilityManager::OnAbilityTableLoaded() //게임 쓰레드에서 실행됨-
 	}
 
 	TArray<FAbilityRow*> Rows;
-	AbilityDataTable->GetAllRows<FAbilityRow>(ContextString, Rows);
+	if (HelperInstance->AbilityDataTable.IsNull())
+	{
+		ensureAlways(false); //한번더검증해
+		return;
+	}
+	HelperInstance->AbilityDataTable->GetAllRows<FAbilityRow>(ContextString, Rows);
 	FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
 	
 	for (const FAbilityRow* Row : Rows)
 	{
 		FGameplayTag AbilityTag = Row->AbilityTag;
+		FHitDataInfo HitData = Row->HitDataInfo;
+		HitInfoMap.Add(AbilityTag, HitData);
+		
 		TSoftClassPtr<UAbilityBase> ClassTag = Row->ClassTag;
-
 		if (!ClassTag.ToSoftObjectPath().IsValid())
 		{
 			UE_LOG(LogTemp, Warning, TEXT("AbilityManager ClassTag is not valid! : %s"), *ClassTag.ToString());
@@ -105,12 +118,10 @@ void UAbilityManager::UpdateCharacter(ACharacter* InOwner) //매핑이 완료되
 	if (!PlayerInstance.IsValid())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("AbilityManager : PlayerInstance is not valid!"));
-		return;
 	}
-	//OnAbilityTableLoaded() 이 완료되면 캐릭터에게 알림을 보내야함
-	//알림 받은 캐릭터거 매지저 호출하면서 this 넘겨줌
-	// for (auto& it : AbilityMap)
-	// {
-	// 	it.Value->Initialize(InOwner); // player 알아야함, 몽타주아웃이벤트바인딩
-	// }
+}
+
+const FHitDataInfo& UAbilityManager::GetHitDataInfo() const
+{
+	return CurrentHitInfo;
 }

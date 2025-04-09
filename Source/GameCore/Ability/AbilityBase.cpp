@@ -1,8 +1,6 @@
 ﻿#include "AbilityBase.h"
 #include "Runtime/VerseCompiler/Public/uLang/Parser/VerseGrammar.h"
-#include "GameCore/Components/Hit/HitComponent.h"
 #include "GameCore/Fighter/Fighter.h"
-#include "GameCore/HitBox/HitBox.h"
 #include "GameFramework/Character.h"
 
 UAbilityBase::UAbilityBase()
@@ -36,11 +34,11 @@ bool UAbilityBase::CanActivate()
 	// {
 	// 	return false;	//그럼 돌아가
 	// }
-	// if (UnqiueBlockedTags.HasTag(GameplayTag)) //예를 들어, 내가 "앉은 상태, 뒤로가기" 에서는 사용 못하는데, 너는 이중에 하나라도 포함되니? ->응
+	// if (UniqueBlockedTags.HasTag(GameplayTag)) //예를 들어, 내가 "앉은 상태, 뒤로가기" 에서는 사용 못하는데, 너는 이중에 하나라도 포함되니? ->응
 	// {
 	// 	return false;	//그럼 돌아가
 	// }
-	// if (UnqiueRequiredTags.HasTag(GameplayTag)) //예를 들어, 내가 "idle , 앞으로가기" 에서만 사용 가능한데, 너는 이중에 하나라도 포함되니? ->응
+	// if (UniqueRequiredTags.HasTag(GameplayTag)) //예를 들어, 내가 "idle , 앞으로가기" 에서만 사용 가능한데, 너는 이중에 하나라도 포함되니? ->응
 	// {
 	// 	return true;	//그럼 진행해
 	// }
@@ -58,10 +56,6 @@ void UAbilityBase::Activate(AFighter* Player)
 	
 	if(CanActivate()) //태그 체크, Tag check
 	{
-		//히트박스생성
-		//NewObject<AHitBox>(OwnerCharacter, HitBoxClass, NAME_None, RF_Transient, nullptr, false);
-		AHitBox* Instance = Cast<AHitBox>(GetWorld()->SpawnActor(HitBoxClass));
-		Instance->Init(HitDataInfo);
 		PlayMontage(); //몽타주에서 특정 프레임에 이펙트 생성 등등 이벤트
 	}
 }
@@ -71,7 +65,8 @@ void UAbilityBase::PlayMontage()
 	if (AFighter* Fighter = Cast<AFighter>(OwnerCharacter))
 	{
 		Fighter->AddAttackTag();
-		Fighter->PlayAnimMontage(AbilityMontage);
+		int32 Random = FMath::RandRange(0,AbilityMontage.Num()-1);
+		Fighter->PlayAnimMontage(AbilityMontage[Random]);
 	}
 }
 
