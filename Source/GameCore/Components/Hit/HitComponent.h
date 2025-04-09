@@ -111,7 +111,7 @@ private:
 	TArray<FName> InfoArray;
 };
 
-UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+UCLASS(Abstract, Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class GAMECORE_API UHitComponent : public UActorComponent
 {
 	GENERATED_BODY()

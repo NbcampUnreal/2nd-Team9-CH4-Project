@@ -7,7 +7,7 @@
 #include "HitBox.generated.h"
 
 
-UCLASS()
+UCLASS(Abstract, Blueprintable)
 class GAMECORE_API AHitBox : public AActor
 {
 	GENERATED_BODY()
