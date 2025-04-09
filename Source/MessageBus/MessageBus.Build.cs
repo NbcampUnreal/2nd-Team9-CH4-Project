@@ -9,7 +9,7 @@ public class MessageBus : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
-                "Core",
+                "Core", "OnlineSubsystem"
             }
         );
 
@@ -19,7 +19,8 @@ public class MessageBus : ModuleRules
                 "CoreUObject",
                 "Engine",
                 "Slate",
-                "SlateCore"
+                "SlateCore", 
+                "OnlineSubsystem"
             }
         );
     }

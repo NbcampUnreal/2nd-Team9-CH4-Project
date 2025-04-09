@@ -13,4 +13,7 @@ UCLASS()
 class GAMEPLAY_API ASSBGameMode : public AGameMode
 {
 	GENERATED_BODY()
+	
+public:
+	virtual void PostLogin(APlayerController* NewPlayer) override;
 };
