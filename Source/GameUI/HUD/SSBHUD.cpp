@@ -27,15 +27,17 @@ void ASSBHUD::LoadUI()
 
 	if (TitleWidgetClass)
 	{
+		// Create the TitleWidget instance
 		UTitleWidget* TitleWidget = CreateWidget<UTitleWidget>(World, TitleWidgetClass);
 		if (TitleWidget)
 		{
-			TitleWidget->Init(MainLevel); 
+			TitleWidget->Init(MainLevel);
 			TitleWidget->AddToViewport();
-
 			// Bind button click events
 
 		}
+	
+
 	}
 
 	else
