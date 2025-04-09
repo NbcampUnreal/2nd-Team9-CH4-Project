@@ -33,7 +33,7 @@ void UAnimNotify_SpawnHitbox::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 		
 		//히트박스 생성
 		FHitDataInfo HitDataInfo = GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->GetHitDataInfo();
-
+		
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = MeshComp->GetOwner();
 		AHitBox* Instance = GetWorld()->SpawnActor<AHitBox>(HitBoxClass, SpawnParams);
