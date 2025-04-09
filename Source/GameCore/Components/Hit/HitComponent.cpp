@@ -10,14 +10,28 @@ UHitComponent::UHitComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
+	SetIsReplicatedByDefault(true);
+
 	bIsHit = false;
 	LaunchThreshold = 1000.0f;
 	MaxPenaltyCount = 5;
 	DamageAmplificationPercent = 0.0f;
 }
 
-void UHitComponent::ServerHit_Implementation(UHitComponent* AttackerHitComponent, const FHitDataInfo& HitDataInfo)
+void UHitComponent::OnHit(UHitComponent* AttackerHitComponent, const FHitDataInfo& HitDataInfo)
 {
+	if (!IsValid(GetOwner()))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Owner Is Not Valid"));
+		return;
+	}
+
+	if (!GetOwner()->HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Not Run On The Server!"));
+		return;
+	}
+
 	if (bIsHit)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Already Hitting"));
@@ -31,13 +45,13 @@ void UHitComponent::ServerHit_Implementation(UHitComponent* AttackerHitComponent
 		// Attacker Slowing
 		if (IsValid(AttackerHitComponent))
 		{
-			AttackerHitComponent->MulticastAttackerStartHitStop(0.05f);
+			AttackerHitComponent->MulticastHandleHit(0.05f, FName());
 		}
 
 		const float DamageScale = GetDamageScale(HitDataInfo.HitAbilityTagName);
 		float KnockbackAmount = DamageScale * HitDataInfo.HitDamageAmount.KnockbackAmount;
 		float HitDamageAmount = DamageScale * HitDataInfo.HitDamageAmount.HitDamageAmount;
-		
+
 		if (ShieldTags.HasTag(CurrentPlayerStateTag))
 		{
 			UKismetSystemLibrary::PrintString(GetOwner(), FString::Printf(TEXT("Shield!!")));
@@ -54,35 +68,27 @@ void UHitComponent::ServerHit_Implementation(UHitComponent* AttackerHitComponent
 			// TODO 캐릭터 상태 launch로 설정
 		}
 
-		// TODO 정해둔 각도 이내의 공격이 들어오면 아래 방향으로 각도 고정
+		// TODO 아래방향 공격이 들어올때 처리 -> 조건에 따라 아래로 런치 or 다른 공격과 마찬가지로 런치
 
 		const FVector LaunchVector = CalculateLaunchVector(HitDataInfo.HitDirection) * KnockbackDistance;
-		MulticastHandleHit(LaunchVector, HitDataInfo.StopDuration, HitDataInfo.HitAbilityTagName);
-		
-		TakeDamage(HitDamageAmount);
+		ApplyKnockback(LaunchVector);
+		MulticastHandleHit(HitDataInfo.StopDuration, HitDataInfo.HitAbilityTagName);
+
+		DamageAmplificationPercent += HitDamageAmount;
 	}
-	
+
 	bIsHit = false;
 }
 
-void UHitComponent::MulticastHandleHit_Implementation(const FVector& LaunchVector, const float StopDuration, const FName HitAbilityTagName)
+void UHitComponent::MulticastHandleHit_Implementation(const float StopDuration, const FName HitAbilityTagName)
 {
-	ApplyKnockback(LaunchVector);
-	
 	// Attacked Target Slowing
 	StartHitStop(StopDuration);
-		
-	LastHitAbilityTagNameArray.AddHitAbilityTagName(HitAbilityTagName);
-}
 
-void UHitComponent::MulticastAttackerStartHitStop_Implementation(const float StopDuration)
-{
-	StartHitStop(StopDuration);
-}
-
-void UHitComponent::TakeDamage(const float HitDamageAmount)
-{
-	DamageAmplificationPercent += HitDamageAmount;
+	if (!HitAbilityTagName.IsNone())
+	{
+		LastHitAbilityTagNameArray.AddHitAbilityTagName(HitAbilityTagName);
+	}
 }
 
 void UHitComponent::StartHitStop(const float StopDuration)
@@ -112,7 +118,6 @@ void UHitComponent::StartHitStop(const float StopDuration)
 void UHitComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	SetIsReplicated(true);
 }
 
 void UHitComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const

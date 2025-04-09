@@ -6,6 +6,8 @@
 
 #include "HitComponent.generated.h"
 
+class AFighter;
+
 USTRUCT(BlueprintType)
 struct FHitDirection
 {
@@ -117,14 +119,11 @@ class GAMECORE_API UHitComponent : public UActorComponent
 public:
 	UHitComponent();
 
-	UFUNCTION(Server, Reliable, BlueprintCallable, Category="HitComponents")
-	void ServerHit(UHitComponent* AttackerHitComponent, const FHitDataInfo& HitDataInfo);
+	UFUNCTION(BlueprintCallable, Category="HitComponents")
+	void OnHit(UHitComponent* AttackerHitComponent, const FHitDataInfo& HitDataInfo);
 
 	UFUNCTION(NetMulticast, Reliable, BlueprintCallable, Category="HitComponents")
-	void MulticastHandleHit(const FVector& LaunchVector, float StopDuration, FName HitAbilityTagName);
-	
-	UFUNCTION(NetMulticast, unreliable, BlueprintCallable, Category="HitComponents")
-	void MulticastAttackerStartHitStop(const float StopDuration);
+	void MulticastHandleHit(float StopDuration, FName HitAbilityTagName);
 
 	void StartHitStop(const float StopDuration);
 	
@@ -145,7 +144,6 @@ protected:
 private:
 	bool CanTakeDamage();
 	
-	void TakeDamage(float HitDamageAmount);
 	void ApplyKnockback(const FVector& LaunchVector) const;
 	void EndHitStop() const;
 
@@ -156,21 +154,22 @@ private:
 
 	bool bIsHit;
 
-	UPROPERTY(VisibleAnywhere, Category="HitComponents", meta=(ClampMin=500.0, ClampMax = 5000.0))
+	UPROPERTY(EditAnywhere, Category="HitComponents", meta=(ClampMin=500.0, ClampMax = 5000.0))
 	float LaunchThreshold;
+	UPROPERTY(EditAnywhere, Category="HitComponents", meta=(ClampMin="0", ClampMax="9.0"))
+	int32 MaxPenaltyCount;
+	
+	UPROPERTY(EditAnywhere, category="HitComponents")
+	FGameplayTagContainer ShieldTags;
+	
+	UPROPERTY(VisibleAnywhere, category="HitComponents")
+	FGameplayTag CurrentPlayerStateTag;
 	UPROPERTY(VisibleAnywhere, Category="HitComponents")
 	FLastHitAbilityTagNameArray LastHitAbilityTagNameArray;
-	UPROPERTY(VisibleAnywhere, Category="HitComponents", meta=(ClampMin="0", ClampMax="9.0"))
-	int32 MaxPenaltyCount;
 
 	UPROPERTY(Replicated, VisibleAnywhere, Category="HitComponents")
 	float DamageAmplificationPercent;
 
 	TSubclassOf<UUserWidget> UserWidgetClass;
 
-	UPROPERTY(EditAnywhere, category="HitComponents")
-	FGameplayTag CurrentPlayerStateTag;
-
-	UPROPERTY(EditAnywhere, category="HitComponents")
-	FGameplayTagContainer ShieldTags;
 };

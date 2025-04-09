@@ -1,10 +1,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "HitboxShape.generated.h"
+#include "HitBoxShape.generated.h"
 
 UENUM(BlueprintType)
-enum class EHitboxShape : uint8
+enum class EHitBoxShape : uint8
 {
 	Sphere	UMETA(DisplayName = "Sphere"),
 	Capsule	UMETA(DisplayName = "Capsule"),
