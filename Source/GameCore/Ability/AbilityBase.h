@@ -56,10 +56,10 @@ public:
 	
 protected: //잊지말자 소프트레퍼런스
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tags")
-	FGameplayTagContainer UnqiueRequiredTags; //각 어빌리티 발동에 필요한 태그들, 아마 플레이어 상태 태그들(지상, 도발, 필살기...),Tags needed for each Ability trigger, maybe player state tags (ground, provocation, killing ...)
+	FGameplayTagContainer UniqueRequiredTags; //각 어빌리티 발동에 필요한 태그들, 아마 플레이어 상태 태그들(지상, 도발, 필살기...),Tags needed for each Ability trigger, maybe player state tags (ground, provocation, killing ...)
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tags")
-	FGameplayTagContainer UnqiueBlockedTags;
+	FGameplayTagContainer UniqueBlockedTags;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tag")
 	FGameplayTag BlockedTag;
@@ -68,17 +68,11 @@ protected: //잊지말자 소프트레퍼런스
 	//어빌리티가 절대 발동되지 않는 공통의 태그들(스턴,죽음...) ->이런 애들은 게임스테이트나 다른데서 처리
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
-	UAnimMontage* AbilityMontage; //재생될 애니메이션, Animation to be played
+	TArray<UAnimMontage*> AbilityMontage; //재생될 애니메이션, Animation to be played
 
 	UPROPERTY()
-	AFighter* OwnerCharacter; //들고있는게맞는가, Is it right to hold
+	AFighter* OwnerCharacter;
 
 	UPROPERTY()
 	bool bIsActive = false; //필요하다면 사용, Use if necessary
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
-	FHitDataInfo HitDataInfo; //히트박스 정보, Hitbox information
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
-	TSubclassOf<class AActor> HitBoxClass;
 };
