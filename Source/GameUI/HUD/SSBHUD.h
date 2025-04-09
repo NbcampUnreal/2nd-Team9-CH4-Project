@@ -29,4 +29,7 @@ private:
 	UPROPERTY(EditAnywhere)
 	TSoftObjectPtr<UWorld> MainLevel;
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UModeWidget> ModeWidgetClass;
+
 };

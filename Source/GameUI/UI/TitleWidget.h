@@ -25,6 +25,9 @@ private:
 	UFUNCTION()
 	void OnStartClicked();
 
+	//UFUNCTION()               
+	//void OnOptionClicked();        // Option 
+
 	UFUNCTION()
 	void OnExitClicked();
 
@@ -34,7 +37,15 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* StartButton;
 
+	UPROPERTY(meta = (BindWidget))
+	class UButton* OptionButton;
+
+	UPROPERTY(meta = (BindWidget))
+	class UButton* ExitButton;
+
 	TSoftObjectPtr<UWorld> MainLevel;
 
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UModeWidget> ModeWidgetClass;
 
 };
