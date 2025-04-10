@@ -11,8 +11,14 @@
 
 void UAnimNotify_SpawnHitbox::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-	// ReSharper disable once CppDeprecatedEntity
 	Super::Notify(MeshComp, Animation);
+	
+	//에디터면 리턴해 추가하기!!!!
+
+	if (GIsEditor)
+	{
+		return;
+	}
 	
 	if (MeshComp && MeshComp->GetOwner())
 	{
@@ -34,8 +40,10 @@ void UAnimNotify_SpawnHitbox::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 		
 		//히트박스 생성
 		FHitDataInfo HitDataInfo = GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->GetHitDataInfo();
-		
-		
+
+		//지금 재생되는 몽타주 이름이 무엇인지
+		//테이블에서 row 가져옴 -> 지금 재생되는 몽타주 이름의 소켓이름, 스케일, 타입을 가져옴
+		//오너
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = MeshComp->GetOwner();
 		AHitBox* Instance = GetWorld()->SpawnActor<AHitBox>(HitBoxClass, SpawnParams);
@@ -45,11 +53,3 @@ void UAnimNotify_SpawnHitbox::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 		}
 	}
 }
-
-/* 회의 때 말할 거
-1. 캐릭터의 어디에 부착할지 추가해야함!!! -> 캐릭터 스켈레탈 메시에 소켓 달고, 구조체에 장착될 소켓 이름 추가하고,
-	가져온 구조체에서 소켓이름 과 메시->겟소켓바이네임? 으로 붙이면?
-
-2. 히트 박스 사용 종료 처리 -> 애니메이션 끝나거나 , 오버랩 발생하거나 두가지
-
-*/

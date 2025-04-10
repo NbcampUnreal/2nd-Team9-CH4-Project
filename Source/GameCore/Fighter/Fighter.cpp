@@ -29,9 +29,6 @@ AFighter::AFighter()
 	Camera->SetFieldOfView(40.0f);
 	
 	GetCharacterMovement()->MaxWalkSpeed = 600.0f;
-
-	//Test
-	
 }
 
 void AFighter::BeginPlay()

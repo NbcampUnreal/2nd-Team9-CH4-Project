@@ -22,7 +22,4 @@ public:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
-	TArray<UAnimMontage*> AbilityMontage;
 };
