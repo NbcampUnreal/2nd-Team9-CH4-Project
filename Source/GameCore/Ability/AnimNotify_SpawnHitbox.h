@@ -18,8 +18,7 @@ class GAMECORE_API UAnimNotify_SpawnHitbox : public UAnimNotify
 
 public:
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
-
-	protected:
+protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HitBox")
 	TSubclassOf<AHitBox> HitBoxClass;
 };

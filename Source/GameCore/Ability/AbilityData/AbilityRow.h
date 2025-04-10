@@ -9,7 +9,7 @@
 class UAbilityBase;
 
 USTRUCT(BlueprintType)
-struct FAbilityRow : public FTableRowBase
+struct GAMECORE_API FAbilityRow : public FTableRowBase
 {
 	GENERATED_BODY()
 
@@ -25,4 +25,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HitData")
 	FHitDataInfo HitDataInfo;
+
+	
+	
 };

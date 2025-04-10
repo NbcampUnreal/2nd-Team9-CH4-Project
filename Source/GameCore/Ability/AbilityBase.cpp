@@ -1,4 +1,6 @@
 ﻿#include "AbilityBase.h"
+
+#include "AbilityManager/AbilityManager.h"
 #include "Runtime/VerseCompiler/Public/uLang/Parser/VerseGrammar.h"
 #include "GameCore/Fighter/Fighter.h"
 #include "GameFramework/Character.h"
@@ -19,7 +21,21 @@ void UAbilityBase::Initialize()
 		//AnimInst->OnMontageEnded.AddDynamic(this, &UAbilityBase::OnMontageEnd);
 
 		// 이게맞나? 애님몽타쥬 블렌드아웃 시간을 살짝 준다음 그 사이에 해결..
+		AnimInst->OnMontageBlendingOut.RemoveDynamic(this, &UAbilityBase::OnMontageBlendingOut);
 		AnimInst->OnMontageBlendingOut.AddDynamic(this, &UAbilityBase::OnMontageBlendingOut);
+		
+	}
+	
+	for (int32 i = 0; i < AbilityMontage.Num(); i++)
+	{
+		if (const UAnimMontage* Montage = AbilityMontage[i])
+		{
+			if (Montage->GetName().EndsWith(TEXT("Air"), ESearchCase::IgnoreCase))
+			{
+				AirMontageIndex = i;
+				break;
+			}
+		}
 	}
 }
 
@@ -64,6 +80,8 @@ void UAbilityBase::PlayMontage()
 {
 	if (AFighter* Fighter = Cast<AFighter>(OwnerCharacter))
 	{
+		//if (Fighter->GetGameplayTag().MatchesTag( 공중이니?))
+		// 판단후 Montage 재생 달리하기
 		Fighter->AddAttackTag();
 		int32 Random = FMath::RandRange(0,AbilityMontage.Num()-1);
 		Fighter->PlayAnimMontage(AbilityMontage[Random]);
@@ -86,4 +104,5 @@ void UAbilityBase::OnMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted
 {
 	bIsActive = false;
 	Cast<AFighter>(OwnerCharacter)->RemoveAttackTag();
+	GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->AbilityMontageDone();
 }

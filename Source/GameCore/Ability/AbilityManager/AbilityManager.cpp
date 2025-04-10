@@ -21,7 +21,7 @@ void UAbilityManager::InitializeManager()
 		FStreamableDelegate::CreateUObject(this, &UAbilityManager::OnAbilityTableLoaded));
 }
 
-void UAbilityManager::RequestCreateAbility(const FGameplayTag& CommandTag)
+void UAbilityManager::RequestCreateAbility(const FGameplayTag& CommandTag, bool bIsNext)
 {
 /* 임시로 뭐 들어있는지 확인할려고 작성함 */
 #if !UE_BUILD_SHIPPING
@@ -37,11 +37,18 @@ void UAbilityManager::RequestCreateAbility(const FGameplayTag& CommandTag)
 	{
 		if (UAbilityBase* Ability = AbilityMap[*MappedTag])
 		{
-			const FHitDataInfo* HitData = HitInfoMap.Find(*MappedTag);
-			if (HitData)
+			if (const FHitDataInfo* HitData = HitInfoMap.Find(*MappedTag))
 			{
-				CurrentHitInfo = *HitData; // 사용 끝나면 초기화 시키는 코드 추가해야함!!!!!!!!
-				Ability->Activate(PlayerInstance.Get()); //어빌리티 활성화
+				if (!bIsNext)
+				{
+					CurrentHitInfo = *HitData; // 사용 끝나면 초기화 시키는 코드 추가해야함!!!!!!!!
+					Ability->Activate(PlayerInstance.Get()); //어빌리티 활성화	
+				}
+				else
+				{
+					NextAbility = Ability;
+					NextHitInfo = *HitData;
+				}
 			}
 		}
 	}
@@ -63,7 +70,7 @@ void UAbilityManager::OnAbilityTableLoaded() //게임 쓰레드에서 실행됨-
 			for (const auto& Ability : AbilityRows)
 			{
 				FGameplayTag SkillTag = Ability->AbilityTag;
-				FGameplayTag CommandTag = Ability->CommandTag;
+				FGameplayTag CommandTag = Ability->AbilityTag;
 				CommandTagMap.Add(CommandTag,SkillTag);
 			}
 	}
@@ -124,4 +131,16 @@ void UAbilityManager::UpdateCharacter(ACharacter* InOwner) //매핑이 완료되
 const FHitDataInfo& UAbilityManager::GetHitDataInfo() const
 {
 	return CurrentHitInfo;
+}
+
+void UAbilityManager::AbilityMontageDone()
+{
+	if (NextAbility)
+	{
+		NextAbility->Activate(PlayerInstance.Get());
+		CurrentHitInfo = NextHitInfo;
+		
+		NextAbility = nullptr;
+		NextHitInfo = FHitDataInfo();
+	}
 }
