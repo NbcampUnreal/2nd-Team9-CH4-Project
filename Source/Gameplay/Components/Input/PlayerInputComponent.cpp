@@ -82,7 +82,12 @@ void UPlayerInputComponent::MoveInput(const FInputActionValue& InputValue)
 void UPlayerInputComponent::AttackInput(const FInputActionValue& InputValue, const FGameplayTag& AttackTag)
 {
 	bool bIsAttack = false;
-	if (Player->GetCurrentTags().HasTag(Player->AttackTag))
+	// if (Player->GetCurrentTags().HasTag(Player->AttackTag))
+	// {
+	// 	bIsAttack = true;
+	// }
+	
+	if (GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->CheckCurrentPlayingMontage())
 	{
 		bIsAttack = true;
 	}

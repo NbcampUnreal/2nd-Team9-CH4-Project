@@ -53,7 +53,8 @@ public:
 	void OnMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 	UFUNCTION()
 	void OnMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);
-	
+
+	bool CheckIsPlayingMontage() const;
 protected: //잊지말자 소프트레퍼런스
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tags")
 	FGameplayTagContainer UniqueRequiredTags; //각 어빌리티 발동에 필요한 태그들, 아마 플레이어 상태 태그들(지상, 도발, 필살기...),Tags needed for each Ability trigger, maybe player state tags (ground, provocation, killing ...)
@@ -69,7 +70,7 @@ protected: //잊지말자 소프트레퍼런스
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
 	TArray<UAnimMontage*> AbilityMontage; //재생될 애니메이션, Animation to be played
-
+	UAnimMontage* CurrentMontage;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
 	TArray<UAnimMontage*> AirAbilityMontage; //재생될 애니메이션, Animation to be played
 	

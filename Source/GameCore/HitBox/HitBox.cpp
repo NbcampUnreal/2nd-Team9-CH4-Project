@@ -33,7 +33,16 @@ void AHitBox::Tick(float DeltaTime)
 
 	if (GetOwner())
 	{
-		SetActorLocation(Cast<AFighter>(GetOwner())->GetMesh()->GetBoneLocation(AnimInfo.BoneName));
+		/* 플레이어가 왼쪽 바라보고 있을땐 위치 반전 시켜서 적용시켜야함 */
+		FVector BoneLocation =  Cast<AFighter>(GetOwner())->GetMesh()->GetBoneLocation(AnimInfo.BoneName);
+		if (bIsMirrored)
+		{
+			FVector PlayerLocation = GetOwner()->GetActorLocation();
+			FVector OffSet = BoneLocation - PlayerLocation;
+			OffSet.X *= -1.f;
+			BoneLocation = PlayerLocation + OffSet; 
+		}
+		SetActorLocation(BoneLocation);
 	}
 	if (bIsDebugMode)
 	{
@@ -41,10 +50,11 @@ void AHitBox::Tick(float DeltaTime)
 	}
 }
 
-void AHitBox::Init(const FHitDataInfo& HitData, const FVector& Pos, const FAnimRow AnimRow)
+void AHitBox::Init(const FHitDataInfo& HitData, const FVector& Pos, const FAnimRow AnimRow, const bool bMirrored)
 {
 	HitDataInfo = HitData;
 	AnimInfo = AnimRow;
+	bIsMirrored = bMirrored;
 	
 	//AnimRow 설정해주고 틱에서 위치 갱신 해야함!!
 	

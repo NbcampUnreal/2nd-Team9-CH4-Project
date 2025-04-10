@@ -34,7 +34,8 @@ public:
 
 	void SetAnimName(const FName& InAnimName);
 	void SetHitBox(AHitBox* InHitBox);
-	
+
+	bool CheckCurrentPlayingMontage() const;
 protected:
 	UPROPERTY()
 	TSoftObjectPtr<UDataTable> AbilityDataTable;
@@ -60,6 +61,7 @@ protected:
 	UPROPERTY() //헬프 클래스
 	UAbilityManagerHelper* HelperInstance;
 
+	UAbilityBase* CurrentAbility{nullptr};
 	UAbilityBase* NextAbility{nullptr};
 	FHitDataInfo NextHitInfo;
 	

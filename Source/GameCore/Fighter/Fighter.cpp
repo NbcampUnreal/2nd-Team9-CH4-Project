@@ -1,13 +1,15 @@
 ﻿#include "Fighter.h"
+#include "GameCore/Ability/AbilityManager/AbilityManager.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameCore/Interface/PlayerStateInterface.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "MessageBus/MessageBusManager.h"
 #include "GameFramework/PlayerState.h"
 #include "Camera/CameraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "InputActionValue.h"
-#include "GameCore/Ability/AbilityManager/AbilityManager.h"
-
+#include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
 
 FGameplayTag AFighter::AttackTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Attack"));
 FGameplayTag AFighter::BaseTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base"));
@@ -22,7 +24,7 @@ AFighter::AFighter()
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->SetWorldRotation(FRotator(-5.f, -90.f, 0.f));
-	SpringArm->SetAbsolute(false, false, false);
+	SpringArm->SetAbsolute(false, true, false);
 	SpringArm->TargetArmLength = 1000.0f;
 	SpringArm->bDoCollisionTest = false;
 
@@ -47,16 +49,58 @@ void AFighter::BeginPlay()
 	CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.Base.Stand.Idle"));
 	CurrentStandTag = "Stand";
 
-	
-	//GetGameInstance()->GetSubsystem<UAbilityManager>()->InitializeManager();
-	//Test
+	if (NiagaraEffect)
+	{
+		// 추후 TArray에 담긴 컴포넌트로 1P, 2P 나눠서 색깔 지정한다던가 그래야 할듯
+		NiagaraComponents.Add(UNiagaraFunctionLibrary::SpawnSystemAttached(
+			NiagaraEffect,                           // Niagara 이펙트 에셋
+			GetMesh(),                               // 부착할 컴포넌트 (스켈레탈 메쉬)
+			FName(TEXT("Hand_R")),                    // 부착할 본의 이름 (예: 오른손)
+			FVector::ZeroVector,                      // 위치 오프셋
+			FRotator::ZeroRotator,                    // 회전 오프셋
+			EAttachLocation::SnapToTarget,            // 부착 위치 룰
+			false                                      // 이펙트 자동 제거 (재생 완료 후)
+		));
+
+		NiagaraComponents.Add(UNiagaraFunctionLibrary::SpawnSystemAttached(
+		NiagaraEffect,                           // Niagara 이펙트 에셋
+		GetMesh(),                               // 부착할 컴포넌트 (스켈레탈 메쉬)
+		FName(TEXT("Hand_L")),                    // 부착할 본의 이름 (예: 오른손)
+		FVector::ZeroVector,                      // 위치 오프셋
+		FRotator::ZeroRotator,                    // 회전 오프셋
+		EAttachLocation::SnapToTarget,            // 부착 위치 룰
+		false                                      // 이펙트 자동 제거 (재생 완료 후)
+		));
+	}
 	GetGameInstance()->GetSubsystem<UAbilityManager>()->UpdateCharacter(this);
 }
 
 void AFighter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+
+	/* 체크해야됨 상대를 바라보고 있는 쪽으로 180도 회전 해야됨
+	if(GetLocation().X < EnemyInstance->GetActorLocation().X)
+	{
+		적이 나보다 오른쪽에 있는경우
+		bIsLookingRight = true;
+	}
+	else
+	{
+		bIsLookingRight = false;
+		SetActorRotation(FRotator(0.0f, 180.0f, 0.0f));
+	}
+	 */
+	// Test
+	if(GetActorLocation().X < 0)
+	{
+		bLookingRight = true;
+	}
+	else
+	{
+		bLookingRight = false;
+		SetActorRotation(FRotator(0.0f, 180.0f, 0.0f));
+	}
 	
 	if (!AbilityTagContainer.HasTag(AttackTag) && CurrentPlayerTag != JumpTag && CurrentPlayerTag != LandTag)
 	{
@@ -73,18 +117,6 @@ void AFighter::ImSleepy(const FString& MessageType, UObject* Payload)
 {
 	UE_LOG(LogTemp, Display, TEXT("Test"));
 }
-
-void AFighter::IWantToSleep() const
-{
-	if (APlayerState* PS = GetPlayerState())
-	{
-		if (const IPlayerStateInterface* PlayerStateInterface = Cast<IPlayerStateInterface>(PS))
-		{
-			UE_LOG(LogTemp, Log, TEXT("Player Score: %d"), PlayerStateInterface->GetPlayerScore());
-		}	
-	}
-}
-
 
 void AFighter::Move(const FInputActionValue& InputValue)
 {
@@ -144,7 +176,12 @@ void AFighter::Landed(const FHitResult& Hit)
 {
 	Super::Landed(Hit);
 
-	CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(TEXT("PlayerState.Base.Land"))); 
+	if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
+	{
+		AnimInst->Montage_Stop(0.0f);
+	}
+	
+	CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(TEXT("PlayerState.Base.Land")));
 }
 
 FGameplayTagContainer& AFighter::GetCurrentTags()
