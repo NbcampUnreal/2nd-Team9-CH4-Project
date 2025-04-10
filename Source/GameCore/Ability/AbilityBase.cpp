@@ -4,6 +4,7 @@
 #include "Runtime/VerseCompiler/Public/uLang/Parser/VerseGrammar.h"
 #include "GameCore/Fighter/Fighter.h"
 #include "GameFramework/Character.h"
+#include "GameCore/HitBox/HitBox.h"
 
 UAbilityBase::UAbilityBase()
 {
@@ -18,7 +19,7 @@ void UAbilityBase::Initialize()
 	if (UAnimInstance* AnimInst = OwnerCharacter->GetMesh()->GetAnimInstance())
 	{
 		// 한틱차이로 T포즈 애니메이션이 보임 수정해야함
-		//AnimInst->OnMontageEnded.AddDynamic(this, &UAbilityBase::OnMontageEnd);
+		AnimInst->OnMontageEnded.AddDynamic(this, &UAbilityBase::OnMontageEnd);
 
 		// 이게맞나? 애님몽타쥬 블렌드아웃 시간을 살짝 준다음 그 사이에 해결..
 		AnimInst->OnMontageBlendingOut.RemoveDynamic(this, &UAbilityBase::OnMontageBlendingOut);
@@ -37,6 +38,7 @@ void UAbilityBase::Initialize()
 			}
 		}
 	}
+
 }
 
 bool UAbilityBase::CanActivate()
@@ -84,6 +86,8 @@ void UAbilityBase::PlayMontage()
 		// 판단후 Montage 재생 달리하기
 		Fighter->AddAttackTag();
 		int32 Random = FMath::RandRange(0,AbilityMontage.Num()-1);
+		FString StringName = AbilityMontage[Random]->GetName();
+		GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->SetAnimName(FName(*StringName));
 		Fighter->PlayAnimMontage(AbilityMontage[Random]);
 	}
 }
@@ -98,6 +102,7 @@ void UAbilityBase::OnMontageEnd(UAnimMontage* Montage, bool bInterrupted)
 {
 	bIsActive = false;
 	Cast<AFighter>(OwnerCharacter)->RemoveAttackTag();
+	GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->GetHitBox()->Destroy();
 }
 
 void UAbilityBase::OnMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted)

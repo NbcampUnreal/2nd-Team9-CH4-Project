@@ -118,7 +118,7 @@ class GAMECORE_API UHitComponent : public UActorComponent
 
 public:
 	UHitComponent();
-
+	
 	UFUNCTION(BlueprintCallable, Category="HitComponents")
 	void OnHit(UHitComponent* AttackerHitComponent, const FHitDataInfo& HitDataInfo);
 
