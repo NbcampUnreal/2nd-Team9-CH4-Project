@@ -2,12 +2,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
-#include "SSBCharacterSelectHUD.generated.h"
+#include "CharacterSelectHUD.generated.h"
 
 class UCharacterSelectWidget;
 
 UCLASS(Abstract, Blueprintable)
-class GAMEUI_API ASSBCharacterSelectHUD : public AHUD
+class GAMEUI_API ACharacterSelectHUD : public AHUD
 {
 	GENERATED_BODY()
 	

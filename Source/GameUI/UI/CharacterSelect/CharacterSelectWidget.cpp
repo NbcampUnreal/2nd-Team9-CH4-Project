@@ -2,3 +2,7 @@
 
 
 #include "CharacterSelectWidget.h"
+
+void UCharacterSelectWidget::InitWidget()
+{
+}

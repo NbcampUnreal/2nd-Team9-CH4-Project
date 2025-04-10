@@ -2,19 +2,19 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-#include "SSBCharacterSelectPlayerController.generated.h"
+#include "CharacterSelectPlayerController.generated.h"
 
 struct FInputActionValue;
 class UInputAction;
 class UInputMappingContext;
 
 UCLASS(Abstract, Blueprintable)
-class GAMEPLAY_API ASSBCharacterSelectPlayerController : public APlayerController
+class GAMEPLAY_API ACharacterSelectPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 
 public:
-	ASSBCharacterSelectPlayerController();
+	ACharacterSelectPlayerController();
 
 protected:
 	virtual void BeginPlay() override;

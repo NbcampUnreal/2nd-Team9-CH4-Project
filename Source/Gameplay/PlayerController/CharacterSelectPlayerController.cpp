@@ -1,25 +1,25 @@
-﻿#include "SSBCharacterSelectPlayerController.h"
+﻿#include "CharacterSelectPlayerController.h"
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Kismet/KismetSystemLibrary.h"
 
-ASSBCharacterSelectPlayerController::ASSBCharacterSelectPlayerController()
+ACharacterSelectPlayerController::ACharacterSelectPlayerController()
 	: InputMappingContext(nullptr), SelectorMoveAction(nullptr), SelectAction(nullptr)
 {
 }
 
-void ASSBCharacterSelectPlayerController::BeginPlay()
+void ACharacterSelectPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
 	SetShowMouseCursor(true);
 	
-	AddMappingContext();
-	BindInputActions();
+	// AddMappingContext();
+	// BindInputActions();
 }
 
-void ASSBCharacterSelectPlayerController::AddMappingContext() const
+void ACharacterSelectPlayerController::AddMappingContext() const
 {
 	if (const ULocalPlayer* LocalPlayer = GetLocalPlayer())
 	{
@@ -33,22 +33,22 @@ void ASSBCharacterSelectPlayerController::AddMappingContext() const
 	}
 }
 
-void ASSBCharacterSelectPlayerController::BindInputActions()
+void ACharacterSelectPlayerController::BindInputActions()
 {
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
 	{
-		EnhancedInputComponent->BindAction(SelectorMoveAction, ETriggerEvent::Triggered, this, &ASSBCharacterSelectPlayerController::SelectorMove);
-		EnhancedInputComponent->BindAction(SelectAction, ETriggerEvent::Triggered, this, &ASSBCharacterSelectPlayerController::Select);
+		EnhancedInputComponent->BindAction(SelectorMoveAction, ETriggerEvent::Triggered, this, &ACharacterSelectPlayerController::SelectorMove);
+		EnhancedInputComponent->BindAction(SelectAction, ETriggerEvent::Triggered, this, &ACharacterSelectPlayerController::Select);
 	}
 }
 
-void ASSBCharacterSelectPlayerController::SelectorMove(const FInputActionValue& InputValue)
+void ACharacterSelectPlayerController::SelectorMove(const FInputActionValue& InputValue)
 {
 	const FVector2D Dir = InputValue.Get<FVector2D>();
 	UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("SelectorMove TEST : %.f, %.f"), Dir.X, Dir.Y));
 }
 
-void ASSBCharacterSelectPlayerController::Select(const FInputActionValue& InputValue)
+void ACharacterSelectPlayerController::Select(const FInputActionValue& InputValue)
 {
 	UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Select TEST : %s"), InputValue.Get<bool>() ? TEXT("true") : TEXT("false")));
 }
