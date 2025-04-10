@@ -17,7 +17,7 @@ class GAMEPLAY_API ASSBPlayerController : public APlayerController
 
 public:
 	ASSBPlayerController();
-
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UPlayerInputComponent* PlayerInputComponent;
 };
