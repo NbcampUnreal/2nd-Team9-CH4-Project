@@ -1,4 +1,6 @@
-﻿#include "PlayerInputComponent.h"
+﻿PRAGMA_DISABLE_OPTIMIZATION
+
+#include "PlayerInputComponent.h"
 #include "Gameplay/Defines/InputBuffer/InputBufferEntry.h"
 #include "Gameplay/PlayerController/SSBPlayerController.h"
 #include "Gameplay/Defines/Command/CommandRow.h"
