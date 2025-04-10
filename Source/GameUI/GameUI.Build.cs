@@ -25,7 +25,9 @@ public class GameUI : ModuleRules
                 "Slate",
                 "SlateCore",
                 "GameCore",
-                "Gameplay"
+                "Gameplay",
+                "Sockets",
+                "Networking"
             }
         );
     }

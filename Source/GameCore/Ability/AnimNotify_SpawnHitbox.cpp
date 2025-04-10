@@ -11,8 +11,9 @@
 
 void UAnimNotify_SpawnHitbox::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
+	// ReSharper disable once CppDeprecatedEntity
 	Super::Notify(MeshComp, Animation);
-
+	
 	if (MeshComp && MeshComp->GetOwner())
 	{
 		if (!GetWorld())
@@ -33,6 +34,7 @@ void UAnimNotify_SpawnHitbox::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 		
 		//히트박스 생성
 		FHitDataInfo HitDataInfo = GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->GetHitDataInfo();
+		
 		
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = MeshComp->GetOwner();
