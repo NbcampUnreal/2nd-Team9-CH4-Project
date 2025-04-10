@@ -70,9 +70,14 @@ protected: //잊지말자 소프트레퍼런스
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
 	TArray<UAnimMontage*> AbilityMontage; //재생될 애니메이션, Animation to be played
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Montage")
+	TArray<UAnimMontage*> AirAbilityMontage; //재생될 애니메이션, Animation to be played
+	
 	UPROPERTY()
 	AFighter* OwnerCharacter;
 
 	UPROPERTY()
 	bool bIsActive = false; //필요하다면 사용, Use if necessary
+
+	int32 AirMontageIndex{-1};
 };

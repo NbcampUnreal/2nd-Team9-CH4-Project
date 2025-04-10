@@ -79,6 +79,12 @@ void UPlayerInputComponent::MoveInput(const FInputActionValue& InputValue)
 
 void UPlayerInputComponent::AttackInput(const FInputActionValue& InputValue, const FGameplayTag& AttackTag)
 {
+	bool bIsAttack = false;
+	if (Player->GetCurrentTags().HasTag(Player->AttackTag))
+	{
+		bIsAttack = true;
+	}
+	
 	for (FCommandRow* Row : CommandRows)
 	{
 		if (!Row || Row->AttackTag != AttackTag)
@@ -112,9 +118,10 @@ void UPlayerInputComponent::AttackInput(const FInputActionValue& InputValue, con
 		if (bMatch)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Command Matching!!: %s"), *Row->CommandName.ToString());
+
 			
 			//Test
-			GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->RequestCreateAbility(Row->CommandName);
+			GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->RequestCreateAbility(Row->CommandName,bIsAttack);
 			
 			return;
 		}

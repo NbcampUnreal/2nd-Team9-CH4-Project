@@ -12,6 +12,8 @@
 FGameplayTag AFighter::AttackTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Attack"));
 FGameplayTag AFighter::BaseTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base"));
 FGameplayTag AFighter::JumpTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Jump"));
+FGameplayTag AFighter::IdleTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Stand.Idle"));
+FGameplayTag AFighter::LandTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Land"));
 
 AFighter::AFighter()
 {
@@ -54,9 +56,9 @@ void AFighter::BeginPlay()
 void AFighter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 	
-	if (!AbilityTagContainer.HasTag(AttackTag) && CurrentPlayerTag != JumpTag)
+	
+	if (!AbilityTagContainer.HasTag(AttackTag) && CurrentPlayerTag != JumpTag && CurrentPlayerTag != LandTag)
 	{
 		CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("PlayerState.Base.%s.Idle"), *CurrentStandTag)));
 	}
@@ -122,7 +124,7 @@ void AFighter::Move(const FInputActionValue& InputValue)
 
 void AFighter::StartJump(const FInputActionValue& InputValue)
 {
-	CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.Base.Jump"));
+	CurrentPlayerTag = JumpTag;
 	Jump();
 }
 
@@ -136,6 +138,13 @@ void AFighter::SetChangeStandTag()
 	{
 		CurrentStandTag = "Stand";
 	}
+}
+
+void AFighter::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+
+	CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(TEXT("PlayerState.Base.Land"))); 
 }
 
 FGameplayTagContainer& AFighter::GetCurrentTags()

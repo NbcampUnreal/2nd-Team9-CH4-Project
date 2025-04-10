@@ -18,11 +18,12 @@ class GAMECORE_API UAbilityManager : public UGameInstanceSubsystem
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	void InitializeManager(); // 선택된 직업의 어빌리티들 생성, Create the ability of the selected job
-	void RequestCreateAbility(const FGameplayTag& CommandTag); //들어오는건 컨맨드태그
+	void RequestCreateAbility(const FGameplayTag& CommandTag, bool bIsNext); //들어오는건 컨맨드태그
 	void OnAbilityTableLoaded();
 	void UpdateCharacter(ACharacter* InOwner);
 	const FHitDataInfo& GetHitDataInfo() const;
 
+	void AbilityMontageDone();
 	
 protected:
 	UPROPERTY()
@@ -30,7 +31,7 @@ protected:
 	
 	UPROPERTY()
 	TMap<FGameplayTag, UAbilityBase*> AbilityMap; //저장된 태그는 직업별스킬태그 The actual generated Ability object is held and initialized after the use is completed
-
+	
 	UPROPERTY()
 	TMap<FGameplayTag, FHitDataInfo> HitInfoMap;
 	
@@ -45,6 +46,9 @@ protected:
 
 	UPROPERTY() //헬프 클래스
 	UAbilityManagerHelper* HelperInstance;
+
+	UAbilityBase* NextAbility{nullptr};
+	FHitDataInfo NextHitInfo;
 };
 
 // 4/9 

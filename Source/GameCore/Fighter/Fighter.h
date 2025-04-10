@@ -28,19 +28,21 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+	virtual void Landed(const FHitResult& Hit) override;
+	
 public:
 	void IWantToSleep() const;
-
 	UFUNCTION()
 	void ImSleepy(const FString& MessageType, UObject* Payload);
 
 	UFUNCTION()
 	void Move(const FInputActionValue& InputValue);
-
+	
 	UFUNCTION()
 	virtual void StartJump(const FInputActionValue& InputValue);
+	
 
+	
 	UFUNCTION(BlueprintCallable)
 	FGameplayTag GetGameplayTag() const { return CurrentPlayerTag; }
 
@@ -53,6 +55,13 @@ public:
 	void RemoveAttackTag() { AbilityTagContainer.RemoveTag(AttackTag); };
 	void SetChangeBaseTag() { CurrentPlayerTag = BaseTag; };
 	void SetChangeStandTag();
+	void SetIdleTag() { CurrentPlayerTag = IdleTag; };
+	
+	static FGameplayTag AttackTag;
+	static FGameplayTag BaseTag;
+	static FGameplayTag JumpTag;
+	static FGameplayTag IdleTag;
+	static FGameplayTag LandTag;
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* SpringArm;
@@ -72,9 +81,6 @@ private:
 	 * 반환된 Tag를 다시 컨테이너에 던져줘서 지워달라고 요청하고 새로운 PlayerState.Base.WalkForward 로 AddTag 해야됨
 	 * 뭔가뭔가임 더 찾아봐야할듯
 	 */
-	static FGameplayTag AttackTag;
-	static FGameplayTag BaseTag;
-	static FGameplayTag JumpTag;
 	
 	FString CurrentStandTag;
 	
