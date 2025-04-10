@@ -20,7 +20,7 @@ class GAMECORE_API UAbilityManager : public UGameInstanceSubsystem
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	void InitializeManager(); // 선택된 직업의 어빌리티들 생성, Create the ability of the selected job
-	void RequestCreateAbility(const FGameplayTag& CommandTag); //들어오는건 컨맨드태그
+	void RequestCreateAbility(const FGameplayTag& CommandTag, bool bIsNext);
 	void OnAbilityTableLoaded();
 	void OnAnimTableLoaded();
 	void UpdateCharacter(ACharacter* InOwner);
@@ -30,7 +30,8 @@ public:
 	const FName& GetAnimName() const;
 	AHitBox* GetHitBox() const;
 	const FAnimRow* GetAnimRow(const FName& InAnimName) const;
-	
+	void AbilityMontageDone();
+
 	void SetAnimName(const FName& InAnimName);
 	void SetHitBox(AHitBox* InHitBox);
 	
@@ -59,6 +60,9 @@ protected:
 	UPROPERTY() //헬프 클래스
 	UAbilityManagerHelper* HelperInstance;
 
+	UAbilityBase* NextAbility{nullptr};
+	FHitDataInfo NextHitInfo;
+	
 	FName CurrentAnimName;
 
 	UPROPERTY()
