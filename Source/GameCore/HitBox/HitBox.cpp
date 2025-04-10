@@ -14,7 +14,7 @@ AHitBox::AHitBox()
 void AHitBox::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	CreateHitBoxShape();
+	
 }
 
 void AHitBox::BeginPlay()
@@ -31,16 +31,28 @@ void AHitBox::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (GetOwner())
+	{
+		SetActorLocation(Cast<AFighter>(GetOwner())->GetMesh()->GetBoneLocation(AnimInfo.BoneName));
+	}
 	if (bIsDebugMode)
 	{
-		DebugDrawShape();
+		DebugDrawShape(AnimInfo);
 	}
 }
 
-void AHitBox::Init(const FHitDataInfo& HitData)
+void AHitBox::Init(const FHitDataInfo& HitData, const FVector& Pos, const FAnimRow AnimRow)
 {
 	HitDataInfo = HitData;
-
+	AnimInfo = AnimRow;
+	
+	//AnimRow 설정해주고 틱에서 위치 갱신 해야함!!
+	
+	CreateHitBoxShape(AnimRow);
+	
+	//생성위치
+	SetActorLocation(Pos);
+	
 	if (GetOwner())
 	{
 		if (const AFighter* OwnerFighter = Cast<AFighter>(GetOwner()))
@@ -50,6 +62,7 @@ void AHitBox::Init(const FHitDataInfo& HitData)
 				if (UHitComponent* HitComponent = Cast<UHitComponent>(ActorComponent))
 				{
 					OwnerHitComponent = HitComponent;
+					
 				}
 			}
 		}
@@ -58,7 +71,7 @@ void AHitBox::Init(const FHitDataInfo& HitData)
 	CollisionComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 }
 
-void AHitBox::CreateHitBoxShape()
+void AHitBox::CreateHitBoxShape(const FAnimRow& InAnimInfo)
 {
 	if (CollisionComponent)
 	{
@@ -102,7 +115,7 @@ void AHitBox::CreateHitBoxShape()
 	}
 }
 
-void AHitBox::DebugDrawShape() const
+void AHitBox::DebugDrawShape(const FAnimRow& InAnimInfo) const
 {
 	switch (HitBoxShape)
 	{
