@@ -1,6 +1,7 @@
 #include "AbilityManager.h"
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
+#include "GameCore/Ability/AbilityManagerHelper.h"
 #include "GameCore/Fighter/Fighter.h"
 
 void UAbilityManager::Initialize(FSubsystemCollectionBase& Collection)
@@ -13,10 +14,10 @@ void UAbilityManager::Initialize(FSubsystemCollectionBase& Collection)
 void UAbilityManager::InitializeManager()
 {
 	//DT
-	AbilityDataTable = TSoftObjectPtr<UDataTable>(FSoftObjectPath(TEXT("/Game/Data/DT_Ability.DT_Ability"))); //경로만 지정됨, 로드x
+	HelperInstance = NewObject<UAbilityManagerHelper>(GetTransientPackage(), AbilityManagerHelperClass); //헬프 클래스, GetTransientPackage -> 게임 시작되면 생성되는 가장 원초적인 객체 , "GC가 안된다"
 	FStreamableManager& Streamable = UAssetManager::GetStreamableManager(); //로드 시작
 	Streamable.RequestAsyncLoad(
-		AbilityDataTable.ToSoftObjectPath(),
+		HelperInstance->AbilityDataTable.ToSoftObjectPath(),
 		FStreamableDelegate::CreateUObject(this, &UAbilityManager::OnAbilityTableLoaded));
 }
 
@@ -43,7 +44,6 @@ void UAbilityManager::RequestCreateAbility(const FGameplayTag& CommandTag)
 				Ability->Activate(PlayerInstance.Get()); //어빌리티 활성화
 			}
 		}
-		
 	}
 	else
 	{
@@ -55,26 +55,26 @@ void UAbilityManager::OnAbilityTableLoaded() //게임 쓰레드에서 실행됨-
 {
 	//DT 로드가 완료되면 매핑
 	static const FString ContextString(TEXT("AbilityManager::OnAbilityTableLoaded"));
-	if (AbilityDataTable.IsValid())
+	if (HelperInstance->AbilityDataTable.IsValid())
 	{
 		TArray<FAbilityRow*> AbilityRows;
-		AbilityDataTable->GetAllRows(ContextString, AbilityRows);
+		HelperInstance->AbilityDataTable->GetAllRows(ContextString, AbilityRows);
 
 			for (const auto& Ability : AbilityRows)
 			{
 				FGameplayTag SkillTag = Ability->AbilityTag;
-				FGameplayTag CommandTag = Ability->CommandTag;
+				FGameplayTag CommandTag = Ability->AbilityTag;
 				CommandTagMap.Add(CommandTag,SkillTag);
 			}
 	}
 
 	TArray<FAbilityRow*> Rows;
-	if (AbilityDataTable.IsNull())
+	if (HelperInstance->AbilityDataTable.IsNull())
 	{
 		ensureAlways(false); //한번더검증해
 		return;
 	}
-	AbilityDataTable->GetAllRows<FAbilityRow>(ContextString, Rows);
+	HelperInstance->AbilityDataTable->GetAllRows<FAbilityRow>(ContextString, Rows);
 	FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
 	
 	for (const FAbilityRow* Row : Rows)

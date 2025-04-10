@@ -12,7 +12,8 @@ public class GameUI : ModuleRules
                 
                 "Core",
                 "InputCore",
-                "UMG"
+                "UMG",
+                "GamePlayTags"
             }
         );
 
@@ -24,7 +25,9 @@ public class GameUI : ModuleRules
                 "Slate",
                 "SlateCore",
                 "GameCore",
-                "Gameplay"
+                "Gameplay",
+                "Sockets",
+                "Networking"
             }
         );
     }

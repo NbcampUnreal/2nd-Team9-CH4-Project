@@ -22,18 +22,15 @@ void USSBCheatManager::CreateRoom(const FString& RoomName)
         GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("No SessionInterface found"));
         return;
     }
-
-    // CreateSession 델리게이트 추가
+    
     SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &USSBCheatManager::OnCreateSessionComplete);
 
-    // 세션 설정 생성 (필요에 맞게 수정)
     TSharedPtr<FOnlineSessionSettings> SessionSettings = MakeShareable(new FOnlineSessionSettings());
-    SessionSettings->bIsLANMatch = true;                // LAN 매치 여부 (온라인이면 false로)
-    SessionSettings->NumPublicConnections = 4;           // 최대 접속자 수
+    SessionSettings->bIsLANMatch = true;
+    SessionSettings->NumPublicConnections = 4;
     SessionSettings->bShouldAdvertise = true;
     SessionSettings->bUsesPresence = true;
     
-    // 커스텀 파라미터로 방 이름 설정 (검색 시 사용)
     SessionSettings->Set(FName("ROOM_NAME"), RoomName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
     // 로컬 플레이어의 고유 아이디 획득
