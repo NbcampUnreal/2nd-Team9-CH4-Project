@@ -144,11 +144,25 @@ void AFighter::Move(const FInputActionValue& InputValue)
 	FString MoveTag = "Idle";
 	if (MovementVector.X > 0.0f)
 	{
-		MoveTag = "WalkForward";
+		if (bLookingRight)
+		{
+			MoveTag = "WalkForward";
+		}
+		else
+		{
+			MoveTag = "WalkBackward";
+		}
 	}
 	else if (MovementVector.X < 0.0f)
 	{
-		MoveTag = "WalkBackward";
+		if (bLookingRight)
+		{
+			MoveTag = "WalkBackward";
+		}
+		else
+		{
+			MoveTag = "WalkForward";
+		}
 	}
 	
 	CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("PlayerState.Base.%s.%s"), *CurrentStandTag, *MoveTag)));
@@ -156,6 +170,11 @@ void AFighter::Move(const FInputActionValue& InputValue)
 
 void AFighter::StartJump(const FInputActionValue& InputValue)
 {
+	// 지상공격 캔슬 ( 밑에 태그 바꾸는것보다 먼저 호출해야됨 )
+	if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
+	{
+		AnimInst->Montage_Stop(0.0f);
+	}
 	CurrentPlayerTag = JumpTag;
 	Jump();
 }
