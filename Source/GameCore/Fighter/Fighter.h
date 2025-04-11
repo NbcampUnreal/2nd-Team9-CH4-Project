@@ -51,10 +51,10 @@ public:
 	void SetChangeBaseTag() { CurrentPlayerTag = BaseTag; };
 	void SetChangeStandTag();
 private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
-	USpringArmComponent* SpringArm;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
-	UCameraComponent* Camera;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+	//USpringArmComponent* SpringArm;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+	//UCameraComponent* Camera;
 
 	/*tw Test
 	 * 단일 태그로 테스트해본결과

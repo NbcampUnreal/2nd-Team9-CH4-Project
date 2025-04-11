@@ -5,6 +5,8 @@
 #include "MessageBus/MessageBusManager.h"
 #include "GameFramework/PlayerState.h"
 #include "Camera/CameraComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameCore/Camera/SSBCamera.h"
 #include "InputActionValue.h"
 #include "GameCore/Ability/AbilityManager/AbilityManager.h"
 
@@ -16,22 +18,21 @@ FGameplayTag AFighter::JumpTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerSt
 AFighter::AFighter()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
-	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	SpringArm->SetupAttachment(RootComponent);
-	SpringArm->SetWorldRotation(FRotator(-5.f, -90.f, 0.f));
-	SpringArm->SetAbsolute(false, false, false);
-	SpringArm->TargetArmLength = 1000.0f;
-	SpringArm->bDoCollisionTest = false;
-
-	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	Camera->SetupAttachment(SpringArm);
-	Camera->SetFieldOfView(40.0f);
 	
 	GetCharacterMovement()->MaxWalkSpeed = 600.0f;
 
 	//Test
 	
+	if (UMessageBusManager* MessageBus = UMessageBusManager::GetInstance())
+	{
+		FMessageDelegate Delegate;
+		Delegate.BindUObject(this, &AFighter::ImSleepy);
+		MessageBus->Subscribe(TEXT("Test1"), Delegate);
+	}
+
+	CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.Base.Stand.Idle"));
+	CurrentStandTag = "Stand";
+
 }
 
 void AFighter::BeginPlay()
@@ -48,10 +49,12 @@ void AFighter::BeginPlay()
 	CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.Base.Stand.Idle"));
 	CurrentStandTag = "Stand";
 
-	
-	//GetGameInstance()->GetSubsystem<UAbilityManager>()->InitializeManager();
 	//Test
-	GetGameInstance()->GetSubsystem<UAbilityManager>()->UpdateCharacter(this);
+	if (GetGameInstance())
+	{
+		GetGameInstance()->GetSubsystem<UAbilityManager>()->UpdateCharacter(this);
+	}
+
 }
 
 void AFighter::Tick(float DeltaTime)
