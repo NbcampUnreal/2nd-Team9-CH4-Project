@@ -145,11 +145,25 @@ FGameplayTag UPlayerInputComponent::GetInputTagFromValue(const FInputActionValue
 	FString XTag;
 	if (Direction.X < 0)
 	{
-		XTag = TEXT("Left");
+		if (!Player.Get()->GetPlayerLookingRight())
+		{
+			XTag = TEXT("Right");
+		}
+		else
+		{
+			XTag = TEXT("Left");			
+		}
 	}
 	else if (Direction.X > 0)
 	{
-		XTag = TEXT("Right");
+		if (!Player.Get()->GetPlayerLookingRight())
+		{
+			XTag = TEXT("Left");
+		}
+		else
+		{
+			XTag = TEXT("Right");
+		}
 	}
 
 	FString YTag;

@@ -72,6 +72,7 @@ protected:
 	
 	UPROPERTY()
 	AHitBox* HitBoxInstance;
+	
 };
 
 
