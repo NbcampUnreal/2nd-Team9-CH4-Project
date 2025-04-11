@@ -18,5 +18,7 @@ public:
 	UPROPERTY(EditAnywhere, blueprintReadWrite, Category = "Ability")
 	TSoftObjectPtr<UDataTable> AbilityDataTable;
 
+	UPROPERTY(EditAnywhere, blueprintReadWrite, Category = "Anim")
+	TSoftObjectPtr<UDataTable> AnimDataTable;
 
 };

@@ -4,8 +4,6 @@
 #include "Engine/DataTable.h"
 #include "AnimRow.generated.h"
 
-class UAbilityBase;
-
 USTRUCT(BlueprintType)
 struct GAMECORE_API FAnimRow : public FTableRowBase
 {
@@ -15,14 +13,18 @@ struct GAMECORE_API FAnimRow : public FTableRowBase
 	FName AnimName;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HitData")
-	FName SocketName; //스켈레탈 메시의 어디를 기준으로 스폰될지
+	FName BoneName; //스켈레탈 메시의 어디를 기준으로 스폰될지
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HitData")
-	FVector3f HitComScale; 
+	FVector HitComScale; 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HitData")
-	FName HitComType; //박스, 스피어, 캡슐...
+	int32 HitComType; //0.스피어, 1.캡슐, 2.박스...
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HitData")
-	FVector3f HitBoxOffSet; 
+	float Radius;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HitData")
+	FVector HitComOffSet;
+	
 };

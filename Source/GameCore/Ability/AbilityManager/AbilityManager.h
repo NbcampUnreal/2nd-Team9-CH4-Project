@@ -4,10 +4,12 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "GameCore/Ability/AbilityBase.h"
 #include "GameCore/Ability/AbilityData/AbilityRow.h"
+#include "GameCore/Ability/AbilityData/AnimRow.h"
 #include "AbilityManager.generated.h"
 
 class AFighter;
 class UAbilityManagerHelper;
+class AHitBox;
 struct FHitDataInfo;
 
 UCLASS(Config = Engine, DefaultConfig, Blueprintable) //Config = Engine, DefaultConfig -> 디폴트.ini, 헬프 클래스
@@ -18,20 +20,32 @@ class GAMECORE_API UAbilityManager : public UGameInstanceSubsystem
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	void InitializeManager(); // 선택된 직업의 어빌리티들 생성, Create the ability of the selected job
-	void RequestCreateAbility(const FGameplayTag& CommandTag, bool bIsNext); //들어오는건 컨맨드태그
+	void RequestCreateAbility(const FGameplayTag& CommandTag, bool bIsNext);
 	void OnAbilityTableLoaded();
+	void OnAnimTableLoaded();
 	void UpdateCharacter(ACharacter* InOwner);
-	const FHitDataInfo& GetHitDataInfo() const;
 
+	//Getter, Setter
+	const FHitDataInfo& GetHitDataInfo() const;
+	const FName& GetAnimName() const;
+	AHitBox* GetHitBox() const;
+	const FAnimRow* GetAnimRow(const FName& InAnimName) const;
 	void AbilityMontageDone();
-	
+
+	void SetAnimName(const FName& InAnimName);
+	void SetHitBox(AHitBox* InHitBox);
+
+	bool CheckCurrentPlayingMontage() const;
 protected:
 	UPROPERTY()
 	TSoftObjectPtr<UDataTable> AbilityDataTable;
+
+	UPROPERTY()
+	TSoftObjectPtr<UDataTable> AnimDataTable;
 	
 	UPROPERTY()
 	TMap<FGameplayTag, UAbilityBase*> AbilityMap; //저장된 태그는 직업별스킬태그 The actual generated Ability object is held and initialized after the use is completed
-	
+
 	UPROPERTY()
 	TMap<FGameplayTag, FHitDataInfo> HitInfoMap;
 	
@@ -47,9 +61,20 @@ protected:
 	UPROPERTY() //헬프 클래스
 	UAbilityManagerHelper* HelperInstance;
 
+	UAbilityBase* CurrentAbility{nullptr};
 	UAbilityBase* NextAbility{nullptr};
 	FHitDataInfo NextHitInfo;
+	
+	FName CurrentAnimName;
+
+	UPROPERTY()
+	TMap<FName, FAnimRow> AnimInfoMap;
+	
+	UPROPERTY()
+	AHitBox* HitBoxInstance;
+	
 };
+
 
 // 4/9 
 /* 

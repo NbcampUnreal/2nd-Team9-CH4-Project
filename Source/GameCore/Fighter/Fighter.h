@@ -2,15 +2,13 @@
 
 #pragma once
 
-
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-//Test
-#include "Materials/MaterialInstanceDynamic.h"
 #include "GameplayTagContainer.h"
 #include "Fighter.generated.h"
 
-
+class UNiagaraComponent;
+class UNiagaraSystem;
 class UCameraComponent;
 class USpringArmComponent;
 struct FInputActionValue;
@@ -34,7 +32,6 @@ protected:
 	virtual void Landed(const FHitResult& Hit) override;
 	
 public:
-	void IWantToSleep() const;
 	UFUNCTION()
 	void ImSleepy(const FString& MessageType, UObject* Payload);
 
@@ -43,9 +40,6 @@ public:
 	
 	UFUNCTION()
 	virtual void StartJump(const FInputActionValue& InputValue);
-
-	
-
 	
 	UFUNCTION(BlueprintCallable)
 	FGameplayTag GetGameplayTag() const { return CurrentPlayerTag; }
@@ -53,7 +47,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FGameplayTagContainer& GetCurrentTags();
 
-	
+	UFUNCTION(BlueprintCallable)
+	bool GetPlayerLookingRight() const { return bLookingRight; }
 	
 	UFUNCTION(BlueprintCallable)
 	void SetGameplayTag(const FGameplayTag& GameplayTag) { CurrentPlayerTag = GameplayTag; };
@@ -63,36 +58,30 @@ public:
 	void SetChangeStandTag();
 	void SetIdleTag() { CurrentPlayerTag = IdleTag; };
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
+	UNiagaraSystem* NiagaraEffect;
+
+	TArray<UNiagaraComponent*> NiagaraComponents;
+	
+	/* Define 에 옮겨놔야할듯 */
 	static FGameplayTag AttackTag;
 	static FGameplayTag BaseTag;
 	static FGameplayTag JumpTag;
 	static FGameplayTag IdleTag;
 	static FGameplayTag LandTag;
-private:
+
+private: /* 카메라 완성되면 지워야함*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* SpringArm;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* Camera;
-
-	/*tw Test
-	 * 단일 태그로 테스트해본결과
-	 * 기본 상태를 애니메이션 블루프린트로 하고 블렌드로 어빌리티에 있는 몽타쥬를 섞고 싶었음
-	 * 그게 확장성도 좋아보였으니 결론적으론 움직임 자체를 담고 있는건
-	 * FGameplayTag CurrentPlayerTag; 를 쓰고
-	 * 어빌리티 및 각종 게임상태를 담는건
-	 * FGameplayTagContainer AbilityTagContainer; 로 관리하는게 맞아보임
-	 * 컨테이너는 순서보장도 힘들어서 움직임 상태를 빠르게 전환시키기에는 애매함 
-	 * 예시로 FGameplayTagContainer에 PlayerState.Base.Idle 을 PlayerState.Base.WalkForward 로 바꿀려면
-	 * PlayerState.Base 하위에 있는걸 다 찾아서 받은다음 (아니면 하위에 있는걸 한번에 지우는게 잇나?)
-	 * 반환된 Tag를 다시 컨테이너에 던져줘서 지워달라고 요청하고 새로운 PlayerState.Base.WalkForward 로 AddTag 해야됨
-	 * 뭔가뭔가임 더 찾아봐야할듯
-	 */
-	
-
-    
+private:
+	// 앉아있는지 서있는지 초기화 할때 쓰이는 변수
 	FString CurrentStandTag;
-	
 	FGameplayTag CurrentPlayerTag; //로코모션담김
 	FGameplayTagContainer AbilityTagContainer; //공격중인지, 인트로중인지 태그
 	
+	bool bLookingRight{ true}; //오른쪽을 보고있는지
+
+
 };

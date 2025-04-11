@@ -111,14 +111,14 @@ private:
 	TArray<FName> InfoArray;
 };
 
-UCLASS(Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+UCLASS(Abstract, Blueprintable, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class GAMECORE_API UHitComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
 	UHitComponent();
-
+	
 	UFUNCTION(BlueprintCallable, Category="HitComponents")
 	void OnHit(UHitComponent* AttackerHitComponent, const FHitDataInfo& HitDataInfo);
 
@@ -154,6 +154,8 @@ private:
 
 	bool bIsHit;
 
+	UPROPERTY(EditAnywhere, category="HitComponents", meta=(ClampMin="0.0"))
+	float AttackerHitStopDuration;
 	UPROPERTY(EditAnywhere, Category="HitComponents", meta=(ClampMin=500.0, ClampMax = 5000.0))
 	float LaunchThreshold;
 	UPROPERTY(EditAnywhere, Category="HitComponents", meta=(ClampMin="0", ClampMax="9.0"))

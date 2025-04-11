@@ -21,6 +21,15 @@ public:
 	void ChangeLevel(const FName& LevelName);
 	UFUNCTION(BlueprintCallable)
 	FGameplayTag GetLevelTag() const { return CurrentLevelTag; }
+
+	FORCEINLINE int32 GetPlayerIndex() const { return PlayerIndex; }
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE void SetPlayerIndex(const int32 Index) { PlayerIndex = Index; }
+	FORCEINLINE FGameplayTag GetCharacterTypeTag() const { return CharacterTypeTag; }
+	FORCEINLINE void SetCharacterTypeTag(const FGameplayTag NewCharacterTypeTag) { CharacterTypeTag = NewCharacterTypeTag; }
 private:
 	FGameplayTag CurrentLevelTag;
+
+	int32 PlayerIndex;
+	FGameplayTag CharacterTypeTag;
 };

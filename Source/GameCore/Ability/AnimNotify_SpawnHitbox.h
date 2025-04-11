@@ -11,7 +11,7 @@
  */
 class AHitBox;
 
-UCLASS()
+UCLASS(Blueprintable)
 class GAMECORE_API UAnimNotify_SpawnHitbox : public UAnimNotify
 {
 	GENERATED_BODY()
