@@ -1,21 +1,19 @@
 ﻿#include "CharacterSelectGameMode.h"
 
-#include "GameCore/Fighter/CharacterSelect/CharacterSelectPawn.h"
+#include "GameFramework/PlayerStart.h"
+#include "Kismet/GameplayStatics.h"
 
-void ACharacterSelectGameMode::PostLogin(APlayerController* NewPlayer)
+AActor* ACharacterSelectGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
-	Super::PostLogin(NewPlayer);
+	TArray<AActor*> PlayerStarts;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), PlayerStarts);
 
-	const int32 PlayerIndex = GetWorld()->GetNumPlayerControllers() - 1;
-	
-	if (IsValid(NewPlayer))
+	if (PlayerStarts.Num() > 0)
 	{
-		APawn* Pawn = NewPlayer->GetPawn();
-		ACharacterSelectPawn* CharacterSelectPawn = Cast<ACharacterSelectPawn>(Pawn);
-		if (IsValid(CharacterSelectPawn))
-		{
-			const float OffsetY = PlayerIndex * 100.0f;
-			CharacterSelectPawn->AddActorWorldOffset(FVector(0.0f, OffsetY, 0.0f));
-		}
+		AActor* PlayerStart = PlayerStarts[CurrentSpawnIndex];
+		CurrentSpawnIndex++;
+		return PlayerStart;
 	}
+	
+	return Super::ChoosePlayerStart_Implementation(Player);
 }

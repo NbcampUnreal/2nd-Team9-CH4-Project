@@ -32,7 +32,7 @@ void UCharacterSelectWidget::SetCharacterSlotArray()
 			UCharacterSlotWidget* CharacterSlotWidget = Cast<UCharacterSlotWidget>(Widget);
 			if (IsValid(CharacterSlotWidget))
 			{
-				CharacterSlotWidget->InitWidget(PlayerIndex == Index);
+				CharacterSlotWidget->InitWidget(PlayerIndex == Index, Index);
 				CharacterSlotWidgetArray.Add(CharacterSlotWidget);
 				Index++;
 			}

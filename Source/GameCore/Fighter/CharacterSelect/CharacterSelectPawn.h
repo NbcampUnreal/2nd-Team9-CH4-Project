@@ -16,7 +16,11 @@ struct FCharacterModelData
 	TArray<UMaterialInterface*> MaterialArray;
 	UPROPERTY(EditDefaultsOnly)
 	UAnimationAsset* IdleAnimation;
+	UPROPERTY(EditDefaultsOnly)
+	UTexture2D* IconTexture;
 };
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnChangeCharacter, UTexture2D*, IconTexture);
 
 UCLASS()
 class GAMECORE_API ACharacterSelectPawn : public APawn
@@ -29,11 +33,12 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastChangeCharacterModel(const FName CharacterTypeTagName);
 	
+	FOnChangeCharacter OnChangeCharacter;
+	
 protected:
 	virtual void BeginPlay() override;
 	
 private:
-	void InitRenderTarget();
 	
 	UPROPERTY(VisibleAnywhere)
 	USceneComponent* RootSceneComponent;

@@ -1,10 +1,6 @@
 ﻿#include "CharacterSelectPawn.h"
 
 #include "GameplayTagContainer.h"
-#include "Components/SceneCaptureComponent2D.h"
-#include "Engine/TextureRenderTarget2D.h"
-#include "Kismet/KismetSystemLibrary.h"
-#include "Net/UnrealNetwork.h"
 
 ACharacterSelectPawn::ACharacterSelectPawn()
 {
@@ -23,14 +19,13 @@ void ACharacterSelectPawn::BeginPlay()
 	Super::BeginPlay();
 }
 
-
 void ACharacterSelectPawn::MulticastChangeCharacterModel_Implementation(const FName CharacterTypeTagName)
 {
 	const FGameplayTag CharacterTypeTag = FGameplayTag::RequestGameplayTag(CharacterTypeTagName);
 
 	if (CharacterModelDataArray.Contains(CharacterTypeTag))
 	{
-		auto [SkeletalMesh, MaterialArray, IdleAnimation] = CharacterModelDataArray[CharacterTypeTag];
+		auto [SkeletalMesh, MaterialArray, IdleAnimation, IconTexture] = CharacterModelDataArray[CharacterTypeTag];
 		SkeletalMeshComponent->SetSkeletalMesh(SkeletalMesh);
 		for (int32 i = 0; i < MaterialArray.Num(); i++)
 		{
@@ -38,5 +33,7 @@ void ACharacterSelectPawn::MulticastChangeCharacterModel_Implementation(const FN
 		}
 
 		SkeletalMeshComponent->PlayAnimation(IdleAnimation, true);
+
+		OnChangeCharacter.Broadcast(IconTexture);
 	}
 }
