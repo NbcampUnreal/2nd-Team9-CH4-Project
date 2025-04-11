@@ -7,6 +7,7 @@
 #include "GameplayTagContainer.h"
 #include "Fighter.generated.h"
 
+class UHitComponent;
 class UNiagaraComponent;
 class UNiagaraSystem;
 class UCameraComponent;
@@ -34,10 +35,8 @@ protected:
 public:
 	UFUNCTION()
 	void ImSleepy(const FString& MessageType, UObject* Payload);
-
 	UFUNCTION()
 	void Move(const FInputActionValue& InputValue);
-	
 	UFUNCTION()
 	virtual void StartJump(const FInputActionValue& InputValue);
 	
@@ -60,8 +59,10 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
 	UNiagaraSystem* NiagaraEffect;
-
 	TArray<UNiagaraComponent*> NiagaraComponents;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Hit")
+	UHitComponent* HitComponent;
 	
 	/* Define 에 옮겨놔야할듯 */
 	static FGameplayTag AttackTag;

@@ -2,6 +2,7 @@
 #include "GameCore/Ability/AbilityManager/AbilityManager.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameCore/Interface/PlayerStateInterface.h"
+#include "GameCore/Components/Hit//HitComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "MessageBus/MessageBusManager.h"
 #include "GameFramework/PlayerState.h"
@@ -10,7 +11,6 @@
 #include "InputActionValue.h"
 #include "NiagaraComponent.h"
 #include "NiagaraSystem.h"
-
 
 FGameplayTag AFighter::AttackTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Attack"));
 FGameplayTag AFighter::BaseTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base"));
@@ -32,6 +32,8 @@ AFighter::AFighter()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm);
 	Camera->SetFieldOfView(40.0f);
+
+	HitComponent = CreateDefaultSubobject<UHitComponent>(TEXT("HitComponent"));
 	
 	GetCharacterMovement()->MaxWalkSpeed = 600.0f;
 }
@@ -110,6 +112,7 @@ void AFighter::Tick(float DeltaTime)
 	if (!AbilityTagContainer.HasTag(AttackTag) && CurrentPlayerTag != JumpTag && CurrentPlayerTag != LandTag)
 	{
 		CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("PlayerState.Base.%s.Idle"), *CurrentStandTag)));
+		//CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("PlayerState.Base.Stand.Idle"))));
 	}
 }
 

@@ -20,11 +20,7 @@ void AHitBox::OnConstruction(const FTransform& Transform)
 void AHitBox::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (CollisionComponent)
-	{
-		CollisionComponent->OnComponentBeginOverlap.AddDynamic(this, &AHitBox::OnHitBoxOverlap);
-	}
+	
 }
 
 void AHitBox::Tick(float DeltaTime)
@@ -59,6 +55,11 @@ void AHitBox::Init(const FHitDataInfo& HitData, const FVector& Pos, const FAnimR
 	//AnimRow 설정해주고 틱에서 위치 갱신 해야함!!
 	
 	CreateHitBoxShape(AnimRow);
+	
+	if (CollisionComponent)
+	{
+		CollisionComponent->OnComponentBeginOverlap.AddDynamic(this, &AHitBox::OnHitBoxOverlap);
+	}
 	
 	//생성위치
 	SetActorLocation(Pos);
