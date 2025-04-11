@@ -19,9 +19,13 @@ void UAbilityManager::InitializeManager()
 	Streamable.RequestAsyncLoad(
 		HelperInstance->AbilityDataTable.ToSoftObjectPath(),
 		FStreamableDelegate::CreateUObject(this, &UAbilityManager::OnAbilityTableLoaded));
+	
+	Streamable.RequestAsyncLoad(
+		HelperInstance->AnimDataTable.ToSoftObjectPath(),
+		FStreamableDelegate::CreateUObject(this, &UAbilityManager::OnAnimTableLoaded));
 }
 
-void UAbilityManager::RequestCreateAbility(const FGameplayTag& CommandTag)
+void UAbilityManager::RequestCreateAbility(const FGameplayTag& CommandTag, bool bIsNext)
 {
 /* 임시로 뭐 들어있는지 확인할려고 작성함 */
 #if !UE_BUILD_SHIPPING
@@ -37,11 +41,20 @@ void UAbilityManager::RequestCreateAbility(const FGameplayTag& CommandTag)
 	{
 		if (UAbilityBase* Ability = AbilityMap[*MappedTag])
 		{
-			const FHitDataInfo* HitData = HitInfoMap.Find(*MappedTag);
-			if (HitData)
+			if (const FHitDataInfo* HitData = HitInfoMap.Find(*MappedTag))
 			{
-				CurrentHitInfo = *HitData; // 사용 끝나면 초기화 시키는 코드 추가해야함!!!!!!!!
-				Ability->Activate(PlayerInstance.Get()); //어빌리티 활성화
+				// || (bIsNext && PlayerInstance.Get()->GetCurrentTags().HasTag(PlayerInstance.Get()->AttackTag))
+				if (!bIsNext)
+				{
+					CurrentHitInfo = *HitData; // 사용 끝나면 초기화 시키는 코드 추가해야함!!!!!!!!
+					Ability->Activate(PlayerInstance.Get()); //어빌리티 활성화
+					CurrentAbility = Ability; 
+				}
+				else
+				{
+					NextAbility = Ability;
+					NextHitInfo = *HitData;
+				}
 			}
 		}
 	}
@@ -112,6 +125,30 @@ void UAbilityManager::OnAbilityTableLoaded() //게임 쓰레드에서 실행됨-
 	}
 }
 
+void UAbilityManager::OnAnimTableLoaded()
+{
+	static const FString ContextString(TEXT("AbilityManager::OnAnimTableLoaded"));
+	if (HelperInstance->AnimDataTable.IsValid())
+	{
+		TArray<FAnimRow*> AnimRows;
+		HelperInstance->AnimDataTable->GetAllRows(ContextString, AnimRows);
+
+		for (const auto& Anim : AnimRows)
+		{
+			FName Name = Anim->AnimName;
+			
+			FAnimRow AnimInfo;
+			AnimInfo.AnimName = Name;
+			AnimInfo.BoneName = Anim->BoneName;
+			AnimInfo.HitComScale = Anim->HitComScale;
+			AnimInfo.HitComType =  Anim->HitComType;
+			AnimInfo.Radius = Anim->Radius;
+			AnimInfo.HitComOffSet =	Anim->HitComOffSet;
+			AnimInfoMap.Add(Name,AnimInfo);
+		}
+	}
+}
+
 void UAbilityManager::UpdateCharacter(ACharacter* InOwner) //매핑이 완료되고 각 어빌리티들의 오너를 설정해줌
 {
 	PlayerInstance = Cast<AFighter>(InOwner);
@@ -124,4 +161,65 @@ void UAbilityManager::UpdateCharacter(ACharacter* InOwner) //매핑이 완료되
 const FHitDataInfo& UAbilityManager::GetHitDataInfo() const
 {
 	return CurrentHitInfo;
+}
+
+const FName& UAbilityManager::GetAnimName() const
+{
+	return CurrentAnimName;
+}
+
+
+void UAbilityManager::SetAnimName(const FName& InAnimName)
+{
+	CurrentAnimName = InAnimName;
+}
+
+AHitBox* UAbilityManager::GetHitBox() const
+{
+	return HitBoxInstance;
+}
+
+void UAbilityManager::SetHitBox(AHitBox* InHitBox)
+{
+	HitBoxInstance = InHitBox;
+}
+
+const FAnimRow* UAbilityManager::GetAnimRow(const FName& InAnimName) const
+{
+	if (!AnimInfoMap.IsEmpty())
+	{
+		return AnimInfoMap.Find(InAnimName);
+	}
+
+	return nullptr;
+}
+
+
+void UAbilityManager::AbilityMontageDone()
+{
+	if (NextAbility)
+	{
+		NextAbility->Activate(PlayerInstance.Get());
+		CurrentHitInfo = NextHitInfo;
+		CurrentAbility = NextAbility;
+		
+		NextAbility = nullptr;
+		NextHitInfo = FHitDataInfo();
+	}
+	else
+	{
+		if (CurrentAbility && !CurrentAbility->CheckIsPlayingMontage())
+		{
+			PlayerInstance.Get()->RemoveAttackTag();
+		}
+	}
+}
+
+bool UAbilityManager::CheckCurrentPlayingMontage() const
+{
+	if (CurrentAbility)
+	{
+		return CurrentAbility->CheckIsPlayingMontage();	
+	}
+	return false;
 }

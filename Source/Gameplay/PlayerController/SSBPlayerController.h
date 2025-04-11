@@ -1,15 +1,11 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "SSBPlayerController.generated.h"
 
 class UPlayerInputComponent;
-/**
- * 
- */
+
 UCLASS()
 class GAMEPLAY_API ASSBPlayerController : public APlayerController
 {
@@ -17,7 +13,12 @@ class GAMEPLAY_API ASSBPlayerController : public APlayerController
 
 public:
 	ASSBPlayerController();
-
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UPlayerInputComponent* PlayerInputComponent;
+
+protected:
+	virtual void BeginPlay() override;
+
+	virtual void OnPossess(APawn* InPawn) override;
 };

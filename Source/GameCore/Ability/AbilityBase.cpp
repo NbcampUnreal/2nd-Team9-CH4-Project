@@ -1,7 +1,10 @@
 ﻿#include "AbilityBase.h"
+
+#include "AbilityManager/AbilityManager.h"
 #include "Runtime/VerseCompiler/Public/uLang/Parser/VerseGrammar.h"
 #include "GameCore/Fighter/Fighter.h"
 #include "GameFramework/Character.h"
+#include "GameCore/HitBox/HitBox.h"
 
 UAbilityBase::UAbilityBase()
 {
@@ -19,7 +22,9 @@ void UAbilityBase::Initialize()
 		//AnimInst->OnMontageEnded.AddDynamic(this, &UAbilityBase::OnMontageEnd);
 
 		// 이게맞나? 애님몽타쥬 블렌드아웃 시간을 살짝 준다음 그 사이에 해결..
+		//AnimInst->OnMontageBlendingOut.RemoveDynamic(this, &UAbilityBase::OnMontageBlendingOut);
 		AnimInst->OnMontageBlendingOut.AddDynamic(this, &UAbilityBase::OnMontageBlendingOut);
+		
 	}
 }
 
@@ -65,8 +70,24 @@ void UAbilityBase::PlayMontage()
 	if (AFighter* Fighter = Cast<AFighter>(OwnerCharacter))
 	{
 		Fighter->AddAttackTag();
-		int32 Random = FMath::RandRange(0,AbilityMontage.Num()-1);
-		Fighter->PlayAnimMontage(AbilityMontage[Random]);
+		if (!AirAbilityMontage.IsEmpty() && Fighter->GetGameplayTag().MatchesTag(Fighter->JumpTag))
+		{
+			int32 Random = FMath::RandRange(0,AirAbilityMontage.Num()-1);
+			FString StringName = AirAbilityMontage[Random]->GetName();
+			GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->SetAnimName(FName(*StringName));
+			Fighter->PlayAnimMontage(AirAbilityMontage[Random]);
+			
+			CurrentMontage = AirAbilityMontage[Random];
+		}
+		else
+		{
+			int32 Random = FMath::RandRange(0,AbilityMontage.Num()-1);
+			FString StringName = AbilityMontage[Random]->GetName();
+			GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->SetAnimName(FName(*StringName));
+			Fighter->PlayAnimMontage(AbilityMontage[Random]);
+			
+			CurrentMontage = AbilityMontage[Random];
+		}
 	}
 }
 
@@ -80,10 +101,43 @@ void UAbilityBase::OnMontageEnd(UAnimMontage* Montage, bool bInterrupted)
 {
 	bIsActive = false;
 	Cast<AFighter>(OwnerCharacter)->RemoveAttackTag();
+	
 }
 
 void UAbilityBase::OnMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted)
 {
 	bIsActive = false;
-	Cast<AFighter>(OwnerCharacter)->RemoveAttackTag();
+	if (GetWorld())
+	{
+		if (GetWorld()->GetGameInstance())
+		{
+			if (UAbilityManager* AbilityManager = GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>())
+			{
+				
+				// 어빌리티 <--> 로코모션 전환을 위한 보정처리
+				if (CurrentMontage->GetName().EndsWith(TEXT("stand"), ESearchCase::IgnoreCase))
+				{
+					OwnerCharacter->SetIdleTag();
+				}
+				else if (CurrentMontage->GetName().EndsWith(TEXT("crouch"), ESearchCase::IgnoreCase))
+				{
+					OwnerCharacter->SetGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Crouch.Idle")));
+				}
+				
+				AbilityManager->AbilityMontageDone();
+				AbilityManager->GetHitBox()->Destroy();
+			}
+		}
+	}
+}
+
+bool UAbilityBase::CheckIsPlayingMontage() const
+{
+	AFighter* Fighter = Cast<AFighter>(OwnerCharacter);
+	if (Fighter->GetMesh()->GetAnimInstance()->Montage_IsPlaying(CurrentMontage))
+	{
+		return true;
+	}
+	
+	return false;
 }

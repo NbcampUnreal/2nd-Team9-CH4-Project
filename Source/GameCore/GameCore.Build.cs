@@ -22,7 +22,8 @@ public class GameCore : ModuleRules
                 "SlateCore", 
                 "EnhancedInput",
                 "MessageBus",
-                "GameplayTags"
+                "GameplayTags",
+                "Niagara",
             }
         );
     }

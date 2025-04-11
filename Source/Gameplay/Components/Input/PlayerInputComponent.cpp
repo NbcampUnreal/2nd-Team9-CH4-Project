@@ -1,4 +1,6 @@
-﻿#include "PlayerInputComponent.h"
+﻿PRAGMA_DISABLE_OPTIMIZATION
+
+#include "PlayerInputComponent.h"
 #include "Gameplay/Defines/InputBuffer/InputBufferEntry.h"
 #include "Gameplay/PlayerController/SSBPlayerController.h"
 #include "Gameplay/Defines/Command/CommandRow.h"
@@ -79,6 +81,17 @@ void UPlayerInputComponent::MoveInput(const FInputActionValue& InputValue)
 
 void UPlayerInputComponent::AttackInput(const FInputActionValue& InputValue, const FGameplayTag& AttackTag)
 {
+	bool bIsAttack = false;
+	// if (Player->GetCurrentTags().HasTag(Player->AttackTag))
+	// {
+	// 	bIsAttack = true;
+	// }
+	
+	if (GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->CheckCurrentPlayingMontage())
+	{
+		bIsAttack = true;
+	}
+	
 	for (FCommandRow* Row : CommandRows)
 	{
 		if (!Row || Row->AttackTag != AttackTag)
@@ -112,9 +125,10 @@ void UPlayerInputComponent::AttackInput(const FInputActionValue& InputValue, con
 		if (bMatch)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Command Matching!!: %s"), *Row->CommandName.ToString());
+
 			
 			//Test
-			GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->RequestCreateAbility(Row->CommandName);
+			GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->RequestCreateAbility(Row->CommandName,bIsAttack);
 			
 			return;
 		}
@@ -131,11 +145,25 @@ FGameplayTag UPlayerInputComponent::GetInputTagFromValue(const FInputActionValue
 	FString XTag;
 	if (Direction.X < 0)
 	{
-		XTag = TEXT("Left");
+		if (!Player.Get()->GetPlayerLookingRight())
+		{
+			XTag = TEXT("Right");
+		}
+		else
+		{
+			XTag = TEXT("Left");			
+		}
 	}
 	else if (Direction.X > 0)
 	{
-		XTag = TEXT("Right");
+		if (!Player.Get()->GetPlayerLookingRight())
+		{
+			XTag = TEXT("Left");
+		}
+		else
+		{
+			XTag = TEXT("Right");
+		}
 	}
 
 	FString YTag;

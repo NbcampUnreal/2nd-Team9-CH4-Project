@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "HitBoxShape.h"
 #include "GameCore/Components/Hit/HitComponent.h"
+#include "GameCore/Ability/AbilityData/AnimRow.h"
 #include "HitBox.generated.h"
 
 
@@ -22,7 +23,7 @@ protected:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "HitBox")
-	void Init(const FHitDataInfo& HitData);
+	void Init(const FHitDataInfo& HitData, const FVector& Pos, const FAnimRow AnimRow, bool bMirrored);
 
 	UFUNCTION()
 	void OnHitBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -33,9 +34,9 @@ private:
 	UPROPERTY()
 	class UShapeComponent* CollisionComponent;
 
-	void CreateHitBoxShape();
+	void CreateHitBoxShape(const FAnimRow& InAnimInfo);
 
-	void DebugDrawShape() const;
+	void DebugDrawShape(const FAnimRow& AnimInfo) const;
 
 	UPROPERTY(EditAnywhere, Category = "HitBox")
 	bool bIsDebugMode;
@@ -56,7 +57,10 @@ private:
 	float CapsuleHalfHeight = 88.f;
 
 	FHitDataInfo HitDataInfo;
-
+	FAnimRow AnimInfo;
+	
 	UPROPERTY()
 	UHitComponent* OwnerHitComponent;
+
+	bool bIsMirrored;
 };
