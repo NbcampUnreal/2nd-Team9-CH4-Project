@@ -2,11 +2,14 @@
 
 #pragma once
 
+
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 //Test
+#include "Materials/MaterialInstanceDynamic.h"
 #include "GameplayTagContainer.h"
 #include "Fighter.generated.h"
+
 
 class UCameraComponent;
 class USpringArmComponent;
@@ -40,6 +43,7 @@ public:
 	
 	UFUNCTION()
 	virtual void StartJump(const FInputActionValue& InputValue);
+
 	
 
 	
@@ -48,6 +52,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	FGameplayTagContainer& GetCurrentTags();
+
+	
 	
 	UFUNCTION(BlueprintCallable)
 	void SetGameplayTag(const FGameplayTag& GameplayTag) { CurrentPlayerTag = GameplayTag; };
@@ -82,6 +88,8 @@ private:
 	 * 뭔가뭔가임 더 찾아봐야할듯
 	 */
 	
+
+    
 	FString CurrentStandTag;
 	
 	FGameplayTag CurrentPlayerTag; //로코모션담김
