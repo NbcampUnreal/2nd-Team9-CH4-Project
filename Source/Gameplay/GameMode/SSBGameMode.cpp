@@ -1,4 +1,7 @@
 ﻿#include "SSBGameMode.h"
+#include "GameCore/Camera/SSBCamera.h"
+#include "GameCore/Fighter/Fighter.h"
+#include "Gameplay/PlayerController/SSBPlayerController.h"
 #include "GameFramework/PlayerState.h"
 
 void ASSBGameMode::PostLogin(APlayerController* NewPlayer)
@@ -13,4 +16,10 @@ void ASSBGameMode::PostLogin(APlayerController* NewPlayer)
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, DebugMessage);
 		UE_LOG(LogTemp, Warning, TEXT("%s"), *DebugMessage);
 	}
+}
+
+ASSBGameMode::ASSBGameMode()
+{
+	PlayerControllerClass = ASSBPlayerController::StaticClass();
+	DefaultPawnClass = AFighter::StaticClass();
 }

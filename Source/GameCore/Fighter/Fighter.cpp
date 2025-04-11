@@ -8,6 +8,8 @@
 #include "GameFramework/PlayerState.h"
 #include "Camera/CameraComponent.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameCore/Camera/SSBCamera.h"
 #include "InputActionValue.h"
 #include "NiagaraComponent.h"
 #include "NiagaraSystem.h"
@@ -36,6 +38,19 @@ AFighter::AFighter()
 	HitComponent = CreateDefaultSubobject<UHitComponent>(TEXT("HitComponent"));
 	
 	GetCharacterMovement()->MaxWalkSpeed = 600.0f;
+
+	//Test
+	
+	if (UMessageBusManager* MessageBus = UMessageBusManager::GetInstance())
+	{
+		FMessageDelegate Delegate;
+		Delegate.BindUObject(this, &AFighter::ImSleepy);
+		MessageBus->Subscribe(TEXT("Test1"), Delegate);
+	}
+
+	CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.Base.Stand.Idle"));
+	CurrentStandTag = "Stand";
+
 }
 
 void AFighter::BeginPlay()
@@ -215,4 +230,3 @@ FGameplayTagContainer& AFighter::GetCurrentTags()
 {
 	 return AbilityTagContainer; 
 }
-
