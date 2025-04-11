@@ -11,6 +11,7 @@
 #include "NiagaraComponent.h"
 #include "NiagaraSystem.h"
 
+
 FGameplayTag AFighter::AttackTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Attack"));
 FGameplayTag AFighter::BaseTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base"));
 FGameplayTag AFighter::JumpTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Jump"));
@@ -73,6 +74,10 @@ void AFighter::BeginPlay()
 		));
 	}
 	GetGameInstance()->GetSubsystem<UAbilityManager>()->UpdateCharacter(this);
+
+	
+
+
 }
 
 void AFighter::Tick(float DeltaTime)
@@ -121,7 +126,7 @@ void AFighter::ImSleepy(const FString& MessageType, UObject* Payload)
 void AFighter::Move(const FInputActionValue& InputValue)
 {
 	/* 공격중에 실제 이동을 처리할건지는 나중에 판단 */
-	if (AbilityTagContainer.HasTag(AttackTag))
+	if (AbilityTagContainer.HasTag(AttackTag) /*&& CurrentPlayerTag.MatchesTag()*/)
 	{
 		return;
 	}
@@ -207,3 +212,4 @@ FGameplayTagContainer& AFighter::GetCurrentTags()
 {
 	 return AbilityTagContainer; 
 }
+
