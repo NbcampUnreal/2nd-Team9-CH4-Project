@@ -11,6 +11,7 @@
 #include "NiagaraComponent.h"
 #include "NiagaraSystem.h"
 
+
 FGameplayTag AFighter::AttackTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Attack"));
 FGameplayTag AFighter::BaseTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base"));
 FGameplayTag AFighter::JumpTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Jump"));
@@ -73,6 +74,10 @@ void AFighter::BeginPlay()
 		));
 	}
 	GetGameInstance()->GetSubsystem<UAbilityManager>()->UpdateCharacter(this);
+
+	
+
+
 }
 
 void AFighter::Tick(float DeltaTime)
@@ -207,3 +212,4 @@ FGameplayTagContainer& AFighter::GetCurrentTags()
 {
 	 return AbilityTagContainer; 
 }
+

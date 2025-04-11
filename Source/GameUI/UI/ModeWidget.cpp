@@ -10,45 +10,144 @@
 
 
 
-void UModeWidget::NativeConstruct()  
+
+void UModeWidget::NativeConstruct()
 {  
   Super::NativeConstruct();  
 
-  if (RightButton)  
+  if (ModeRightButton)  
   {  
-      RightButton->OnClicked.AddDynamic(this, &UModeWidget::ButtonClickRight);  
+      ModeRightButton->OnClicked.AddDynamic(this, &UModeWidget::ShiftModeRight);  
   }  
-  if (LeftButton)  
+  if (ModeLeftButton)  
   {  
-      LeftButton->OnClicked.AddDynamic(this, &UModeWidget::ButtonClickLeft);  
+      ModeLeftButton->OnClicked.AddDynamic(this, &UModeWidget::ShiftModeLeft);  
   }  
 
+  if (TimeRightButton)
+  {
+      TimeRightButton->OnClicked.AddDynamic(this, &UModeWidget::ShiftTimeRight);
+  }
+  if (TimeLeftButton)
+  {
+      TimeLeftButton->OnClicked.AddDynamic(this, &UModeWidget::ShiftTimeLeft);
+  }
+
+
+
+
+  InitializeGameModes();
+  UpdateDisplayedMode();
   
 }
 
-void UModeWidget::ButtonClickRight()  
-{  
 
-  // if (UIDataRowList.Num() == 0) return;  
-   //CurrentIndex = (CurrentIndex + 1) % UIDataRowList.Num();  
-   UpdateText();  
-}
 
-void UModeWidget::ButtonClickLeft()
+void UModeWidget::InitializeGameModes()
 {
-	//if(UIDataRowList.Num() == 0) return;
-	//CurrentIndex = (CurrentIndex - 1 + UIDataRowList.Num()) % UIDataRowList.Num();
-    UpdateText();
+    TArray<FString> ModeTagNames = {
+        "ModeSelect.Mode.Single"
+        "ModeSelect.Mode.Team"
+        "ModeSelect.Mode.Survival"
+
+    };
+
+    ModeTags.Empty();
+    for (const FString& TagName : ModeTagNames)
+    {
+        FGameplayTag Tag = FGameplayTag::RequestGameplayTag(FName(*TagName), false);
+        if (Tag.IsValid())
+            ModeTags.Add(Tag);
+    }
+
+    TArray<FString> TimeTagNames = {
+       "ModeSelect.Time.180"
+       "ModeSelect.Time.300"
+       "ModeSelect.Time.600"
+
+    };
+
+    TimeTags.Empty();
+    for (const FString& TagName : TimeTagNames)
+    {
+        FGameplayTag Tag = FGameplayTag::RequestGameplayTag(FName(*TagName), false);
+        if (Tag.IsValid())
+            TimeTags.Add(Tag);
+    }
+
+    
 }
 
-void UModeWidget::UpdateText()
+void UModeWidget::UpdateDisplayedMode()
 {
-	//if(UIDataRowList.IsValidIndex(CurrentIndex))
-	//{
-	//	FUIDataRow* Data = UIDataRowList[CurrentIndex];
-	//	if (ModeNameText && Data)
-	//	{
-	//		ModeNameText->SetText(Data->ModeName);
-	//	}
-	//}
+    //Mode
+
+    if (ModeNameText && ModeTags.IsValidIndex(CurrentIndex))
+    {
+        const FGameplayTag& ModeTag = ModeTags[CurrentIndex];
+        FString FullTag = ModeTag.ToString();
+
+        FString Left, Right;
+        if (ModeTag.ToString().Split(TEXT("."), &Left, &Right))
+            ModeNameText->SetText(FText::FromString(Right));
+        else
+            ModeNameText->SetText(FText::FromString(ModeTag.ToString()));
+    }
+    
+    //Time
+    
+    if (ModeNameText && ModeTags.IsValidIndex(CurrentIndex))
+    {
+        const FGameplayTag& TimeTag = ModeTags[CurrentIndex];
+        FString Left, Right;
+        if (TimeTag.ToString().Split(TEXT("."), &Left, &Right))
+            ModeNameText->SetText(FText::FromString(Right));
+        else
+            ModeNameText->SetText(FText::FromString(TimeTag.ToString()));
+    }
+    
 }
+
+
+
+void UModeWidget::ShiftModeRight()
+{
+    if (ModeTags.Num() == 0) return;
+    CurrentIndex = (CurrentIndex + 1 ) % ModeTags.Num();
+    UpdateDisplayedMode();
+}
+
+void UModeWidget::ShiftModeLeft()
+{
+    if (ModeTags.Num() == 0) return;
+    CurrentIndex = (CurrentIndex - 1 + ModeTags.Num()) % ModeTags.Num();
+    UpdateDisplayedMode();
+}
+
+
+
+void UModeWidget::ShiftTimeRight()
+{
+    if(TimeTags.Num() == 0) return;
+    TimeIndex = (TimeIndex + 1) % TimeTags.Num();
+    UpdateDisplayedMode();
+
+}
+
+void UModeWidget::ShiftTimeLeft()
+{
+    if (TimeTags.Num() == 0) return;
+    CurrentIndex = (CurrentIndex - 1 + TimeTags.Num()) % TimeTags.Num();
+    UpdateDisplayedMode();
+}
+
+FGameplayTag UModeWidget::TimesSelectTag() const
+{
+ return TimeTags.IsValidIndex(TimeIndex) ? TimeTags[TimeIndex]:FGameplayTag();
+}
+
+FGameplayTag UModeWidget::ModesSelectTag() const
+{
+    return FGameplayTag();
+}
+
