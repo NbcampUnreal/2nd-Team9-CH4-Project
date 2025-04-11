@@ -37,10 +37,29 @@ void UAnimNotify_SpawnHitbox::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 			//현재 스킬의 데미지, 넉백정도 등 가져옴
 			FHitDataInfo HitDataInfo = Manager->GetHitDataInfo();
 
+			FAnimRow AnimRow = *Manager->GetAnimRow(Manager->GetAnimName());
+			FVector Pos;
 			//테이블에서 애님이름으로 row 가져옴 -> 지금 재생되는 몽타주 이름의 소켓이름, 스케일, 타입을 가져옴
-			const FAnimRow* AnimRow = Manager->GetAnimRow(Manager->GetAnimName());
-			FVector Pos = MeshComp->GetBoneLocation(AnimRow->BoneName);
-		
+			if (Cast<AFighter>(MeshComp->GetOwner())->GetPlayerLookingRight())
+			{
+				Pos = MeshComp->GetBoneLocation(AnimRow.BoneName);
+			}
+			else
+			{
+				FString BoneNameString = AnimRow.BoneName.ToString();
+				FString MirroredString;
+				if (BoneNameString.EndsWith(TEXT("_r"), ESearchCase::IgnoreCase))
+				{
+					MirroredString = BoneNameString.LeftChop(2) + TEXT("_l");
+				}
+				else
+				{
+					MirroredString = BoneNameString.LeftChop(2) + TEXT("_r");
+				}
+				
+				AnimRow.BoneName = FName(*MirroredString);
+				Pos = MeshComp->GetBoneLocation(AnimRow.BoneName);
+			}
 			//오너
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.Owner = MeshComp->GetOwner();
@@ -52,10 +71,11 @@ void UAnimNotify_SpawnHitbox::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 			}
 			
 			Manager->SetHitBox(Instance);
-		
+
+			bool bIsMirrored = !Cast<AFighter>(MeshComp->GetOwner())->GetPlayerLookingRight();
 			if (Instance)
 			{
-				Instance->Init(HitDataInfo, Pos , *AnimRow);
+				Instance->Init(HitDataInfo, Pos , AnimRow, bIsMirrored);
 			}
 		}
 	}

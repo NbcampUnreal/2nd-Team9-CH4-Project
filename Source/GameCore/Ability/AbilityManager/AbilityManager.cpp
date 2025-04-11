@@ -43,10 +43,12 @@ void UAbilityManager::RequestCreateAbility(const FGameplayTag& CommandTag, bool 
 		{
 			if (const FHitDataInfo* HitData = HitInfoMap.Find(*MappedTag))
 			{
+				// || (bIsNext && PlayerInstance.Get()->GetCurrentTags().HasTag(PlayerInstance.Get()->AttackTag))
 				if (!bIsNext)
 				{
 					CurrentHitInfo = *HitData; // 사용 끝나면 초기화 시키는 코드 추가해야함!!!!!!!!
-					Ability->Activate(PlayerInstance.Get()); //어빌리티 활성화	
+					Ability->Activate(PlayerInstance.Get()); //어빌리티 활성화
+					CurrentAbility = Ability; 
 				}
 				else
 				{
@@ -199,8 +201,25 @@ void UAbilityManager::AbilityMontageDone()
 	{
 		NextAbility->Activate(PlayerInstance.Get());
 		CurrentHitInfo = NextHitInfo;
+		CurrentAbility = NextAbility;
 		
 		NextAbility = nullptr;
 		NextHitInfo = FHitDataInfo();
 	}
+	else
+	{
+		if (CurrentAbility && !CurrentAbility->CheckIsPlayingMontage())
+		{
+			PlayerInstance.Get()->RemoveAttackTag();
+		}
+	}
+}
+
+bool UAbilityManager::CheckCurrentPlayingMontage() const
+{
+	if (CurrentAbility)
+	{
+		return CurrentAbility->CheckIsPlayingMontage();	
+	}
+	return false;
 }
