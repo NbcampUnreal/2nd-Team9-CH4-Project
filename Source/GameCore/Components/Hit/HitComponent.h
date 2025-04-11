@@ -154,6 +154,8 @@ private:
 
 	bool bIsHit;
 
+	UPROPERTY(EditAnywhere, category="HitComponents", meta=(ClampMin="0.0"))
+	float AttackerHitStopDuration;
 	UPROPERTY(EditAnywhere, Category="HitComponents", meta=(ClampMin=500.0, ClampMax = 5000.0))
 	float LaunchThreshold;
 	UPROPERTY(EditAnywhere, Category="HitComponents", meta=(ClampMin="0", ClampMax="9.0"))

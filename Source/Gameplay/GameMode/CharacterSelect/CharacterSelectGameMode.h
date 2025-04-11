@@ -9,6 +9,6 @@ class GAMEPLAY_API ACharacterSelectGameMode : public AGameMode
 {
 	GENERATED_BODY()
 
-public:
-	ACharacterSelectGameMode();
+protected:
+	virtual void PostLogin(APlayerController* NewPlayer) override;
 };

@@ -5,6 +5,8 @@
 USSBGameInstance::USSBGameInstance()
 {
 	CurrentLevelTag = FGameplayTag::RequestGameplayTag(FName("GameLevel.MainMenu"));
+
+	PlayerIndex = 0;
 }
 
 void USSBGameInstance::Init()

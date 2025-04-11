@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
+
 #include "CharacterSelectHUD.generated.h"
 
 class UCharacterSelectWidget;
@@ -13,9 +14,10 @@ class GAMEUI_API ACharacterSelectHUD : public AHUD
 	
 protected:
 	virtual void BeginPlay() override;
-
+	
 private:
 
+	UFUNCTION()
 	void CreateCharacterSelectWidget();
 	
 	UPROPERTY(EditDefaultsOnly)

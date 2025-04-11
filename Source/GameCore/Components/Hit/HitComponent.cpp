@@ -13,6 +13,7 @@ UHitComponent::UHitComponent()
 	SetIsReplicatedByDefault(true);
 
 	bIsHit = false;
+	AttackerHitStopDuration = 0.25f;
 	LaunchThreshold = 1000.0f;
 	MaxPenaltyCount = 5;
 	DamageAmplificationPercent = 0.0f;
@@ -45,7 +46,7 @@ void UHitComponent::OnHit(UHitComponent* AttackerHitComponent, const FHitDataInf
 		// Attacker Slowing
 		if (IsValid(AttackerHitComponent))
 		{
-			AttackerHitComponent->MulticastHandleHit(0.05f, FName());
+			AttackerHitComponent->MulticastHandleHit(AttackerHitStopDuration, FName());
 		}
 
 		const float DamageScale = GetDamageScale(HitDataInfo.HitAbilityTagName);
