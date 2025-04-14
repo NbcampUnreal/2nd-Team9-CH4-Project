@@ -1,19 +1,16 @@
 ﻿#include "CharacterSelectGameMode.h"
 
-#include "GameFramework/PlayerStart.h"
-#include "Kismet/GameplayStatics.h"
+#include "Gameplay/PlayerController/CharacterSelect/CharacterSelectPlayerController.h"
+#include "Kismet/KismetSystemLibrary.h"
 
-AActor* ACharacterSelectGameMode::ChoosePlayerStart_Implementation(AController* Player)
+void ACharacterSelectGameMode::PostLogin(APlayerController* NewPlayer)
 {
-	TArray<AActor*> PlayerStarts;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), PlayerStarts);
-
-	if (PlayerStarts.Num() > 0)
+	ACharacterSelectPlayerController* PlayerController = Cast<ACharacterSelectPlayerController>(NewPlayer);
+	if (IsValid(PlayerController))
 	{
-		AActor* PlayerStart = PlayerStarts[CurrentSpawnIndex];
-		CurrentSpawnIndex++;
-		return PlayerStart;
+		UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Post Login : %d"), NextPlayerIndex));
+		PlayerController->SetPlayerIndex(NextPlayerIndex++);
 	}
 	
-	return Super::ChoosePlayerStart_Implementation(Player);
+	Super::PostLogin(NewPlayer);
 }

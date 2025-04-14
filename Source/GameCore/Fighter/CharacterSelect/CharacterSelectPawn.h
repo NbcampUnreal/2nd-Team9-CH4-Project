@@ -1,26 +1,10 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
 #include "GameFramework/Pawn.h"
 #include "CharacterSelectPawn.generated.h"
 
-USTRUCT()
-struct FCharacterModelData
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditDefaultsOnly)
-	USkeletalMesh* SkeletalMesh;
-	UPROPERTY(EditDefaultsOnly)
-	TArray<UMaterialInterface*> MaterialArray;
-	UPROPERTY(EditDefaultsOnly)
-	UAnimationAsset* IdleAnimation;
-	UPROPERTY(EditDefaultsOnly)
-	UTexture2D* IconTexture;
-};
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnChangeCharacter, UTexture2D*, IconTexture);
+struct FCharacterModelData;
 
 UCLASS()
 class GAMECORE_API ACharacterSelectPawn : public APawn
@@ -30,10 +14,10 @@ class GAMECORE_API ACharacterSelectPawn : public APawn
 public:
 	ACharacterSelectPawn();
 	
+	void InitLocation(const int32 OffsetY);
+
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastChangeCharacterModel(const FName CharacterTypeTagName);
-	
-	FOnChangeCharacter OnChangeCharacter;
+	void MulticastChangeCharacterModel(const FCharacterModelData& CharacterModelData) const;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -44,8 +28,4 @@ private:
 	USceneComponent* RootSceneComponent;
 	UPROPERTY(VisibleAnywhere)
 	USkeletalMeshComponent* SkeletalMeshComponent;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "CharacterModelData")
-	TMap<FGameplayTag, FCharacterModelData> CharacterModelDataArray;
-	
 };

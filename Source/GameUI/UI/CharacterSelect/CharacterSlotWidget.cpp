@@ -1,46 +1,46 @@
 ﻿#include "CharacterSlotWidget.h"
 
-#include "GameplayTagContainer.h"
 #include "Components/Border.h"
 #include "Components/Button.h"
 #include "Components/Image.h"
-#include "GameCore/Fighter/CharacterSelect/CharacterSelectPawn.h"
-#include "GameFramework/GameState.h"
-#include "GameFramework/PlayerState.h"
+#include "Components/TextBlock.h"
+#include "GameFramework/GameStateBase.h"
 #include "Gameplay/GameInstance/SSBGameInstance.h"
+#include "Gameplay/GameState/CharacterSelect/CharacterSelectGameState.h"
 #include "Gameplay/PlayerController/CharacterSelect/CharacterSelectPlayerController.h"
-#include "Kismet/KismetSystemLibrary.h"
 
-void UCharacterSlotWidget::InitWidget(const bool bIsMyWidget, const int32 Index)
+void UCharacterSlotWidget::UpdateWidget(const FCharacterSlotData& CharacterSlotData)
 {
+	const bool bIsMyWidget = CharacterSlotData.bIsMyWidget;
 	OutLineBorder->SetBrushColor(bIsMyWidget ? FLinearColor::Yellow : FLinearColor::Black);
-	SelectUpButton->SetVisibility(bIsMyWidget ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
-	SelectDownButton->SetVisibility(bIsMyWidget ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+	SelectPrevButton->SetVisibility(bIsMyWidget ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+	SelectNextButton->SetVisibility(bIsMyWidget ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+
+	ReadyBorder->SetVisibility(ESlateVisibility::Hidden);
 
 	SetVisibility(ESlateVisibility::Visible);
-	
-	if (bIsMyWidget)
-	{
-		ACharacterSelectPlayerController* CharacterSelectPlayerController
-			= Cast<ACharacterSelectPlayerController>(GetOwningPlayer());
-		if (IsValid(CharacterSelectPlayerController))
-		{
-			OwnerController = CharacterSelectPlayerController;
-		}
-	}
 
-	ACharacterSelectPawn* CharacterSelectPawn = GetCharacterSelectPawn(Index);
-	if (IsValid(CharacterSelectPawn))
+	ACharacterSelectPlayerController* CharacterSelectPlayerController
+		= Cast<ACharacterSelectPlayerController>(CharacterSlotData.OwnerPlayerController);
+	if (bIsMyWidget && IsValid(CharacterSelectPlayerController))
 	{
-		CharacterSelectPawn->OnChangeCharacter.AddUniqueDynamic(this, &UCharacterSlotWidget::ChangeIconTexture);
+		ReadyButton->SetIsEnabled(CharacterSlotData.PlayerIndex != 0);
+		ReadyButton->SetVisibility(bIsMyWidget ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+		ReadyButtonText->SetText(CharacterSlotData.PlayerIndex == 0
+			                         ? FText::FromString(TEXT("게임 시작"))
+			                         : FText::FromString(TEXT("게임 준비")));
+
+		OwnerController = CharacterSelectPlayerController;
+		PlayerIndex = CharacterSlotData.PlayerIndex;
+		MaxCharacterTypeIndex = CharacterSlotData.MaxCharacterTypeIndex;
 	}
 }
 
 bool UCharacterSlotWidget::CanButtonClickAction() const
 {
-	if (CharacterTypeTagArray.IsEmpty())
+	if (MaxCharacterTypeIndex == 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("CharacterTypeTagArray Is Empty"));
+		UE_LOG(LogTemp, Warning, TEXT("CharacterTypeCount Is Zero"));
 		return false;
 	}
 
@@ -53,51 +53,72 @@ bool UCharacterSlotWidget::CanButtonClickAction() const
 	return true;
 }
 
-void UCharacterSlotWidget::HandleButtonClicked(const bool bIsUpButton)
+void UCharacterSlotWidget::HandleSelectButtonClicked(const bool bIsNextButton)
 {
 	if (!CanButtonClickAction())
 	{
 		return;
 	}
 
-	if (bIsUpButton)
+	if (bIsNextButton)
 	{
-		CharacterTypeTagIndex++;
+		CharacterTypeIndex++;
 	}
 	else
 	{
-		if (CharacterTypeTagIndex == 0)
+		if (CharacterTypeIndex == 0)
 		{
-			CharacterTypeTagIndex = CharacterTypeTagArray.Num() - 1;
+			CharacterTypeIndex = MaxCharacterTypeIndex - 1;
 		}
 		else
 		{
-			CharacterTypeTagIndex--;
+			CharacterTypeIndex--;
 		}
 	}
 
-	CharacterTypeTagIndex %= CharacterTypeTagArray.Num();
+	CharacterTypeIndex %= MaxCharacterTypeIndex;
 
 	ChangeCharacterModel();
 }
 
-void UCharacterSlotWidget::ChangeCharacterModel()
+void UCharacterSlotWidget::ChangeCharacterModel() const
 {
 	if (IsValid(OwnerController))
 	{
-		const FName CharacterTypeTagName = FName(*CharacterTypeTagArray[CharacterTypeTagIndex].ToString());
-		OwnerController->ServerChangeCharacter(CharacterTypeTagName);
+		OwnerController->ServerChangeCharacter(PlayerIndex, CharacterTypeIndex);
 
 		USSBGameInstance* GameInstance = Cast<USSBGameInstance>(GetGameInstance());
 		if (IsValid(GameInstance))
 		{
-			GameInstance->SetCharacterTypeTag(CharacterTypeTagArray[CharacterTypeTagIndex]);
-			UKismetSystemLibrary::PrintString(GetWorld(), CharacterTypeTagName.ToString());
+			GameInstance->SetCharacterTypeIndex(CharacterTypeIndex);
 		}
 	}
 }
 
-void UCharacterSlotWidget::ChangeIconTexture(UTexture2D* IconTexture)
+void UCharacterSlotWidget::HandleReadyButtonClicked()
+{
+	AGameStateBase* GameStateBase = GetWorld()->GetGameState();
+	if (IsValid(GameStateBase))
+	{
+		ACharacterSelectGameState* CharacterSelectGameState = Cast<ACharacterSelectGameState>(GameStateBase);
+		if (IsValid(CharacterSelectGameState))
+		{
+			// Is Host
+			if (IsHostWidget())
+			{
+				CharacterSelectGameState->GoMapSelect();
+			}
+			// Is Guest
+			else
+			{
+				bIsReady = !bIsReady;
+				CharacterSelectGameState->UpdatePlayerReady(PlayerIndex, bIsReady);
+			}
+		}
+	}
+}
+
+void UCharacterSlotWidget::UpdateIconTexture(UTexture2D* IconTexture) const
 {
 	if (IsValid(IconTexture))
 	{
@@ -105,21 +126,18 @@ void UCharacterSlotWidget::ChangeIconTexture(UTexture2D* IconTexture)
 	}
 }
 
-ACharacterSelectPawn* UCharacterSlotWidget::GetCharacterSelectPawn(const int32 Index) const
+void UCharacterSlotWidget::UpdatePlayerReady(const bool bInIsReady)
 {
-	const AGameStateBase* GameStateBase = GetWorld()->GetGameState();
-	if (IsValid(GameStateBase))
+	// Is Host
+	if (IsHostWidget())
 	{
-		TArray<APlayerState*> PlayerArray = GameStateBase->PlayerArray;
-		if (PlayerArray.IsValidIndex(Index))
-		{
-			APlayerState* PlayerState = PlayerArray[Index];
-			if (IsValid(PlayerState))
-			{
-				return Cast<ACharacterSelectPawn>(PlayerState->GetPawn());
-			}
-		}
+		ReadyButton->SetIsEnabled(bInIsReady);
 	}
-
-	return nullptr;
+	// Is Guest
+	else
+	{
+		bIsReady = bInIsReady;
+		ReadyBorder->SetVisibility(bIsReady ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+		ReadyButtonText->SetText(bInIsReady ? FText::FromString(TEXT("준비 취소")) : FText::FromString(TEXT("게임 준비")));
+	}
 }

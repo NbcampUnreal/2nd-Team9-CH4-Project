@@ -25,11 +25,11 @@ public:
 	FORCEINLINE int32 GetPlayerIndex() const { return PlayerIndex; }
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE void SetPlayerIndex(const int32 Index) { PlayerIndex = Index; }
-	FORCEINLINE FGameplayTag GetCharacterTypeTag() const { return CharacterTypeTag; }
-	FORCEINLINE void SetCharacterTypeTag(const FGameplayTag NewCharacterTypeTag) { CharacterTypeTag = NewCharacterTypeTag; }
+	FORCEINLINE int32 GetCharacterTypeIndex() const { return CharacterTypeIndex; }
+	FORCEINLINE void SetCharacterTypeIndex(const int32 NewCharacterTypeIndex) { CharacterTypeIndex = NewCharacterTypeIndex; }
 private:
 	FGameplayTag CurrentLevelTag;
 
 	int32 PlayerIndex;
-	FGameplayTag CharacterTypeTag;
+	int32 CharacterTypeIndex;
 };
