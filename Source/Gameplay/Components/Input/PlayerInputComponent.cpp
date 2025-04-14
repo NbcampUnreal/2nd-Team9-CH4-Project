@@ -61,77 +61,105 @@ void UPlayerInputComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void UPlayerInputComponent::MoveInput(const FInputActionValue& InputValue)
 {
-	FInputBufferEntry BufferEntry;
-	BufferEntry.InputTag = GetInputTagFromValue(InputValue);
-	BufferEntry.InputTime = GetWorld()->GetTimeSeconds();
+	const FGameplayTag CurrentTag = GetInputTagFromValue(InputValue);
+	const float CurrentTime = GetWorld()->GetTimeSeconds();
 
-	if (MoveInputBuffer.Num() > 0 && MoveInputBuffer.Last().InputTag == BufferEntry.InputTag)
+	const FInputBufferEntry NewEntry(CurrentTag, CurrentTime);
+	if (MoveInputBuffer.Num() > 0)
 	{
-		MoveInputBuffer.Last().InputTime = BufferEntry.InputTime;
-		//UE_LOG(LogTemp, Warning, TEXT("Correction Input Tag: %s \n Input Time: %f"), *BufferEntry.InputTag.ToString(), BufferEntry.InputTime);
+		FInputBufferEntry& LastEntry = MoveInputBuffer.Last();
+		if (LastEntry.InputTag == CurrentTag)
+		{
+			if (CurrentTime - LastEntry.InputTime >= 0.05f)
+			{
+				MoveInputBuffer.Add(NewEntry);
+				UE_LOG(LogTemp, Warning, TEXT("Add New Input Tag: %s \n Input Time: %f"), *CurrentTag.ToString(), CurrentTime);
+			}
+			else
+			{
+				LastEntry.InputTime = CurrentTime;
+				//UE_LOG(LogTemp, Warning, TEXT("Update Input Tag: %s \n Updated Input Time: %f"), *CurrentTag.ToString(), CurrentTime);
+			}
+		}
+		else
+		{
+			MoveInputBuffer.Add(NewEntry);
+			UE_LOG(LogTemp, Warning, TEXT("Add Different Input Tag: %s \n Input Time: %f"), *CurrentTag.ToString(), CurrentTime);
+		}
 	}
 	else
 	{
-		MoveInputBuffer.Add(BufferEntry);
-		UE_LOG(LogTemp, Warning, TEXT("Add Input Tag: %s \n Input Time: %f"), *BufferEntry.InputTag.ToString(), BufferEntry.InputTime);
+		MoveInputBuffer.Add(NewEntry);
 	}
 
 	Player->Move(InputValue);
 }
 
+
 void UPlayerInputComponent::AttackInput(const FInputActionValue& InputValue, const FGameplayTag& AttackTag)
 {
 	bool bIsAttack = false;
-	// if (Player->GetCurrentTags().HasTag(Player->AttackTag))
-	// {
-	// 	bIsAttack = true;
-	// }
-	
 	if (GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->CheckCurrentPlayingMontage())
 	{
 		bIsAttack = true;
 	}
 	
+	FCommandRow* MatchingRow = nullptr;
 	for (FCommandRow* Row : CommandRows)
 	{
 		if (!Row || Row->AttackTag != AttackTag)
 		{
 			continue;
 		}
-		
+
 		const TArray<FGameplayTag>& CommandSequence = Row->InputSequence;
 		int32 SeqLength = CommandSequence.Num();
+
 		if (MoveInputBuffer.Num() < SeqLength)
 		{
 			continue;
 		}
-
-		TArray<FGameplayTag> InputSegment;
+		
+		TArray<FInputBufferEntry> InputSegment;
 		for (int32 i = MoveInputBuffer.Num() - SeqLength; i < MoveInputBuffer.Num(); ++i)
 		{
-			InputSegment.Add(MoveInputBuffer[i].InputTag);
+			InputSegment.Add(MoveInputBuffer[i]);
+		}
+
+		if (InputSegment.Num() > 0)
+		{
+			float TotalInputDuration = InputSegment.Last().InputTime - InputSegment[0].InputTime;
+			if (TotalInputDuration > Row->InputTime)
+			{
+				continue;
+			}	
 		}
 		
 		bool bMatch = true;
 		for (int32 i = 0; i < SeqLength; ++i)
 		{
-			if (InputSegment[i] != CommandSequence[i])
+			if (InputSegment[i].InputTag != CommandSequence[i])
 			{
 				bMatch = false;
 				break;
 			}
 		}
- 
+		
 		if (bMatch)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Command Matching!!: %s"), *Row->CommandName.ToString());
-
-			
-			//Test
-			GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->RequestCreateAbility(Row->CommandName,bIsAttack);
-			
-			return;
+			if (!MatchingRow || Row->Priority > MatchingRow->Priority)
+			{
+				MatchingRow = Row;
+			}
 		}
+	}
+	
+	if (MatchingRow)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Command Matching!!: %s"), *MatchingRow->CommandName.ToString());
+		GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->RequestCreateAbility(MatchingRow->CommandName, bIsAttack);
+		MoveInputBuffer.Empty();
+		return;
 	}
     
 	UE_LOG(LogTemp, Warning, TEXT("No matching, AttackTag: %s"), *AttackTag.ToString());
@@ -178,7 +206,29 @@ FGameplayTag UPlayerInputComponent::GetInputTagFromValue(const FInputActionValue
 	
 	if (!XTag.IsEmpty() && !YTag.IsEmpty())
 	{
-		return FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("Input.Move.%s%s"), *XTag, *YTag)));
+		if (MoveInputBuffer.Num() > 0)
+		{
+			FGameplayTag CardinalX = FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("Input.Move.%s"), *XTag)));
+			FGameplayTag CardinalY = FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("Input.Move.%s"), *YTag)));
+			const FGameplayTag& LastTag = MoveInputBuffer.Last().InputTag;
+			
+			if (LastTag == CardinalY)
+			{
+				return CardinalX;
+			}
+			else if (LastTag == CardinalX)
+			{
+				return CardinalY;
+			}
+			else
+			{
+				return CardinalX;
+			}
+		}
+		else
+		{
+			return FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("Input.Move.%s"), *XTag)));
+		}
 	}
 	else if (!XTag.IsEmpty())
 	{
@@ -188,7 +238,7 @@ FGameplayTag UPlayerInputComponent::GetInputTagFromValue(const FInputActionValue
 	{
 		return FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("Input.Move.%s"), *YTag)));
 	}
-
+    
 	return FGameplayTag::RequestGameplayTag(FName(TEXT("Input.Move.None")));
 }
 

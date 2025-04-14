@@ -60,9 +60,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
 	UNiagaraSystem* NiagaraEffect;
 	TArray<UNiagaraComponent*> NiagaraComponents;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Hit")
-	UHitComponent* HitComponent;
 	
 	/* Define 에 옮겨놔야할듯 */
 	static FGameplayTag AttackTag;

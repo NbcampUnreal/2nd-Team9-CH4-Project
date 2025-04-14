@@ -13,6 +13,7 @@
 #include "InputActionValue.h"
 #include "NiagaraComponent.h"
 #include "NiagaraSystem.h"
+#include "AI/NavigationSystemBase.h"
 
 FGameplayTag AFighter::AttackTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Attack"));
 FGameplayTag AFighter::BaseTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base"));
@@ -34,23 +35,8 @@ AFighter::AFighter()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm);
 	Camera->SetFieldOfView(40.0f);
-
-	HitComponent = CreateDefaultSubobject<UHitComponent>(TEXT("HitComponent"));
 	
 	GetCharacterMovement()->MaxWalkSpeed = 600.0f;
-
-	//Test
-	
-	if (UMessageBusManager* MessageBus = UMessageBusManager::GetInstance())
-	{
-		FMessageDelegate Delegate;
-		Delegate.BindUObject(this, &AFighter::ImSleepy);
-		MessageBus->Subscribe(TEXT("Test1"), Delegate);
-	}
-
-	CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.Base.Stand.Idle"));
-	CurrentStandTag = "Stand";
-
 }
 
 void AFighter::BeginPlay()
