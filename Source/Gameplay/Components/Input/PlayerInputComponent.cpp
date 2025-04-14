@@ -32,12 +32,20 @@ void UPlayerInputComponent::BeginPlay()
 		}
 	}
 
-	if (CommandTable.ToSoftObjectPath().IsValid())
+	if (CommandTable[0].ToSoftObjectPath().IsValid())
 	{
-		if (const UDataTable* Table = CommandTable.LoadSynchronous())
+		if (const UDataTable* Table = CommandTable[0].LoadSynchronous())
 		{
 			const FString ContextString(TEXT("Command Table AttackInput"));
 			Table->GetAllRows<FCommandRow>(ContextString, CommandRows);
+		}
+	}
+	if (CommandTable[1].ToSoftObjectPath().IsValid())
+	{
+		if (const UDataTable* Table = CommandTable[1].LoadSynchronous())
+		{
+			const FString ContextString(TEXT("Command Table MoveInput"));
+			Table->GetAllRows<FCommandRow>(ContextString, AnubisCommandRows);
 		}
 	}
 }
@@ -103,9 +111,20 @@ void UPlayerInputComponent::AttackInput(const FInputActionValue& InputValue, con
 	{
 		bIsAttack = true;
 	}
+
+	TArray<FCommandRow*>* CurrentCommandRows;
+	FString PlayerName = Player->GetName();
+	if (PlayerName.Contains(TEXT("Anubis"), ESearchCase::IgnoreCase))
+	{
+		CurrentCommandRows = &AnubisCommandRows;	
+	}
+	else
+	{
+		CurrentCommandRows = &CommandRows;
+	}
 	
 	FCommandRow* MatchingRow = nullptr;
-	for (FCommandRow* Row : CommandRows)
+	for (FCommandRow* Row : *CurrentCommandRows)
 	{
 		if (!Row || Row->AttackTag != AttackTag)
 		{
@@ -153,7 +172,8 @@ void UPlayerInputComponent::AttackInput(const FInputActionValue& InputValue, con
 			}
 		}
 	}
-	
+
+	//MatchingCount
 	if (MatchingRow)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Command Matching!!: %s"), *MatchingRow->CommandName.ToString());
@@ -164,7 +184,6 @@ void UPlayerInputComponent::AttackInput(const FInputActionValue& InputValue, con
     
 	UE_LOG(LogTemp, Warning, TEXT("No matching, AttackTag: %s"), *AttackTag.ToString());
 }
-
 
 FGameplayTag UPlayerInputComponent::GetInputTagFromValue(const FInputActionValue& InputValue)
 {

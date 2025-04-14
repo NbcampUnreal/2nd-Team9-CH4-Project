@@ -76,7 +76,7 @@ void UAbilityManager::OnAbilityTableLoaded() //게임 쓰레드에서 실행됨-
 			for (const auto& Ability : AbilityRows)
 			{
 				FGameplayTag SkillTag = Ability->AbilityTag;
-				FGameplayTag CommandTag = Ability->AbilityTag;
+				FGameplayTag CommandTag = Ability->AbilityTag; Ability->CommandTag;
 				CommandTagMap.Add(CommandTag,SkillTag);
 			}
 	}

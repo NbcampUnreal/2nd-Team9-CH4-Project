@@ -29,15 +29,16 @@ protected:
 protected: /* Command Input */
 	void MoveInput(const FInputActionValue& InputValue);
 	void AttackInput(const FInputActionValue& InputValue, const FGameplayTag& AttackTag);
+	void MatchCommand();
 	FGameplayTag GetInputTagFromValue(const FInputActionValue& InputValue);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input")
 	TArray<FInputBufferEntry>	MoveInputBuffer;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Command")
-	TSoftObjectPtr<UDataTable>	CommandTable;
+	TArray<TSoftObjectPtr<UDataTable>>	CommandTable;
 	TArray<FCommandRow*>		CommandRows;
-
+	TArray<FCommandRow*>		AnubisCommandRows;
 	TWeakObjectPtr<AFighter> Player;
 private: /* Key Input */
 	void AddMappingContext(const ASSBPlayerController* PlayerController) const;

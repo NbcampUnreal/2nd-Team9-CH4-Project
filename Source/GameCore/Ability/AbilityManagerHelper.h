@@ -20,5 +20,4 @@ public:
 
 	UPROPERTY(EditAnywhere, blueprintReadWrite, Category = "Anim")
 	TSoftObjectPtr<UDataTable> AnimDataTable;
-
 };
