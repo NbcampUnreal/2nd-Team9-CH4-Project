@@ -148,13 +148,14 @@ void AHitBox::OnHitBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 {
 	if (OtherActor && OtherActor != this && OtherActor != GetOwner())
 	{
-		if (const AFighter* OtherFighter = Cast<AFighter>(OtherActor))
+		if (AFighter* OtherFighter = Cast<AFighter>(OtherActor))
 		{
 			if (UActorComponent* ActorComponent = OtherFighter->GetComponentByClass(UHitComponent::StaticClass()))
 			{
 				if (UHitComponent* HitComponent = Cast<UHitComponent>(ActorComponent))
 				{
 					HitComponent->OnHit(OwnerHitComponent, HitDataInfo);
+					SetOtherHit(OtherFighter);
 					Destroy();
 				}
 			}
@@ -181,5 +182,26 @@ void AHitBox::OnHitBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 		//         }
 		//     }
 		// }
+	}
+}
+
+void AHitBox::SetOtherHit(AFighter* OtherFighter)
+{
+	
+	if (HitDataInfo.HitDamageAmount.KnockbackAmount < 50)
+	{
+		OtherFighter->SetGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.WeakHit")));	
+	}
+	else if (HitDataInfo.HitDamageAmount.KnockbackAmount < 100)
+	{
+		OtherFighter->SetGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.HeavyHit")));
+	}
+	else
+	{
+		// 얼마나 크게 할건지 판단
+		if (HitDataInfo.HitDirection.HitAngle > 0)
+		{
+			OtherFighter->SetGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Launch")));
+		}
 	}
 }
