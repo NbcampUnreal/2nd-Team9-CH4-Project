@@ -115,17 +115,17 @@ void UAbilityBase::OnMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted
 			{
 				
 				// 어빌리티 <--> 로코모션 전환을 위한 보정처리
-				if (CurrentMontage->GetName().EndsWith(TEXT("Stand"), ESearchCase::IgnoreCase))
+				if (CurrentMontage->GetName().EndsWith(TEXT("stand"), ESearchCase::IgnoreCase))
 				{
 					OwnerCharacter->SetIdleTag();
 				}
-				else if (CurrentMontage->GetName().EndsWith(TEXT("Crouch"), ESearchCase::IgnoreCase))
+				else if (CurrentMontage->GetName().EndsWith(TEXT("crouch"), ESearchCase::IgnoreCase))
 				{
 					OwnerCharacter->SetGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Crouch.Idle")));
 				}
 				
 				AbilityManager->AbilityMontageDone();
-				AbilityManager->GetHitBox()->Destroy();
+				//AbilityManager->GetHitBox()->Destroy();
 			}
 		}
 	}

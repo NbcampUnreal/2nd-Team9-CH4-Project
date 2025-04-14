@@ -16,4 +16,6 @@ class GAMEPLAY_API ASSBGameMode : public AGameMode
 	
 public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
+
+	ASSBGameMode();
 };

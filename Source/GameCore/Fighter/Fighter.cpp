@@ -2,15 +2,18 @@
 #include "GameCore/Ability/AbilityManager/AbilityManager.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameCore/Interface/PlayerStateInterface.h"
+#include "GameCore/Components/Hit//HitComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "MessageBus/MessageBusManager.h"
 #include "GameFramework/PlayerState.h"
 #include "Camera/CameraComponent.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameCore/Camera/SSBCamera.h"
 #include "InputActionValue.h"
 #include "NiagaraComponent.h"
 #include "NiagaraSystem.h"
-
+#include "AI/NavigationSystemBase.h"
 
 FGameplayTag AFighter::AttackTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Attack"));
 FGameplayTag AFighter::BaseTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base"));
@@ -110,6 +113,7 @@ void AFighter::Tick(float DeltaTime)
 	if (!AbilityTagContainer.HasTag(AttackTag) && CurrentPlayerTag != JumpTag && CurrentPlayerTag != LandTag)
 	{
 		CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("PlayerState.Base.%s.Idle"), *CurrentStandTag)));
+		//CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("PlayerState.Base.Stand.Idle"))));
 	}
 }
 
@@ -212,4 +216,3 @@ FGameplayTagContainer& AFighter::GetCurrentTags()
 {
 	 return AbilityTagContainer; 
 }
-
