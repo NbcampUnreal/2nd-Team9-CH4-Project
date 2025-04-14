@@ -154,8 +154,8 @@ void AHitBox::OnHitBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 			{
 				if (UHitComponent* HitComponent = Cast<UHitComponent>(ActorComponent))
 				{
-					HitComponent->OnHit(OwnerHitComponent, HitDataInfo);
 					SetOtherHit(OtherFighter);
+					HitComponent->OnHit(OwnerHitComponent, HitDataInfo);
 					Destroy();
 				}
 			}
