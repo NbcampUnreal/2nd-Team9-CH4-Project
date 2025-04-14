@@ -39,7 +39,12 @@ public:
 	void Move(const FInputActionValue& InputValue);
 	UFUNCTION()
 	virtual void StartJump(const FInputActionValue& InputValue);
-	
+	UFUNCTION()
+	void ChangeLook();
+	void SetCheckTickCrouch(); 
+
+	UFUNCTION(BlueprintCallable)
+	void SetCurrentStandTag(const FString& InStandTag) { CurrentStandTag = InStandTag; }
 	UFUNCTION(BlueprintCallable)
 	FGameplayTag GetGameplayTag() const { return CurrentPlayerTag; }
 
@@ -50,7 +55,11 @@ public:
 	bool GetPlayerLookingRight() const { return bLookingRight; }
 	
 	UFUNCTION(BlueprintCallable)
-	void SetGameplayTag(const FGameplayTag& GameplayTag) { CurrentPlayerTag = GameplayTag; };
+	void SetGameplayTag(const FGameplayTag& GameplayTag) { CurrentPlayerTag = GameplayTag; }
+	UFUNCTION(BlueprintCallable)
+	void UnlockedTag();
+	void RefreshlockTag();
+	void LockTag();
 	void AddAttackTag() { AbilityTagContainer.AddTag(AttackTag); };
 	void RemoveAttackTag() { AbilityTagContainer.RemoveTag(AttackTag); };
 	void SetChangeBaseTag() { CurrentPlayerTag = BaseTag; };
@@ -67,7 +76,8 @@ public:
 	static FGameplayTag JumpTag;
 	static FGameplayTag IdleTag;
 	static FGameplayTag LandTag;
-
+	static FGameplayTag HitTag;
+	static FGameplayTag CrouchTag;
 private: /* 카메라 완성되면 지워야함*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* SpringArm;
@@ -77,9 +87,13 @@ private:
 	// 앉아있는지 서있는지 초기화 할때 쓰이는 변수
 	FString CurrentStandTag;
 	FGameplayTag CurrentPlayerTag; //로코모션담김
+	FGameplayTag CurrentLockTag; //로코모션담김
 	FGameplayTagContainer AbilityTagContainer; //공격중인지, 인트로중인지 태그
 	
 	bool bLookingRight{ true}; //오른쪽을 보고있는지
+	bool bCheckTickCrouch{ false }; // crouch 상태인지
 
-
+public:
+	FString CurrentMontageName;
 };
+

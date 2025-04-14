@@ -59,7 +59,7 @@ void UPlayerInputComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	
 	for (int32 i = MoveInputBuffer.Num() - 1; i >= 0; --i)
 	{
-		if (CurrentTime - MoveInputBuffer[i].InputTime > 1.0f)
+		if (CurrentTime - MoveInputBuffer[i].InputTime > 0.3f)
 		{
 			//UE_LOG(LogTemp, Warning, TEXT("Remove Input Tag: %s \n Input Time: %f \n Current Time: %f"), *MoveInputBuffer[i].InputTag.ToString(), MoveInputBuffer[i].InputTime, CurrentTime);
 			MoveInputBuffer.RemoveAt(i);
@@ -176,9 +176,22 @@ void UPlayerInputComponent::AttackInput(const FInputActionValue& InputValue, con
 	//MatchingCount
 	if (MatchingRow)
 	{
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle,	FTimerDelegate::CreateLambda([this]()
+			{
+				MoveInputBuffer.Empty();
+			}),	0.1f,false);
 		UE_LOG(LogTemp, Warning, TEXT("Command Matching!!: %s"), *MatchingRow->CommandName.ToString());
 		GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->RequestCreateAbility(MatchingRow->CommandName, bIsAttack);
-		MoveInputBuffer.Empty();
+		if (!bIsAttack)
+		{
+			Player->LockTag();	
+		}
+		else
+		{
+			Player->CurrentMontageName = GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->GetNextMontageName();
+			Player->RefreshlockTag();
+		}
 		return;
 	}
     
@@ -237,11 +250,26 @@ FGameplayTag UPlayerInputComponent::GetInputTagFromValue(const FInputActionValue
 			}
 			else if (LastTag == CardinalX)
 			{
-				return CardinalY;
+				if (MoveInputBuffer.Num() > 1)
+				{
+					const FGameplayTag& OneFromLastTag = MoveInputBuffer.Last(1).InputTag;
+					if (OneFromLastTag == CardinalY)
+					{
+						return CardinalX;
+					}
+					else
+					{
+						return CardinalY;
+					}
+				}
+				else
+				{
+					return CardinalY;
+				}
 			}
 			else
 			{
-				return CardinalX;
+				return CardinalY;
 			}
 		}
 		else
@@ -285,6 +313,7 @@ void UPlayerInputComponent::BindActions(const ASSBPlayerController* PlayerContro
 			InputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, Player.Get(), &AFighter::Move);
 			InputComponent->BindAction(JumpAction, ETriggerEvent::Started, Player.Get(), &AFighter::StartJump);
 			InputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, Player.Get(), &AFighter::SetChangeStandTag);
+			InputComponent->BindAction(ChangeLookAction, ETriggerEvent::Completed, Player.Get(), &AFighter::ChangeLook);
 			
 			InputComponent->BindAction(WeakAttackAction, ETriggerEvent::Started, this, &UPlayerInputComponent::OnWeakAttack);
 			InputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Started, this, &UPlayerInputComponent::OnHeavyAttack);
