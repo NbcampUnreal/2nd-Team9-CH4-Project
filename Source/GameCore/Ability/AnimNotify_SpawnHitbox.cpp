@@ -75,7 +75,8 @@ void UAnimNotify_SpawnHitbox::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 			bool bIsMirrored = !Cast<AFighter>(MeshComp->GetOwner())->GetPlayerLookingRight();
 			if (Instance)
 			{
-				Instance->Init(HitDataInfo, Pos , AnimRow, bIsMirrored);
+				HitDataInfo.HitDirection.bIsRight = bIsMirrored;
+				Instance->Init(HitDataInfo, Pos , AnimRow);
 			}
 		}
 	}

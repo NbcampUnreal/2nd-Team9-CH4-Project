@@ -81,8 +81,8 @@ void AFighter::BeginPlay()
 		false                                      // 이펙트 자동 제거 (재생 완료 후)
 		));
 	}
-	GetGameInstance()->GetSubsystem<UAbilityManager>()->UpdateCharacter(this);
-
+	GetGameInstance()->GetSubsystem<UAbilityManager>()->UpdateCharacter(this, Type);
+	GetGameInstance()->GetSubsystem<UAbilityManager>()->InitializeManager();
 	
 
 

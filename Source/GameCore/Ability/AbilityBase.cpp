@@ -127,7 +127,10 @@ void UAbilityBase::OnMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted
 					}*/
 				}
 				AbilityManager->AbilityMontageDone();
-				//AbilityManager->GetHitBox()->Destroy();
+				if (AbilityManager->GetHitBox() != nullptr)
+				{
+					AbilityManager->GetHitBox()->Destroy();
+				}
 			}
 		}
 	}

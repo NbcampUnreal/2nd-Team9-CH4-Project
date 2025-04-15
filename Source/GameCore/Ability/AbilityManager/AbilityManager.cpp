@@ -8,21 +8,24 @@ void UAbilityManager::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 	
-	InitializeManager();
+	//InitializeManager();
 }
 
 void UAbilityManager::InitializeManager()
 {
-	//DT
-	HelperInstance = NewObject<UAbilityManagerHelper>(GetTransientPackage(), AbilityManagerHelperClass); //헬프 클래스, GetTransientPackage -> 게임 시작되면 생성되는 가장 원초적인 객체 , "GC가 안된다"
-	FStreamableManager& Streamable = UAssetManager::GetStreamableManager(); //로드 시작
-	Streamable.RequestAsyncLoad(
-		HelperInstance->AbilityDataTable.ToSoftObjectPath(),
-		FStreamableDelegate::CreateUObject(this, &UAbilityManager::OnAbilityTableLoaded));
+	if (PlayerInstance.IsValid())
+	{
+		//DT
+		HelperInstance = NewObject<UAbilityManagerHelper>(GetTransientPackage(), AbilityManagerHelperClass); //헬프 클래스, GetTransientPackage -> 게임 시작되면 생성되는 가장 원초적인 객체 , "GC가 안된다"
+		FStreamableManager& Streamable = UAssetManager::GetStreamableManager(); //로드 시작
+		Streamable.RequestAsyncLoad(
+			HelperInstance->AbilityTableArray[static_cast<int32>(Type)].ToSoftObjectPath(),
+			FStreamableDelegate::CreateUObject(this, &UAbilityManager::OnAbilityTableLoaded));
 	
-	Streamable.RequestAsyncLoad(
-		HelperInstance->AnimDataTable.ToSoftObjectPath(),
-		FStreamableDelegate::CreateUObject(this, &UAbilityManager::OnAnimTableLoaded));
+		Streamable.RequestAsyncLoad(
+			HelperInstance->AnimTableArray[static_cast<int32>(Type)].ToSoftObjectPath(),
+			FStreamableDelegate::CreateUObject(this, &UAbilityManager::OnAnimTableLoaded));
+	}
 }
 
 void UAbilityManager::RequestCreateAbility(const FGameplayTag& CommandTag, bool bIsNext)
@@ -68,10 +71,10 @@ void UAbilityManager::OnAbilityTableLoaded() //게임 쓰레드에서 실행됨-
 {
 	//DT 로드가 완료되면 매핑
 	static const FString ContextString(TEXT("AbilityManager::OnAbilityTableLoaded"));
-	if (HelperInstance->AbilityDataTable.IsValid())
+	if (HelperInstance->AbilityTableArray[static_cast<int32>(Type)].IsValid())
 	{
 		TArray<FAbilityRow*> AbilityRows;
-		HelperInstance->AbilityDataTable->GetAllRows(ContextString, AbilityRows);
+		HelperInstance->AbilityTableArray[static_cast<int32>(Type)]->GetAllRows(ContextString, AbilityRows);
 
 			for (const auto& Ability : AbilityRows)
 			{
@@ -82,14 +85,14 @@ void UAbilityManager::OnAbilityTableLoaded() //게임 쓰레드에서 실행됨-
 	}
 
 	TArray<FAbilityRow*> Rows;
-	if (HelperInstance->AbilityDataTable.IsNull())
+	if (HelperInstance->AbilityTableArray[static_cast<int32>(Type)].IsNull())
 	{
 		ensureAlways(false); //한번더검증해
 		return;
 	}
-	HelperInstance->AbilityDataTable->GetAllRows<FAbilityRow>(ContextString, Rows);
+	HelperInstance->AbilityTableArray[static_cast<int32>(Type)]->GetAllRows<FAbilityRow>(ContextString, Rows);
 	FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
-	
+
 	for (const FAbilityRow* Row : Rows)
 	{
 		FGameplayTag AbilityTag = Row->AbilityTag;
@@ -128,10 +131,10 @@ void UAbilityManager::OnAbilityTableLoaded() //게임 쓰레드에서 실행됨-
 void UAbilityManager::OnAnimTableLoaded()
 {
 	static const FString ContextString(TEXT("AbilityManager::OnAnimTableLoaded"));
-	if (HelperInstance->AnimDataTable.IsValid())
+	if (HelperInstance->AnimTableArray[static_cast<int32>(Type)].IsValid())
 	{
 		TArray<FAnimRow*> AnimRows;
-		HelperInstance->AnimDataTable->GetAllRows(ContextString, AnimRows);
+		HelperInstance->AnimTableArray[static_cast<int32>(Type)]->GetAllRows(ContextString, AnimRows);
 
 		for (const auto& Anim : AnimRows)
 		{
@@ -149,9 +152,10 @@ void UAbilityManager::OnAnimTableLoaded()
 	}
 }
 
-void UAbilityManager::UpdateCharacter(ACharacter* InOwner) //매핑이 완료되고 각 어빌리티들의 오너를 설정해줌
+void UAbilityManager::UpdateCharacter(ACharacter* InOwner,  const ECharacterType InType) //매핑이 완료되고 각 어빌리티들의 오너를 설정해줌
 {
 	PlayerInstance = Cast<AFighter>(InOwner);
+	Type = InType;
 	if (!PlayerInstance.IsValid())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("AbilityManager : PlayerInstance is not valid!"));

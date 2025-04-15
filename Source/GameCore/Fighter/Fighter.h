@@ -7,6 +7,7 @@
 #include "GameplayTagContainer.h"
 #include "Fighter.generated.h"
 
+enum class ECharacterType : uint8;
 class UHitComponent;
 class UNiagaraComponent;
 class UNiagaraSystem;
@@ -102,5 +103,8 @@ private:
 
 public:
 	FString CurrentMontageName;
+
+protected:
+	ECharacterType Type;
 };
 
