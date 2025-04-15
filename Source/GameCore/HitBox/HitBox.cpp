@@ -2,6 +2,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "GameCore/Ability/AbilityManager/AbilityManager.h"
 #include "GameCore/Fighter/Fighter.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -163,6 +164,7 @@ void AHitBox::OnHitBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 			{
 				if (UHitComponent* HitComponent = Cast<UHitComponent>(ActorComponent))
 				{
+					HitDataInfo.HitDirection.bIsRight = GetGameInstance()->GetSubsystem<UAbilityManager>()->GetPlayerInstance()->GetPlayerLookingRight(); 
 					SetOtherHit(OtherFighter);
 					HitComponent->OnHit(OwnerHitComponent, HitDataInfo);
 					Destroy();

@@ -39,6 +39,7 @@ public:
 
 	bool CheckCurrentPlayingMontage() const;
 	FString GetNextMontageName() const;
+	AFighter* GetPlayerInstance() const { return PlayerInstance.Get(); }
 protected:
 	UPROPERTY()
 	TSoftObjectPtr<UDataTable> AbilityDataTable;
