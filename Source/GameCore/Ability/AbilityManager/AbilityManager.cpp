@@ -38,13 +38,11 @@ void UAbilityManager::RequestCreateAbility(const FGameplayTag& CommandTag, bool 
 	
 	//요청받은 어빌리티 객체의 Activate() 호출, Activate () call from the requested abilities object
 
-	//컨맨드태그를 직업별스킬태그로 찾아서
-	const FGameplayTag* MappedTag = CommandTagMap.Find(CommandTag);
-	if (MappedTag && AbilityMap.Contains(*MappedTag))
+	if (AbilityMap.Contains(CommandTag))
 	{
-		if (UAbilityBase* Ability = AbilityMap[*MappedTag])
+		if (UAbilityBase* Ability = AbilityMap[CommandTag])
 		{
-			if (const FHitDataInfo* HitData = HitInfoMap.Find(*MappedTag))
+			if (const FHitDataInfo* HitData = HitInfoMap.Find(CommandTag))
 			{
 				// || (bIsNext && PlayerInstance.Get()->GetCurrentTags().HasTag(PlayerInstance.Get()->AttackTag))
 				if (!bIsNext)
@@ -188,7 +186,7 @@ void UAbilityManager::SetHitBox(AHitBox* InHitBox)
 	HitBoxInstance = InHitBox;
 }
 
-const FAnimRow* UAbilityManager::GetAnimRow(const FName& InAnimName) const
+FAnimRow* UAbilityManager::GetAnimRow(const FName& InAnimName)
 {
 	if (!AnimInfoMap.IsEmpty())
 	{

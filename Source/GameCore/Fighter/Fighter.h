@@ -105,6 +105,7 @@ public:
 	FString CurrentMontageName;
 
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Type")
 	ECharacterType Type;
 };
 
