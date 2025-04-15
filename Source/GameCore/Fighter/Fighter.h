@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "GameplayTagContainer.h"
+#include "GameCore/Ability/CharacterType.h"
 #include "Fighter.generated.h"
 
 class UHitComponent;
@@ -60,7 +61,7 @@ public:
 	void UnlockedTag();
 	void RefreshlockTag();
 	void LockTag();
-	void SetBlocking(const bool bBlocking) { this->bBlocking = bBlocking; }
+	void SetBlocking(const bool InbBlocking) { this->bBlocking = InbBlocking; }
 	void AddAttackTag() { AbilityTagContainer.AddTag(AttackTag); }
 	bool GetBuffering();
 	void StartBlocking(const FInputActionValue& InputActionValue);
@@ -102,5 +103,8 @@ private:
 
 public:
 	FString CurrentMontageName;
+
+protected:
+	ECharacterType Type;
 };
 
