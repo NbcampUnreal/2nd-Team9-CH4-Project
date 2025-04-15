@@ -23,7 +23,7 @@ protected:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "HitBox")
-	void Init(const FHitDataInfo& HitData, const FVector& Pos, const FAnimRow AnimRow, bool bMirrored);
+	void Init(const FHitDataInfo& HitData, const FVector& Pos, const FAnimRow AnimRow);
 
 	UFUNCTION()
 	void OnHitBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,

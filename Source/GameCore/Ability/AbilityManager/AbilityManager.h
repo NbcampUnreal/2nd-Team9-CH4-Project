@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "GameCore/Ability/AbilityBase.h"
+#include "GameCore/Ability/CharacterType.h"
 #include "GameCore/Ability/AbilityData/AbilityRow.h"
 #include "GameCore/Ability/AbilityData/AnimRow.h"
 #include "AbilityManager.generated.h"
@@ -23,13 +24,14 @@ public:
 	void RequestCreateAbility(const FGameplayTag& CommandTag, bool bIsNext);
 	void OnAbilityTableLoaded();
 	void OnAnimTableLoaded();
-	void UpdateCharacter(ACharacter* InOwner);
+	void UpdateCharacter(ACharacter* InOwner, const ECharacterType InType);
 
 	//Getter, Setter
 	const FHitDataInfo& GetHitDataInfo() const;
 	const FName& GetAnimName() const;
 	AHitBox* GetHitBox() const;
 	const FAnimRow* GetAnimRow(const FName& InAnimName) const;
+	
 	void AbilityMontageDone();
 
 	void SetAnimName(const FName& InAnimName);
@@ -73,6 +75,8 @@ protected:
 	UPROPERTY()
 	AHitBox* HitBoxInstance;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CharacterType")
+	ECharacterType Type;
 };
 
 

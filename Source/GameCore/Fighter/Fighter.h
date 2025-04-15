@@ -5,7 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "GameplayTagContainer.h"
+#include "GameCore/Ability/CharacterType.h"
 #include "Fighter.generated.h"
+
 
 class UHitComponent;
 class UNiagaraComponent;
@@ -13,10 +15,6 @@ class UNiagaraSystem;
 class UCameraComponent;
 class USpringArmComponent;
 struct FInputActionValue;
-
-//Test
-class UAbilityManager;
-
 
 UCLASS()
 class GAMECORE_API AFighter : public ACharacter
@@ -48,6 +46,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	bool GetPlayerLookingRight() const { return bLookingRight; }
+	UFUNCTION(BlueprintCallable)
+	ECharacterType GetCharacterType() const {return Type;}
 	
 	UFUNCTION(BlueprintCallable)
 	void SetGameplayTag(const FGameplayTag& GameplayTag) { CurrentPlayerTag = GameplayTag; };
@@ -81,5 +81,8 @@ private:
 	
 	bool bLookingRight{ true}; //오른쪽을 보고있는지
 
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CharacterType")
+	ECharacterType Type;
 
 };
