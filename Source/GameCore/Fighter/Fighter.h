@@ -42,7 +42,7 @@ public:
 	UFUNCTION()
 	void ChangeLook();
 	void SetCheckTickCrouch(); 
-
+	void SetBuffering(const bool bBuffering) { bOnBuffering = bBuffering; }
 	UFUNCTION(BlueprintCallable)
 	void SetCurrentStandTag(const FString& InStandTag) { CurrentStandTag = InStandTag; }
 	UFUNCTION(BlueprintCallable)
@@ -60,7 +60,11 @@ public:
 	void UnlockedTag();
 	void RefreshlockTag();
 	void LockTag();
-	void AddAttackTag() { AbilityTagContainer.AddTag(AttackTag); };
+	void SetBlocking(const bool bBlocking) { this->bBlocking = bBlocking; }
+	void AddAttackTag() { AbilityTagContainer.AddTag(AttackTag); }
+	bool GetBuffering();
+	void StartBlocking(const FInputActionValue& InputActionValue);
+	void EndBlocking(const FInputActionValue& InputActionValue);
 	void RemoveAttackTag() { AbilityTagContainer.RemoveTag(AttackTag); };
 	void SetChangeBaseTag() { CurrentPlayerTag = BaseTag; };
 	void SetChangeStandTag();
@@ -78,6 +82,7 @@ public:
 	static FGameplayTag LandTag;
 	static FGameplayTag HitTag;
 	static FGameplayTag CrouchTag;
+	static FGameplayTag BlockingTag;
 private: /* 카메라 완성되면 지워야함*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* SpringArm;
@@ -92,6 +97,8 @@ private:
 	
 	bool bLookingRight{ true}; //오른쪽을 보고있는지
 	bool bCheckTickCrouch{ false }; // crouch 상태인지
+	bool bOnBuffering{ false };
+	bool bBlocking{ false };
 
 public:
 	FString CurrentMontageName;

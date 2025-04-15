@@ -24,6 +24,7 @@ FGameplayTag AFighter::IdleTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerSt
 FGameplayTag AFighter::LandTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Land"));
 FGameplayTag AFighter::HitTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Hit"));
 FGameplayTag AFighter::CrouchTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Crouch.Idle"));
+FGameplayTag AFighter::BlockingTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Stand.Block"));
 
 AFighter::AFighter()
 {
@@ -113,6 +114,11 @@ void AFighter::Tick(float DeltaTime)
 		bLookingRight = false;
 		SetActorRotation(FRotator(0.0f, 180.0f, 0.0f));
 	}*/
+	if (AbilityTagContainer.HasTag(AttackTag) && CurrentPlayerTag.MatchesTag(BlockingTag))
+	{
+		CurrentPlayerTag = IdleTag;
+	}
+	
 	if (!AbilityTagContainer.HasTag(AttackTag) && !bCheckTickCrouch && CurrentPlayerTag.MatchesTag(CrouchTag))
 	{
 		bCheckTickCrouch = false;
@@ -120,20 +126,26 @@ void AFighter::Tick(float DeltaTime)
 		CurrentStandTag = "Stand";
 	}
 
+	// 매프레임 액터 로테이션을 갱신해줌 왜 매프레임 0으로 초기화되는지 파악안됨 
 	if (!bLookingRight)
 	{
 		SetActorRotation(FRotator(0.0f, 180.0f, 0.0f));
 	}
 	
 	if (!AbilityTagContainer.HasTag(AttackTag) && CurrentPlayerTag != JumpTag && CurrentPlayerTag != LandTag &&
-		!CurrentPlayerTag.MatchesTag(HitTag))
+		!CurrentPlayerTag.MatchesTag(HitTag) && !CurrentPlayerTag.MatchesTag(BlockingTag))
 	{
 		CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("PlayerState.Base.%s.Idle"), *CurrentStandTag)));
 		//CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("PlayerState.Base.Stand.Idle"))));
 	}
 
-	if (CurrentLockTag.MatchesTag(BaseTag))
+	if (CurrentLockTag.MatchesTag(BaseTag) && !CurrentPlayerTag.MatchesTag(BlockingTag))
 	{
+		if (CurrentLockTag.MatchesTag(BlockingTag))
+		{
+			CurrentLockTag = AttackTag;
+			return;
+		}
 		CurrentPlayerTag = CurrentLockTag;
 	}
 }
@@ -156,6 +168,7 @@ void AFighter::Move(const FInputActionValue& InputValue)
 		return;
 	}
 	const FVector2D MovementVector = InputValue.Get<FVector2D>();
+	/* 이번 틱에서 크라우치를 시도했는지 체크하고 이동을 막기 위함 */
 	if ((MovementVector.Y < 0.0f && MovementVector.X != 0.0f))
 	{
 		CurrentPlayerTag = CrouchTag;
@@ -298,6 +311,26 @@ void AFighter::LockTag()
 	}
 }
 
+bool AFighter::GetBuffering()
+{
+	return bOnBuffering;
+}
+
+void AFighter::StartBlocking(const FInputActionValue& InputActionValue)
+{
+	if (CurrentPlayerTag.MatchesTag(FGameplayTag::RequestGameplayTag(FName(TEXT("PlayerState.Base.Stand")))))
+	{
+		CurrentPlayerTag = BlockingTag;
+	}
+}
+
+void AFighter::EndBlocking(const FInputActionValue& InputActionValue)
+{
+	if (CurrentPlayerTag.MatchesTag(BlockingTag))
+	{
+		CurrentPlayerTag = IdleTag;
+	}
+}
 
 void AFighter::ChangeLook()
 {
