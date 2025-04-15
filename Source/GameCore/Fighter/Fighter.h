@@ -34,47 +34,54 @@ protected:
 	virtual void Landed(const FHitResult& Hit) override;
 	
 public:
+	UFUNCTION(BlueprintCallable)
+	bool GetPlayerLookingRight() const { return bLookingRight; }
+	
 	UFUNCTION()
 	void ImSleepy(const FString& MessageType, UObject* Payload);
 	UFUNCTION()
 	void Move(const FInputActionValue& InputValue);
 	UFUNCTION()
-	virtual void StartJump(const FInputActionValue& InputValue);
+	void StartJump(const FInputActionValue& InputValue);
 	UFUNCTION()
-	void ChangeLook();
-	void SetCheckTickCrouch(); 
-	void SetBuffering(const bool bBuffering) { bOnBuffering = bBuffering; }
-	UFUNCTION(BlueprintCallable)
-	void SetCurrentStandTag(const FString& InStandTag) { CurrentStandTag = InStandTag; }
-	UFUNCTION(BlueprintCallable)
-	FGameplayTag GetGameplayTag() const { return CurrentPlayerTag; }
-
-	UFUNCTION(BlueprintCallable)
-	FGameplayTagContainer& GetCurrentTags();
-
-	UFUNCTION(BlueprintCallable)
-	bool GetPlayerLookingRight() const { return bLookingRight; }
+	void SetCheckTickCrouch();
 	
-	UFUNCTION(BlueprintCallable)
-	void SetGameplayTag(const FGameplayTag& GameplayTag) { CurrentPlayerTag = GameplayTag; }
-	UFUNCTION(BlueprintCallable)
-	void UnlockedTag();
-	void RefreshlockTag();
-	void LockTag();
-	void SetBlocking(const bool bInBlocking) { bBlocking = bInBlocking; }
-	void AddAttackTag() { AbilityTagContainer.AddTag(AttackTag); }
-	bool GetBuffering();
 	void StartBlocking(const FInputActionValue& InputActionValue);
+	void SetBlocking(const bool bInBlocking) { bBlocking = bInBlocking; }
 	void EndBlocking(const FInputActionValue& InputActionValue);
-	void RemoveAttackTag() { AbilityTagContainer.RemoveTag(AttackTag); };
-	void SetChangeBaseTag() { CurrentPlayerTag = BaseTag; };
-	void SetChangeStandTag();
-	void SetIdleTag() { CurrentPlayerTag = IdleTag; };
+	
+	bool GetBuffering();
+	void SetBuffering(const bool bBuffering) { bOnBuffering = bBuffering; }
+
+	void HitStop(const FVector& LaunchVector = {}, const FGameplayTag& InHitTag = AttackTag, const bool bIsAttacker = true);
+	void AfterLaunchHitStop();
+	void AfterHitStop();
+	void StopMovementTimerSet(UCharacterMovementComponent* MovementCom, float Time);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
 	UNiagaraSystem* NiagaraEffect;
 	TArray<UNiagaraComponent*> NiagaraComponents;
 	
+public:
+	UFUNCTION(BlueprintCallable)
+	void UnlockedTag();
+	UFUNCTION(BlueprintCallable)
+	void SetGameplayTag(const FGameplayTag& GameplayTag) { CurrentPlayerTag = GameplayTag; }
+	UFUNCTION(BlueprintCallable)
+	void SetCurrentStandTag(const FString& InStandTag) { CurrentStandTag = InStandTag; }
+	UFUNCTION(BlueprintCallable)
+	FGameplayTag GetGameplayTag() const { return CurrentPlayerTag; }
+	UFUNCTION(BlueprintCallable)
+	FGameplayTagContainer& GetCurrentTags();
+	
+	void LockTag();
+	void ChangeLook();
+	void SetIdleTag() { CurrentPlayerTag = IdleTag; };
+	void AddAttackTag() { AbilityTagContainer.AddTag(AttackTag); }
+	void RefreshlockTag();
+	void RemoveAttackTag() { AbilityTagContainer.RemoveTag(AttackTag); };
+	void SetChangeBaseTag() { CurrentPlayerTag = BaseTag; }
+	void SetChangeStandTag();
 	/* Define 에 옮겨놔야할듯 */
 	static FGameplayTag AttackTag;
 	static FGameplayTag BaseTag;
@@ -84,6 +91,9 @@ public:
 	static FGameplayTag HitTag;
 	static FGameplayTag CrouchTag;
 	static FGameplayTag BlockingTag;
+	static FGameplayTag WeakHitTag;
+	static FGameplayTag HeavyHitTag;
+	static FGameplayTag LaunchHitTag;
 private: /* 카메라 완성되면 지워야함*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* SpringArm;
@@ -101,6 +111,8 @@ private:
 	bool bOnBuffering{ false };
 	bool bBlocking{ false };
 
+	FVector HitStopVector;
+	FTimerHandle HitStopTimerHandle;
 public:
 	FString CurrentMontageName;
 

@@ -1,7 +1,9 @@
 ﻿#include "HitComponent.h"
 
+#include "GameCore/Fighter/Fighter.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/GameSession.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
@@ -47,6 +49,7 @@ void UHitComponent::OnHit(UHitComponent* AttackerHitComponent, const FHitDataInf
 		if (IsValid(AttackerHitComponent))
 		{
 			AttackerHitComponent->MulticastHandleHit(AttackerHitStopDuration, FName());
+			Cast<AFighter>(AttackerHitComponent->GetOwner())->HitStop();
 		}
 
 		const float DamageScale = GetDamageScale(HitDataInfo.HitAbilityTagName);
@@ -59,7 +62,7 @@ void UHitComponent::OnHit(UHitComponent* AttackerHitComponent, const FHitDataInf
 
 			KnockbackAmount *= 0.1f;
 			HitDamageAmount = DamageScale * HitDataInfo.HitDamageAmount.HitDamageAmountToShield;
-
+			
 			// TODO 실드 차감 처리
 		}
 
@@ -72,7 +75,7 @@ void UHitComponent::OnHit(UHitComponent* AttackerHitComponent, const FHitDataInf
 		// TODO 아래방향 공격이 들어올때 처리 -> 조건에 따라 아래로 런치 or 다른 공격과 마찬가지로 런치
 
 		const FVector LaunchVector = CalculateLaunchVector(HitDataInfo.HitDirection) * KnockbackDistance;
-		ApplyKnockback(LaunchVector);
+		ApplyKnockback(LaunchVector, HitDataInfo.HitTag);
 		MulticastHandleHit(HitDataInfo.StopDuration, HitDataInfo.HitAbilityTagName);
 
 		DamageAmplificationPercent += HitDamageAmount;
@@ -97,7 +100,7 @@ void UHitComponent::StartHitStop(const float StopDuration)
 	if (GetOwner())
 	{
 		GetOwner()->CustomTimeDilation = 0.1f;
-
+		
 		if (StopDuration > 0.0f)
 		{
 			FTimerHandle TimerHandle;
@@ -144,17 +147,21 @@ void UHitComponent::EndHitStop() const
 	}
 }
 
-void UHitComponent::ApplyKnockback(const FVector& LaunchVector) const
+void UHitComponent::ApplyKnockback(const FVector& LaunchVector,const FGameplayTag& HitTag) const
 {
 	if (ACharacter* OwnerCharacter = GetOwner<ACharacter>())
 	{
 		if (UCharacterMovementComponent* CharacterMovementComponent = OwnerCharacter->GetCharacterMovement())
 		{
-			CharacterMovementComponent->SetMovementMode(MOVE_Falling);
+			//CharacterMovementComponent->SetMovementMode(MOVE_Falling);
 
-			const bool bIsFalling = CharacterMovementComponent->IsFalling();
-			OwnerCharacter->LaunchCharacter(LaunchVector, bIsFalling, bIsFalling);
-
+			//const bool bIsFalling = CharacterMovementComponent->IsFalling();
+			//OwnerCharacter->LaunchCharacter(LaunchVector, bIsFalling, bIsFalling);
+			
+			/* 약공격은 밀려나지 않았으면 함 Launch는 결국 공중에 뜬다라는 속성때문에 Landed 함수가 계속 호출되고 있음
+			 * LaunchVector의 값이나 Enum으로 처리하면 될것으로 보임
+			 */
+			Cast<AFighter>(OwnerCharacter)->HitStop(LaunchVector,HitTag,false);
 			// TODO FloorBounce
 		}
 	}

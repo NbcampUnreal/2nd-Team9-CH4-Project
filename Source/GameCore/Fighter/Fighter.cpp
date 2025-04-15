@@ -25,6 +25,9 @@ FGameplayTag AFighter::LandTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerSt
 FGameplayTag AFighter::HitTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Hit"));
 FGameplayTag AFighter::CrouchTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Crouch.Idle"));
 FGameplayTag AFighter::BlockingTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Stand.Block"));
+FGameplayTag AFighter::WeakHitTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Hit.Weak"));
+FGameplayTag AFighter::HeavyHitTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Hit.Heavy"));
+FGameplayTag AFighter::LaunchHitTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Hit.Launch"));
 
 AFighter::AFighter()
 {
@@ -148,6 +151,7 @@ void AFighter::Tick(float DeltaTime)
 		}
 		CurrentPlayerTag = CurrentLockTag;
 	}
+	
 }
 
 void AFighter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -220,11 +224,15 @@ void AFighter::Move(const FInputActionValue& InputValue)
 
 void AFighter::StartJump(const FInputActionValue& InputValue)
 {
+	if (GetGameInstance()->GetSubsystem<UAbilityManager>()->CheckCurrentPlayingMontage())
+	{
+		return;
+	}
 	// 지상공격 캔슬 ( 밑에 태그 바꾸는것보다 먼저 호출해야됨 )
-	if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
+	/*if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
 	{
 		AnimInst->Montage_Stop(0.0f);
-	}
+	}*/
 	CurrentPlayerTag = JumpTag;
 	Jump();
 }
@@ -314,6 +322,90 @@ void AFighter::LockTag()
 bool AFighter::GetBuffering()
 {
 	return bOnBuffering;
+}
+
+void AFighter::HitStop(const FVector& LaunchVector, const FGameplayTag& InHitTag, const bool bIsAttacker)
+{
+	if (!bIsAttacker)
+	{
+		if (UCharacterMovementComponent* MovementCom = GetCharacterMovement())
+		{
+			/* 현재 맞으면 무조건 히트상태로 바꿈
+			 * 엎어져있을때 공격이 들어가면 자동스탠드임
+			 * 아예 무적을 주거나 하단공격판정을 추가해야될듯
+			 */
+			if (InHitTag.MatchesTag(WeakHitTag))
+			{
+				if (CurrentPlayerTag.MatchesTag(LaunchHitTag))
+				{
+					HitStopVector = {0.0f, 0.0f, 10.0f};
+					StopMovementTimerSet(MovementCom, 0.1f);
+				}
+				else
+				{
+					CurrentPlayerTag = FGameplayTag();
+					FTimerHandle ResetTagTimer;
+					GetWorld()->GetTimerManager().SetTimer(ResetTagTimer, [this]()
+						{
+							CurrentPlayerTag = WeakHitTag;
+						}, 0.05f, false);
+				}
+			}
+			else if (InHitTag.MatchesTag(HeavyHitTag))
+			{
+				if (CurrentPlayerTag.MatchesTag(LaunchHitTag))
+				{
+					HitStopVector = LaunchVector;
+					//HitStopVector = {0.0f, 0.0f, 20.0f};
+					StopMovementTimerSet(MovementCom, 0.1f);
+				}
+				else
+				{
+					CurrentPlayerTag = FGameplayTag();
+					FTimerHandle ResetTagTimer;
+					GetWorld()->GetTimerManager().SetTimer(ResetTagTimer, [this]()
+						{
+							CurrentPlayerTag = HeavyHitTag;
+						}, 0.05f, false);
+				}
+			
+			}
+			else if (InHitTag.MatchesTag(LaunchHitTag))
+			{
+				CurrentPlayerTag = LaunchHitTag;
+				HitStopVector = LaunchVector;
+				StopMovementTimerSet(MovementCom, 0.3f);
+			}
+		}
+	}
+}
+
+void AFighter::AfterLaunchHitStop()
+{
+	if (UCharacterMovementComponent* MovementComp = GetCharacterMovement())
+	{
+		MovementComp->SetMovementMode(MOVE_Falling);
+	}
+
+	LaunchCharacter(HitStopVector, true, true);
+}
+
+void AFighter::AfterHitStop()
+{
+	if (UCharacterMovementComponent* MovementComp = GetCharacterMovement())
+	{
+		MovementComp->SetMovementMode(MOVE_Falling);
+	}
+
+	LaunchCharacter(HitStopVector, true, true);
+}
+
+void AFighter::StopMovementTimerSet(UCharacterMovementComponent* MovementCom, float Time)
+{
+	MovementCom->StopMovementImmediately();
+	MovementCom->DisableMovement();
+				
+	GetWorld()->GetTimerManager().SetTimer(HitStopTimerHandle, this, &AFighter::AfterHitStop, Time, false);
 }
 
 void AFighter::StartBlocking(const FInputActionValue& InputActionValue)
