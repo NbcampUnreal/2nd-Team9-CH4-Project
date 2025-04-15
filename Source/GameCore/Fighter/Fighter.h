@@ -5,9 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "GameplayTagContainer.h"
-#include "GameCore/Ability/CharacterType.h"
 #include "Fighter.generated.h"
 
+enum class ECharacterType : uint8;
 class UHitComponent;
 class UNiagaraComponent;
 class UNiagaraSystem;
