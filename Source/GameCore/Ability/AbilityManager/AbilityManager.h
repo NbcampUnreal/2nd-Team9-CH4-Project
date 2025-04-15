@@ -36,6 +36,7 @@ public:
 	void SetHitBox(AHitBox* InHitBox);
 
 	bool CheckCurrentPlayingMontage() const;
+	FString GetNextMontageName() const;
 protected:
 	UPROPERTY()
 	TSoftObjectPtr<UDataTable> AbilityDataTable;

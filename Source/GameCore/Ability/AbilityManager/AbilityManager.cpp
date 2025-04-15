@@ -202,7 +202,8 @@ void UAbilityManager::AbilityMontageDone()
 		NextAbility->Activate(PlayerInstance.Get());
 		CurrentHitInfo = NextHitInfo;
 		CurrentAbility = NextAbility;
-		
+		//PlayerInstance.Get()->CurrentMontageName = NextAbility->GetMontageName();
+		//PlayerInstance.Get()->RefreshlockTag();
 		NextAbility = nullptr;
 		NextHitInfo = FHitDataInfo();
 	}
@@ -222,4 +223,16 @@ bool UAbilityManager::CheckCurrentPlayingMontage() const
 		return CurrentAbility->CheckIsPlayingMontage();	
 	}
 	return false;
+}
+
+FString UAbilityManager::GetNextMontageName() const
+{
+	if (NextAbility)
+	{
+		return NextAbility->GetMontageName();
+	}
+	else
+	{
+		return TEXT("");
+	}
 }

@@ -3,6 +3,7 @@
 #include "EngineUtils.h"
 #include "GameCore/Camera/SSBCameraManager.h"
 #include "GameCore/Camera/SSBCamera.h"
+#include "GameCore/Fighter/Fighter.h"
 #include "Gameplay/Components/Input/PlayerInputComponent.h"
 #include "MessageBus/CheatManager/SSBCheatManager.h"
 
@@ -56,4 +57,10 @@ void ASSBPlayerController::OnPossess(APawn* InPawn)
             }
         }
     }
+}
+
+void ASSBPlayerController::PreProcessInput(const float DeltaTime, const bool bGamePaused)
+{
+    Super::PreProcessInput(DeltaTime, bGamePaused);
+    PlayerInputComponent->GetFighter()->SetCheckTickCrouch();
 }
