@@ -60,7 +60,7 @@ public:
 	void UnlockedTag();
 	void RefreshlockTag();
 	void LockTag();
-	void SetBlocking(const bool bBlocking) { this->bBlocking = bBlocking; }
+	void SetBlocking(const bool bInBlocking) { bBlocking = bInBlocking; }
 	void AddAttackTag() { AbilityTagContainer.AddTag(AttackTag); }
 	bool GetBuffering();
 	void StartBlocking(const FInputActionValue& InputActionValue);
