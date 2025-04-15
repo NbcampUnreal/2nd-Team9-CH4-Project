@@ -1,4 +1,6 @@
-﻿#include "Fighter.h"
+﻿#pragma optimize("",off)
+
+#include "Fighter.h"
 #include "GameCore/Ability/AbilityManager/AbilityManager.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameCore/Interface/PlayerStateInterface.h"
@@ -20,6 +22,9 @@ FGameplayTag AFighter::BaseTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerSt
 FGameplayTag AFighter::JumpTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Jump"));
 FGameplayTag AFighter::IdleTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Stand.Idle"));
 FGameplayTag AFighter::LandTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Land"));
+FGameplayTag AFighter::HitTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Hit"));
+FGameplayTag AFighter::CrouchTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Crouch.Idle"));
+FGameplayTag AFighter::BlockingTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Stand.Block"));
 
 AFighter::AFighter()
 {
@@ -100,7 +105,7 @@ void AFighter::Tick(float DeltaTime)
 	}
 	 */
 	// Test
-	if(GetActorLocation().X < 0)
+	/*if(GetActorLocation().X < 0)
 	{
 		bLookingRight = true;
 	}
@@ -108,12 +113,40 @@ void AFighter::Tick(float DeltaTime)
 	{
 		bLookingRight = false;
 		SetActorRotation(FRotator(0.0f, 180.0f, 0.0f));
+	}*/
+	if (AbilityTagContainer.HasTag(AttackTag) && CurrentPlayerTag.MatchesTag(BlockingTag))
+	{
+		CurrentPlayerTag = IdleTag;
 	}
 	
-	if (!AbilityTagContainer.HasTag(AttackTag) && CurrentPlayerTag != JumpTag && CurrentPlayerTag != LandTag)
+	if (!AbilityTagContainer.HasTag(AttackTag) && !bCheckTickCrouch && CurrentPlayerTag.MatchesTag(CrouchTag))
+	{
+		bCheckTickCrouch = false;
+		CurrentPlayerTag = IdleTag;
+		CurrentStandTag = "Stand";
+	}
+
+	// 매프레임 액터 로테이션을 갱신해줌 왜 매프레임 0으로 초기화되는지 파악안됨 
+	if (!bLookingRight)
+	{
+		SetActorRotation(FRotator(0.0f, 180.0f, 0.0f));
+	}
+	
+	if (!AbilityTagContainer.HasTag(AttackTag) && CurrentPlayerTag != JumpTag && CurrentPlayerTag != LandTag &&
+		!CurrentPlayerTag.MatchesTag(HitTag) && !CurrentPlayerTag.MatchesTag(BlockingTag))
 	{
 		CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("PlayerState.Base.%s.Idle"), *CurrentStandTag)));
 		//CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("PlayerState.Base.Stand.Idle"))));
+	}
+
+	if (CurrentLockTag.MatchesTag(BaseTag) && !CurrentPlayerTag.MatchesTag(BlockingTag))
+	{
+		if (CurrentLockTag.MatchesTag(BlockingTag))
+		{
+			CurrentLockTag = AttackTag;
+			return;
+		}
+		CurrentPlayerTag = CurrentLockTag;
 	}
 }
 
@@ -130,12 +163,19 @@ void AFighter::ImSleepy(const FString& MessageType, UObject* Payload)
 void AFighter::Move(const FInputActionValue& InputValue)
 {
 	/* 공격중에 실제 이동을 처리할건지는 나중에 판단 */
-	if (AbilityTagContainer.HasTag(AttackTag) /*&& CurrentPlayerTag.MatchesTag()*/)
+	if (AbilityTagContainer.HasTag(AttackTag) || CurrentPlayerTag.MatchesTag(CrouchTag))
 	{
 		return;
 	}
-	
 	const FVector2D MovementVector = InputValue.Get<FVector2D>();
+	/* 이번 틱에서 크라우치를 시도했는지 체크하고 이동을 막기 위함 */
+	if ((MovementVector.Y < 0.0f && MovementVector.X != 0.0f))
+	{
+		CurrentPlayerTag = CrouchTag;
+		bCheckTickCrouch = true;
+		return;
+	}
+	
 	AddMovementInput(FVector(1.0f, 0.0f, 0.0f), MovementVector.X);
 
 	/* 점프중에는 이동은 하지만 애니메이션은 처리 X */
@@ -148,6 +188,7 @@ void AFighter::Move(const FInputActionValue& InputValue)
 	if (MovementVector.Y < 0.0f)
 	{
 		CurrentStandTag = "Crouch";
+		bCheckTickCrouch = true;
 	}
 
 	FString MoveTag = "Idle";
@@ -190,13 +231,16 @@ void AFighter::StartJump(const FInputActionValue& InputValue)
 
 void AFighter::SetChangeStandTag()
 {
-	if (CurrentStandTag == "Stand")
+	if (!AbilityTagContainer.HasTag(AttackTag))
 	{
-		CurrentStandTag = "Crouch";
-	}
-	else
-	{
-		CurrentStandTag = "Stand";
+		if (CurrentStandTag == "Stand")
+		{
+			CurrentStandTag = "Crouch";
+		}
+		else
+		{
+			CurrentStandTag = "Stand";
+		}	
 	}
 }
 
@@ -208,11 +252,100 @@ void AFighter::Landed(const FHitResult& Hit)
 	{
 		AnimInst->Montage_Stop(0.0f);
 	}
-	
-	CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(TEXT("PlayerState.Base.Land")));
+
+	if (CurrentPlayerTag.MatchesTag(HitTag))
+	{
+		if (CurrentPlayerTag == FGameplayTag::RequestGameplayTag(FName(TEXT("PlayerState.Base.Hit.Launch"))))
+		{
+			CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(TEXT("PlayerState.Base.Hit.BounceBelly")));
+		}
+	}
+	else
+	{
+		CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(TEXT("PlayerState.Base.Land")));	
+	}
 }
 
 FGameplayTagContainer& AFighter::GetCurrentTags()
 {
 	 return AbilityTagContainer; 
+}
+
+void AFighter::UnlockedTag()
+{
+	FString NextMontageName = GetGameInstance()->GetSubsystem<UAbilityManager>()->GetNextMontageName();
+	if (NextMontageName.Len() < 1)
+	{
+		CurrentLockTag = FGameplayTag::RequestGameplayTag(FName("PlayerState.Attack"));	
+	}
+	else
+	{
+		if (NextMontageName.EndsWith(TEXT("stand"), ESearchCase::IgnoreCase))
+		{
+			CurrentPlayerTag = IdleTag;
+		}
+		else if (NextMontageName.EndsWith(TEXT("crouch"), ESearchCase::IgnoreCase))
+		{
+			CurrentPlayerTag = CrouchTag;
+		}
+	}
+}
+
+void AFighter::RefreshlockTag()
+{
+	if (CurrentMontageName.EndsWith(TEXT("stand"), ESearchCase::IgnoreCase))
+	{
+		CurrentPlayerTag = IdleTag;
+	}
+	else if (CurrentMontageName.EndsWith(TEXT("crouch"), ESearchCase::IgnoreCase))
+	{
+		CurrentPlayerTag = CrouchTag;
+	}
+}
+
+void AFighter::LockTag()
+{
+	if (!CurrentPlayerTag.MatchesTag(JumpTag))
+	{
+		CurrentLockTag = CurrentPlayerTag;	
+	}
+}
+
+bool AFighter::GetBuffering()
+{
+	return bOnBuffering;
+}
+
+void AFighter::StartBlocking(const FInputActionValue& InputActionValue)
+{
+	if (CurrentPlayerTag.MatchesTag(FGameplayTag::RequestGameplayTag(FName(TEXT("PlayerState.Base.Stand")))))
+	{
+		CurrentPlayerTag = BlockingTag;
+	}
+}
+
+void AFighter::EndBlocking(const FInputActionValue& InputActionValue)
+{
+	if (CurrentPlayerTag.MatchesTag(BlockingTag))
+	{
+		CurrentPlayerTag = IdleTag;
+	}
+}
+
+void AFighter::ChangeLook()
+{
+	if (bLookingRight)
+	{
+		bLookingRight = false;
+		SetActorRotation(FRotator(0.0f, 180.0f, 0.0f));
+	}
+	else
+	{
+		bLookingRight = true;
+	}
+}
+
+void AFighter::SetCheckTickCrouch()
+{
+	bCheckTickCrouch = false;
 }

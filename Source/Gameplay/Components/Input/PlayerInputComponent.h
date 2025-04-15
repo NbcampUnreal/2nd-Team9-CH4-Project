@@ -26,6 +26,9 @@ protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 							   FActorComponentTickFunction* ThisTickFunction) override;
 
+public:
+	AFighter* GetFighter() const { return Player.Get(); }
+	
 protected: /* Command Input */
 	void MoveInput(const FInputActionValue& InputValue);
 	void AttackInput(const FInputActionValue& InputValue, const FGameplayTag& AttackTag);
@@ -72,4 +75,10 @@ private: /* Key Input */
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* GrabAttackAction{ nullptr };
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* ChangeLookAction{ nullptr };
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* BlockAction{ nullptr };
 };

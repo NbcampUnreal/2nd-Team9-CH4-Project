@@ -3,6 +3,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameCore/Fighter/Fighter.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 AHitBox::AHitBox()
 {
@@ -162,8 +163,8 @@ void AHitBox::OnHitBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 			{
 				if (UHitComponent* HitComponent = Cast<UHitComponent>(ActorComponent))
 				{
-					HitComponent->OnHit(OwnerHitComponent, HitDataInfo);
 					SetOtherHit(OtherFighter);
+					HitComponent->OnHit(OwnerHitComponent, HitDataInfo);
 					Destroy();
 				}
 			}
@@ -198,18 +199,20 @@ void AHitBox::SetOtherHit(AFighter* OtherFighter)
 	
 	if (HitDataInfo.HitDamageAmount.KnockbackAmount < 50)
 	{
-		OtherFighter->SetGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.WeakHit")));	
+		OtherFighter->SetGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Hit.Weak")));	
 	}
 	else if (HitDataInfo.HitDamageAmount.KnockbackAmount < 100)
 	{
-		OtherFighter->SetGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.HeavyHit")));
+		OtherFighter->SetGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Hit.Heavy")));
 	}
 	else
 	{
 		// 얼마나 크게 할건지 판단
 		if (HitDataInfo.HitDirection.HitAngle > 0)
 		{
-			OtherFighter->SetGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Launch")));
+			OtherFighter->SetGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Hit.Launch")));
+			FGameplayTag A = OtherFighter->GetGameplayTag();
+			UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Launch!!")));
 		}
 	}
 }
