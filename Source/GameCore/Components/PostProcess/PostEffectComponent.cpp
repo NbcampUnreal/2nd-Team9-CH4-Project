@@ -15,7 +15,7 @@ void UPostEffectComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Àü¿ª º¼·ý »ý¼º
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	PostProcessVolume = GetWorld()->SpawnActor<APostProcessVolume>();
 	if (PostProcessVolume)
 	{

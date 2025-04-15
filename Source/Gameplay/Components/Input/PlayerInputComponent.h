@@ -26,18 +26,22 @@ protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
 							   FActorComponentTickFunction* ThisTickFunction) override;
 
+public:
+	AFighter* GetFighter() const { return Player.Get(); }
+	
 protected: /* Command Input */
 	void MoveInput(const FInputActionValue& InputValue);
 	void AttackInput(const FInputActionValue& InputValue, const FGameplayTag& AttackTag);
+	void MatchCommand();
 	FGameplayTag GetInputTagFromValue(const FInputActionValue& InputValue);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Input")
 	TArray<FInputBufferEntry>	MoveInputBuffer;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Command")
-	TSoftObjectPtr<UDataTable>	CommandTable;
+	TArray<TSoftObjectPtr<UDataTable>>	CommandTable;
 	TArray<FCommandRow*>		CommandRows;
-
+	TArray<FCommandRow*>		AnubisCommandRows;
 	TWeakObjectPtr<AFighter> Player;
 private: /* Key Input */
 	void AddMappingContext(const ASSBPlayerController* PlayerController) const;
@@ -71,4 +75,10 @@ private: /* Key Input */
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* GrabAttackAction{ nullptr };
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* ChangeLookAction{ nullptr };
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* BlockAction{ nullptr };
 };

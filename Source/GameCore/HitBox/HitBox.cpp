@@ -3,6 +3,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameCore/Fighter/Fighter.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 AHitBox::AHitBox()
 {
@@ -20,7 +21,6 @@ void AHitBox::OnConstruction(const FTransform& Transform)
 void AHitBox::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 void AHitBox::Tick(float DeltaTime)
@@ -30,7 +30,8 @@ void AHitBox::Tick(float DeltaTime)
 	if (GetOwner())
 	{
 		/* 플레이어가 왼쪽 바라보고 있을땐 위치 반전 시켜서 적용시켜야함 */
-		FVector BoneLocation =  Cast<AFighter>(GetOwner())->GetMesh()->GetBoneLocation(AnimInfo.BoneName);
+		FTransform BoneTransform = Cast<AFighter>(GetOwner())->GetMesh()->GetSocketTransform(AnimInfo.BoneName, RTS_World);
+		FVector BoneLocation =  BoneTransform.GetLocation();
 		if (bIsMirrored)
 		{
 			FVector PlayerLocation = GetOwner()->GetActorLocation();
@@ -46,13 +47,11 @@ void AHitBox::Tick(float DeltaTime)
 	}
 }
 
-void AHitBox::Init(const FHitDataInfo& HitData, const FVector& Pos, const FAnimRow AnimRow, const bool bMirrored)
+void AHitBox::Init(const FHitDataInfo& HitData, const FVector& Pos, const FAnimRow AnimRow)
 {
 	HitDataInfo = HitData;
 	AnimInfo = AnimRow;
-	bIsMirrored = bMirrored;
-	
-	//AnimRow 설정해주고 틱에서 위치 갱신 해야함!!
+	bIsMirrored = HitData.HitDirection.bIsRight;
 	
 	CreateHitBoxShape(AnimRow);
 	
@@ -89,20 +88,30 @@ void AHitBox::CreateHitBoxShape(const FAnimRow& InAnimInfo)
 		CollisionComponent->DestroyComponent();
 		CollisionComponent = nullptr;
 	}
-
+	HitBoxShape = static_cast<EHitBoxShape>(InAnimInfo.HitComType);
 	switch (HitBoxShape)
 	{
 	case EHitBoxShape::Sphere:
 		{
 			USphereComponent* Sphere = NewObject<USphereComponent>(this, USphereComponent::StaticClass(),
 			                                                       TEXT("SphereComponent"));
-			Sphere->InitSphereRadius(SphereRadius);
+			if (InAnimInfo.Radius == 0)
+			{
+				Sphere->InitSphereRadius(SphereRadius);
+			}
+			else
+			{
+				SphereRadius = InAnimInfo.Radius;
+				Sphere->InitSphereRadius(SphereRadius);
+			}
 			CollisionComponent = Sphere;
 			break;
 		}
 	case EHitBoxShape::Box:
 		{
 			UBoxComponent* Box = NewObject<UBoxComponent>(this, UBoxComponent::StaticClass(), TEXT("BoxComponent"));
+			
+			BoxExtent = InAnimInfo.HitComScale;
 			Box->InitBoxExtent(BoxExtent);
 			CollisionComponent = Box;
 			break;
@@ -148,12 +157,13 @@ void AHitBox::OnHitBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 {
 	if (OtherActor && OtherActor != this && OtherActor != GetOwner())
 	{
-		if (const AFighter* OtherFighter = Cast<AFighter>(OtherActor))
+		if (AFighter* OtherFighter = Cast<AFighter>(OtherActor))
 		{
 			if (UActorComponent* ActorComponent = OtherFighter->GetComponentByClass(UHitComponent::StaticClass()))
 			{
 				if (UHitComponent* HitComponent = Cast<UHitComponent>(ActorComponent))
 				{
+					SetOtherHit(OtherFighter);
 					HitComponent->OnHit(OwnerHitComponent, HitDataInfo);
 					Destroy();
 				}
@@ -181,5 +191,28 @@ void AHitBox::OnHitBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 		//         }
 		//     }
 		// }
+	}
+}
+
+void AHitBox::SetOtherHit(AFighter* OtherFighter)
+{
+	
+	if (HitDataInfo.HitDamageAmount.KnockbackAmount < 50)
+	{
+		OtherFighter->SetGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Hit.Weak")));	
+	}
+	else if (HitDataInfo.HitDamageAmount.KnockbackAmount < 100)
+	{
+		OtherFighter->SetGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Hit.Heavy")));
+	}
+	else
+	{
+		// 얼마나 크게 할건지 판단
+		if (HitDataInfo.HitDirection.HitAngle > 0)
+		{
+			OtherFighter->SetGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Hit.Launch")));
+			FGameplayTag A = OtherFighter->GetGameplayTag();
+			UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Launch!!")));
+		}
 	}
 }

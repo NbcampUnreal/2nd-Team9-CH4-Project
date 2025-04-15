@@ -6,9 +6,8 @@
 #include "UObject/Object.h"
 #include "AbilityManagerHelper.generated.h"
 
-/**
- * 
- */
+enum class ECharacterType : uint8;
+
 UCLASS(Blueprintable)
 class GAMECORE_API UAbilityManagerHelper : public UObject
 {
@@ -16,9 +15,14 @@ class GAMECORE_API UAbilityManagerHelper : public UObject
 
 public:
 	UPROPERTY(EditAnywhere, blueprintReadWrite, Category = "Ability")
-	TSoftObjectPtr<UDataTable> AbilityDataTable;
+	TArray<TSoftObjectPtr<UDataTable>> AbilityTableArray;
 
 	UPROPERTY(EditAnywhere, blueprintReadWrite, Category = "Anim")
-	TSoftObjectPtr<UDataTable> AnimDataTable;
-
+	TArray<TSoftObjectPtr<UDataTable>> AnimTableArray;
+	
+	// UPROPERTY(EditAnywhere, blueprintReadWrite, Category = "Ability")
+	// TSoftObjectPtr<UDataTable> AbilityDataTable;
+	//
+	// UPROPERTY(EditAnywhere, blueprintReadWrite, Category = "Anim")
+	// TSoftObjectPtr<UDataTable> AnimDataTable;
 };

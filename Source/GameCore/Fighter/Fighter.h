@@ -7,6 +7,7 @@
 #include "GameplayTagContainer.h"
 #include "Fighter.generated.h"
 
+enum class ECharacterType : uint8;
 class UHitComponent;
 class UNiagaraComponent;
 class UNiagaraSystem;
@@ -39,7 +40,12 @@ public:
 	void Move(const FInputActionValue& InputValue);
 	UFUNCTION()
 	virtual void StartJump(const FInputActionValue& InputValue);
-	
+	UFUNCTION()
+	void ChangeLook();
+	void SetCheckTickCrouch(); 
+	void SetBuffering(const bool bBuffering) { bOnBuffering = bBuffering; }
+	UFUNCTION(BlueprintCallable)
+	void SetCurrentStandTag(const FString& InStandTag) { CurrentStandTag = InStandTag; }
 	UFUNCTION(BlueprintCallable)
 	FGameplayTag GetGameplayTag() const { return CurrentPlayerTag; }
 
@@ -50,8 +56,16 @@ public:
 	bool GetPlayerLookingRight() const { return bLookingRight; }
 	
 	UFUNCTION(BlueprintCallable)
-	void SetGameplayTag(const FGameplayTag& GameplayTag) { CurrentPlayerTag = GameplayTag; };
-	void AddAttackTag() { AbilityTagContainer.AddTag(AttackTag); };
+	void SetGameplayTag(const FGameplayTag& GameplayTag) { CurrentPlayerTag = GameplayTag; }
+	UFUNCTION(BlueprintCallable)
+	void UnlockedTag();
+	void RefreshlockTag();
+	void LockTag();
+	void SetBlocking(const bool bInBlocking) { bBlocking = bInBlocking; }
+	void AddAttackTag() { AbilityTagContainer.AddTag(AttackTag); }
+	bool GetBuffering();
+	void StartBlocking(const FInputActionValue& InputActionValue);
+	void EndBlocking(const FInputActionValue& InputActionValue);
 	void RemoveAttackTag() { AbilityTagContainer.RemoveTag(AttackTag); };
 	void SetChangeBaseTag() { CurrentPlayerTag = BaseTag; };
 	void SetChangeStandTag();
@@ -60,9 +74,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
 	UNiagaraSystem* NiagaraEffect;
 	TArray<UNiagaraComponent*> NiagaraComponents;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Hit")
-	UHitComponent* HitComponent;
 	
 	/* Define 에 옮겨놔야할듯 */
 	static FGameplayTag AttackTag;
@@ -70,7 +81,9 @@ public:
 	static FGameplayTag JumpTag;
 	static FGameplayTag IdleTag;
 	static FGameplayTag LandTag;
-
+	static FGameplayTag HitTag;
+	static FGameplayTag CrouchTag;
+	static FGameplayTag BlockingTag;
 private: /* 카메라 완성되면 지워야함*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* SpringArm;
@@ -80,9 +93,18 @@ private:
 	// 앉아있는지 서있는지 초기화 할때 쓰이는 변수
 	FString CurrentStandTag;
 	FGameplayTag CurrentPlayerTag; //로코모션담김
+	FGameplayTag CurrentLockTag; //로코모션담김
 	FGameplayTagContainer AbilityTagContainer; //공격중인지, 인트로중인지 태그
 	
 	bool bLookingRight{ true}; //오른쪽을 보고있는지
+	bool bCheckTickCrouch{ false }; // crouch 상태인지
+	bool bOnBuffering{ false };
+	bool bBlocking{ false };
 
+public:
+	FString CurrentMontageName;
 
+protected:
+	ECharacterType Type;
 };
+

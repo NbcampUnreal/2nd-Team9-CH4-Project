@@ -21,4 +21,6 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void OnPossess(APawn* InPawn) override;
+
+	virtual void PreProcessInput(const float DeltaTime, const bool bGamePaused) override;
 };

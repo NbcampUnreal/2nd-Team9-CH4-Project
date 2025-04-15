@@ -23,13 +23,14 @@ protected:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "HitBox")
-	void Init(const FHitDataInfo& HitData, const FVector& Pos, const FAnimRow AnimRow, bool bMirrored);
+	void Init(const FHitDataInfo& HitData, const FVector& Pos, const FAnimRow AnimRow);
 
 	UFUNCTION()
 	void OnHitBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	                     UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
 	                     const FHitResult& SweepResult);
 
+	void SetOtherHit(AFighter* OtherFighter);
 private:
 	UPROPERTY()
 	class UShapeComponent* CollisionComponent;

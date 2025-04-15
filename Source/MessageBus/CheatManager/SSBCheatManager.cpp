@@ -34,7 +34,6 @@ void USSBCheatManager::CreateRoom(const FString& RoomName)
     SessionSettings->Set(FName("ROOM_NAME"), RoomName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
     // 로컬 플레이어의 고유 아이디 획득
-    // ReSharper disable once CppTooWideScopeInitStatement
     const ULocalPlayer* LocalPlayer = GetOuterAPlayerController()->GetLocalPlayer();
     if (LocalPlayer && LocalPlayer->GetPreferredUniqueNetId().IsValid())
     {
@@ -69,7 +68,7 @@ void USSBCheatManager::OnCreateSessionComplete(FName SessionName, bool bWasSucce
          * 이라 치면 이게 맞아보임
          * 아니였음 망할
         */
-        //UGameplayStatics::OpenLevel(GetWorld(), TEXT("TestRoom"), true, TEXT("listen"));
+        UGameplayStatics::OpenLevel(GetWorld(), TEXT("TestRoom"), true, TEXT("listen"));
     }
     else
     {

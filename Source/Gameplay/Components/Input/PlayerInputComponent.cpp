@@ -32,12 +32,20 @@ void UPlayerInputComponent::BeginPlay()
 		}
 	}
 
-	if (CommandTable.ToSoftObjectPath().IsValid())
+	if (CommandTable[0].ToSoftObjectPath().IsValid())
 	{
-		if (const UDataTable* Table = CommandTable.LoadSynchronous())
+		if (const UDataTable* Table = CommandTable[0].LoadSynchronous())
 		{
 			const FString ContextString(TEXT("Command Table AttackInput"));
 			Table->GetAllRows<FCommandRow>(ContextString, CommandRows);
+		}
+	}
+	if (CommandTable[1].ToSoftObjectPath().IsValid())
+	{
+		if (const UDataTable* Table = CommandTable[1].LoadSynchronous())
+		{
+			const FString ContextString(TEXT("Command Table MoveInput"));
+			Table->GetAllRows<FCommandRow>(ContextString, AnubisCommandRows);
 		}
 	}
 }
@@ -51,7 +59,7 @@ void UPlayerInputComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	
 	for (int32 i = MoveInputBuffer.Num() - 1; i >= 0; --i)
 	{
-		if (CurrentTime - MoveInputBuffer[i].InputTime > 1.0f)
+		if (CurrentTime - MoveInputBuffer[i].InputTime > 0.3f)
 		{
 			//UE_LOG(LogTemp, Warning, TEXT("Remove Input Tag: %s \n Input Time: %f \n Current Time: %f"), *MoveInputBuffer[i].InputTag.ToString(), MoveInputBuffer[i].InputTime, CurrentTime);
 			MoveInputBuffer.RemoveAt(i);
@@ -61,82 +69,142 @@ void UPlayerInputComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void UPlayerInputComponent::MoveInput(const FInputActionValue& InputValue)
 {
-	FInputBufferEntry BufferEntry;
-	BufferEntry.InputTag = GetInputTagFromValue(InputValue);
-	BufferEntry.InputTime = GetWorld()->GetTimeSeconds();
+	const FGameplayTag CurrentTag = GetInputTagFromValue(InputValue);
+	const float CurrentTime = GetWorld()->GetTimeSeconds();
 
-	if (MoveInputBuffer.Num() > 0 && MoveInputBuffer.Last().InputTag == BufferEntry.InputTag)
+	const FInputBufferEntry NewEntry(CurrentTag, CurrentTime);
+	if (MoveInputBuffer.Num() > 0)
 	{
-		MoveInputBuffer.Last().InputTime = BufferEntry.InputTime;
-		//UE_LOG(LogTemp, Warning, TEXT("Correction Input Tag: %s \n Input Time: %f"), *BufferEntry.InputTag.ToString(), BufferEntry.InputTime);
+		FInputBufferEntry& LastEntry = MoveInputBuffer.Last();
+		if (LastEntry.InputTag == CurrentTag)
+		{
+			if (CurrentTime - LastEntry.InputTime >= 0.05f)
+			{
+				MoveInputBuffer.Add(NewEntry);
+				UE_LOG(LogTemp, Warning, TEXT("Add New Input Tag: %s \n Input Time: %f"), *CurrentTag.ToString(), CurrentTime);
+			}
+			else
+			{
+				LastEntry.InputTime = CurrentTime;
+				//UE_LOG(LogTemp, Warning, TEXT("Update Input Tag: %s \n Updated Input Time: %f"), *CurrentTag.ToString(), CurrentTime);
+			}
+		}
+		else
+		{
+			MoveInputBuffer.Add(NewEntry);
+			UE_LOG(LogTemp, Warning, TEXT("Add Different Input Tag: %s \n Input Time: %f"), *CurrentTag.ToString(), CurrentTime);
+		}
 	}
 	else
 	{
-		MoveInputBuffer.Add(BufferEntry);
-		UE_LOG(LogTemp, Warning, TEXT("Add Input Tag: %s \n Input Time: %f"), *BufferEntry.InputTag.ToString(), BufferEntry.InputTime);
+		MoveInputBuffer.Add(NewEntry);
 	}
 
 	Player->Move(InputValue);
 }
 
+
 void UPlayerInputComponent::AttackInput(const FInputActionValue& InputValue, const FGameplayTag& AttackTag)
 {
+	/* NotifyState : Returns if buffering is true */
+	if (GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->CheckCurrentPlayingMontage()
+		&& !Player.Get()->GetBuffering())
+	{
+		return;
+	}
+
+	/* Check Buffering */
 	bool bIsAttack = false;
-	// if (Player->GetCurrentTags().HasTag(Player->AttackTag))
-	// {
-	// 	bIsAttack = true;
-	// }
-	
 	if (GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->CheckCurrentPlayingMontage())
 	{
 		bIsAttack = true;
 	}
+
+	TArray<FCommandRow*>* CurrentCommandRows;
+	FString PlayerName = Player->GetName();
+	if (PlayerName.Contains(TEXT("Anubis"), ESearchCase::IgnoreCase))
+	{
+		CurrentCommandRows = &AnubisCommandRows;	
+	}
+	else
+	{
+		CurrentCommandRows = &CommandRows;
+	}
 	
-	for (FCommandRow* Row : CommandRows)
+	FCommandRow* MatchingRow = nullptr;
+	for (FCommandRow* Row : *CurrentCommandRows)
 	{
 		if (!Row || Row->AttackTag != AttackTag)
 		{
 			continue;
 		}
-		
+
 		const TArray<FGameplayTag>& CommandSequence = Row->InputSequence;
 		int32 SeqLength = CommandSequence.Num();
+
 		if (MoveInputBuffer.Num() < SeqLength)
 		{
 			continue;
 		}
-
-		TArray<FGameplayTag> InputSegment;
+		
+		TArray<FInputBufferEntry> InputSegment;
 		for (int32 i = MoveInputBuffer.Num() - SeqLength; i < MoveInputBuffer.Num(); ++i)
 		{
-			InputSegment.Add(MoveInputBuffer[i].InputTag);
+			InputSegment.Add(MoveInputBuffer[i]);
+		}
+
+		if (InputSegment.Num() > 0)
+		{
+			float TotalInputDuration = InputSegment.Last().InputTime - InputSegment[0].InputTime;
+			if (TotalInputDuration > Row->InputTime)
+			{
+				continue;
+			}	
 		}
 		
 		bool bMatch = true;
 		for (int32 i = 0; i < SeqLength; ++i)
 		{
-			if (InputSegment[i] != CommandSequence[i])
+			if (InputSegment[i].InputTag != CommandSequence[i])
 			{
 				bMatch = false;
 				break;
 			}
 		}
- 
+		
 		if (bMatch)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Command Matching!!: %s"), *Row->CommandName.ToString());
-
-			
-			//Test
-			GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->RequestCreateAbility(Row->CommandName,bIsAttack);
-			
-			return;
+			if (!MatchingRow || Row->Priority > MatchingRow->Priority)
+			{
+				MatchingRow = Row;
+			}
 		}
+	}
+
+	//MatchingCount
+	if (MatchingRow)
+	{
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle,	FTimerDelegate::CreateLambda([this]()
+			{
+				MoveInputBuffer.Empty();
+			}),	0.1f,false);
+		UE_LOG(LogTemp, Warning, TEXT("Command Matching!!: %s"), *MatchingRow->CommandName.ToString());
+		GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->RequestCreateAbility(MatchingRow->CommandName, bIsAttack);
+		if (!bIsAttack)
+		{
+			Player->LockTag();	
+		}
+		else
+		{
+			Player->CurrentMontageName = GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->GetNextMontageName();
+			Player->RefreshlockTag();
+		}
+		return;
 	}
     
 	UE_LOG(LogTemp, Warning, TEXT("No matching, AttackTag: %s"), *AttackTag.ToString());
 }
-
 
 FGameplayTag UPlayerInputComponent::GetInputTagFromValue(const FInputActionValue& InputValue)
 {
@@ -178,7 +246,44 @@ FGameplayTag UPlayerInputComponent::GetInputTagFromValue(const FInputActionValue
 	
 	if (!XTag.IsEmpty() && !YTag.IsEmpty())
 	{
-		return FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("Input.Move.%s%s"), *XTag, *YTag)));
+		if (MoveInputBuffer.Num() > 0)
+		{
+			FGameplayTag CardinalX = FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("Input.Move.%s"), *XTag)));
+			FGameplayTag CardinalY = FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("Input.Move.%s"), *YTag)));
+			const FGameplayTag& LastTag = MoveInputBuffer.Last().InputTag;
+			
+			if (LastTag == CardinalY)
+			{
+				return CardinalX;
+			}
+			else if (LastTag == CardinalX)
+			{
+				if (MoveInputBuffer.Num() > 1)
+				{
+					const FGameplayTag& OneFromLastTag = MoveInputBuffer.Last(1).InputTag;
+					if (OneFromLastTag == CardinalY)
+					{
+						return CardinalX;
+					}
+					else
+					{
+						return CardinalY;
+					}
+				}
+				else
+				{
+					return CardinalY;
+				}
+			}
+			else
+			{
+				return CardinalY;
+			}
+		}
+		else
+		{
+			return FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("Input.Move.%s"), *XTag)));
+		}
 	}
 	else if (!XTag.IsEmpty())
 	{
@@ -188,7 +293,7 @@ FGameplayTag UPlayerInputComponent::GetInputTagFromValue(const FInputActionValue
 	{
 		return FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("Input.Move.%s"), *YTag)));
 	}
-
+    
 	return FGameplayTag::RequestGameplayTag(FName(TEXT("Input.Move.None")));
 }
 
@@ -216,6 +321,9 @@ void UPlayerInputComponent::BindActions(const ASSBPlayerController* PlayerContro
 			InputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, Player.Get(), &AFighter::Move);
 			InputComponent->BindAction(JumpAction, ETriggerEvent::Started, Player.Get(), &AFighter::StartJump);
 			InputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, Player.Get(), &AFighter::SetChangeStandTag);
+			InputComponent->BindAction(ChangeLookAction, ETriggerEvent::Completed, Player.Get(), &AFighter::ChangeLook);
+			InputComponent->BindAction(BlockAction, ETriggerEvent::Started, Player.Get(), &AFighter::StartBlocking);
+			InputComponent->BindAction(BlockAction, ETriggerEvent::Completed, Player.Get(), &AFighter::EndBlocking);
 			
 			InputComponent->BindAction(WeakAttackAction, ETriggerEvent::Started, this, &UPlayerInputComponent::OnWeakAttack);
 			InputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Started, this, &UPlayerInputComponent::OnHeavyAttack);

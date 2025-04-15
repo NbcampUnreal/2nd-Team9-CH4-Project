@@ -113,19 +113,24 @@ void UAbilityBase::OnMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted
 		{
 			if (UAbilityManager* AbilityManager = GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>())
 			{
-				
-				// 어빌리티 <--> 로코모션 전환을 위한 보정처리
-				if (CurrentMontage->GetName().EndsWith(TEXT("stand"), ESearchCase::IgnoreCase))
+
+				if (!OwnerCharacter->GetGameplayTag().MatchesTag(FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Hit"))))
 				{
-					OwnerCharacter->SetIdleTag();
+					/*// 어빌리티 <--> 로코모션 전환을 위한 보정처리
+					if (CurrentMontage->GetName().EndsWith(TEXT("stand"), ESearchCase::IgnoreCase))
+					{
+						OwnerCharacter->SetIdleTag();
+					}
+					else if (CurrentMontage->GetName().EndsWith(TEXT("crouch"), ESearchCase::IgnoreCase))
+					{
+						OwnerCharacter->SetGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Crouch.Idle")));
+					}*/
 				}
-				else if (CurrentMontage->GetName().EndsWith(TEXT("crouch"), ESearchCase::IgnoreCase))
-				{
-					OwnerCharacter->SetGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Crouch.Idle")));
-				}
-				
 				AbilityManager->AbilityMontageDone();
-				AbilityManager->GetHitBox()->Destroy();
+				if (AbilityManager->GetHitBox() != nullptr)
+				{
+					AbilityManager->GetHitBox()->Destroy();
+				}
 			}
 		}
 	}
@@ -140,4 +145,9 @@ bool UAbilityBase::CheckIsPlayingMontage() const
 	}
 	
 	return false;
+}
+
+FString UAbilityBase::GetMontageName() const
+{
+	return AbilityMontage[0]->GetName();
 }
