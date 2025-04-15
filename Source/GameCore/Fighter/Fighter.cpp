@@ -1,4 +1,4 @@
-﻿#pragma optimize("",off)
+﻿//#pragma optimize("",off)
 
 #include "Fighter.h"
 #include "GameCore/Ability/AbilityManager/AbilityManager.h"
