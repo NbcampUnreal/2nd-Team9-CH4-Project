@@ -59,7 +59,7 @@ void UPlayerInputComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	
 	for (int32 i = MoveInputBuffer.Num() - 1; i >= 0; --i)
 	{
-		if (CurrentTime - MoveInputBuffer[i].InputTime > 0.3f)
+		if (CurrentTime - MoveInputBuffer[i].InputTime > 0.5f)
 		{
 			//UE_LOG(LogTemp, Warning, TEXT("Remove Input Tag: %s \n Input Time: %f \n Current Time: %f"), *MoveInputBuffer[i].InputTag.ToString(), MoveInputBuffer[i].InputTime, CurrentTime);
 			MoveInputBuffer.RemoveAt(i);

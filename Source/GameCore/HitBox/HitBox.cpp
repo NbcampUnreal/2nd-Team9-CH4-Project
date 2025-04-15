@@ -165,7 +165,7 @@ void AHitBox::OnHitBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 				if (UHitComponent* HitComponent = Cast<UHitComponent>(ActorComponent))
 				{
 					HitDataInfo.HitDirection.bIsRight = GetGameInstance()->GetSubsystem<UAbilityManager>()->GetPlayerInstance()->GetPlayerLookingRight(); 
-					SetOtherHit(OtherFighter);
+					//SetOtherHit(OtherFighter);
 					HitComponent->OnHit(OwnerHitComponent, HitDataInfo);
 					Destroy();
 				}
