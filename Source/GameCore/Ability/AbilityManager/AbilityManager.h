@@ -30,7 +30,7 @@ public:
 	const FHitDataInfo& GetHitDataInfo() const;
 	const FName& GetAnimName() const;
 	AHitBox* GetHitBox() const;
-	FAnimRow* GetAnimRow(const FName& InAnimName);
+	FAnimRow GetAnimRow(const FName& InAnimName);
 	
 	void AbilityMontageDone();
 

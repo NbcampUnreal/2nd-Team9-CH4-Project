@@ -88,13 +88,12 @@ void AHitBox::SetLocation()
 		{
 			FTransform BoneTransform = Cast<AFighter>(GetOwner())->GetMesh()->GetSocketTransform(AnimInfo.BoneName, RTS_World);
 			FVector BoneLocation =  BoneTransform.GetLocation() + AnimInfo.HitComOffSet.X;
-		
 			if (bIsMirrored)
 			{
 				FVector PlayerLocation = GetOwner()->GetActorLocation();
 				FVector OffSet = BoneLocation - PlayerLocation;
 				OffSet.X *= -1.f;
-				BoneLocation = PlayerLocation + OffSet; 
+				BoneLocation = PlayerLocation + OffSet;
 			}
 			SetActorLocation(BoneLocation);
 		}

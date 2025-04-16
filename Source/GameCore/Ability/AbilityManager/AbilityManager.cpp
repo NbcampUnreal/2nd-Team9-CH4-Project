@@ -1,3 +1,5 @@
+PRAGMA_DISABLE_OPTIMIZATION
+
 #include "AbilityManager.h"
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
@@ -186,14 +188,14 @@ void UAbilityManager::SetHitBox(AHitBox* InHitBox)
 	HitBoxInstance = InHitBox;
 }
 
-FAnimRow* UAbilityManager::GetAnimRow(const FName& InAnimName)
+FAnimRow UAbilityManager::GetAnimRow(const FName& InAnimName)
 {
 	if (!AnimInfoMap.IsEmpty())
 	{
-		return AnimInfoMap.Find(InAnimName);
+		return *AnimInfoMap.Find(InAnimName);
 	}
 
-	return nullptr;
+	return FAnimRow();
 }
 
 
