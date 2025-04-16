@@ -1,5 +1,3 @@
-PRAGMA_DISABLE_OPTIMIZATION
-
 #include "AbilityManager.h"
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
@@ -192,7 +190,18 @@ FAnimRow UAbilityManager::GetAnimRow(const FName& InAnimName)
 {
 	if (!AnimInfoMap.IsEmpty())
 	{
-		return *AnimInfoMap.Find(InAnimName);
+		if (FAnimRow* AnimRow = AnimInfoMap.Find(InAnimName))
+		{
+			return *AnimRow;	
+		}
+		else
+		{
+			for (const auto& InAnimRow : AnimInfoMap)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("AnimRow Name: %s \t\t AnimRow BoneName : %s"), *(InAnimRow).Value.AnimName.ToString(), *InAnimRow.Value.BoneName.ToString());
+			}
+			
+		}
 	}
 
 	return FAnimRow();

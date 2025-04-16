@@ -32,7 +32,7 @@ void UPlayerInputComponent::BeginPlay()
 		}
 	}
 
-	if (CommandTable[0].ToSoftObjectPath().IsValid())
+	if (CommandTable[static_cast<int32>(ECharacterType::Fighter)].ToSoftObjectPath().IsValid())
 	{
 		if (const UDataTable* Table = CommandTable[0].LoadSynchronous())
 		{
@@ -40,12 +40,20 @@ void UPlayerInputComponent::BeginPlay()
 			Table->GetAllRows<FCommandRow>(ContextString, CommandRows);
 		}
 	}
-	if (CommandTable[1].ToSoftObjectPath().IsValid())
+	if (CommandTable[static_cast<int32>(ECharacterType::Anubis)].ToSoftObjectPath().IsValid())
 	{
 		if (const UDataTable* Table = CommandTable[1].LoadSynchronous())
 		{
 			const FString ContextString(TEXT("Command Table MoveInput"));
 			Table->GetAllRows<FCommandRow>(ContextString, AnubisCommandRows);
+		}
+	}
+	if (CommandTable[static_cast<int32>(ECharacterType::Gunner)].ToSoftObjectPath().IsValid())
+	{
+		if (const UDataTable* Table = CommandTable[2].LoadSynchronous())
+		{
+			const FString ContextString(TEXT("Command Table MoveInput"));
+			Table->GetAllRows<FCommandRow>(ContextString, GunnerCommandRows);
 		}
 	}
 }
@@ -120,15 +128,19 @@ void UPlayerInputComponent::AttackInput(const FInputActionValue& InputValue, con
 		bIsAttack = true;
 	}
 
-	TArray<FCommandRow*>* CurrentCommandRows;
-	FString PlayerName = Player->GetName();
-	if (PlayerName.Contains(TEXT("Anubis"), ESearchCase::IgnoreCase))
-	{
-		CurrentCommandRows = &AnubisCommandRows;	
-	}
-	else
+	TArray<FCommandRow*>* CurrentCommandRows = nullptr;
+	ECharacterType PlayerType = Player->GetPlayerType();
+	if (PlayerType == ECharacterType::Fighter)
 	{
 		CurrentCommandRows = &CommandRows;
+	}
+	else if (PlayerType == ECharacterType::Anubis)
+	{
+		CurrentCommandRows = &AnubisCommandRows;
+	}
+	else if (PlayerType == ECharacterType::Gunner)
+	{
+		CurrentCommandRows = &GunnerCommandRows;
 	}
 	
 	FCommandRow* MatchingRow = nullptr;

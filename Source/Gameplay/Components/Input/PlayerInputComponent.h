@@ -42,6 +42,7 @@ protected: /* Command Input */
 	TArray<TSoftObjectPtr<UDataTable>>	CommandTable;
 	TArray<FCommandRow*>		CommandRows;
 	TArray<FCommandRow*>		AnubisCommandRows;
+	TArray<FCommandRow*>		GunnerCommandRows;
 	TWeakObjectPtr<AFighter> Player;
 private: /* Key Input */
 	void AddMappingContext(const ASSBPlayerController* PlayerController) const;

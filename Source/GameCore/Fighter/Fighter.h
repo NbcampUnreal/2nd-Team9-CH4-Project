@@ -57,6 +57,8 @@ public:
 	void AfterLaunchHitStop();
 	void AfterHitStop();
 	void StopMovementTimerSet(UCharacterMovementComponent* MovementCom, float Time);
+
+	ECharacterType GetPlayerType() const { return Type; }
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
 	UNiagaraSystem* NiagaraEffect;

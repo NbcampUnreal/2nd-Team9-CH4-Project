@@ -1,5 +1,3 @@
-PRAGMA_DISABLE_OPTIMIZATION
-
 #include "AnimNotify_SpawnHitbox.h"
 
 #include "AbilityData/AnimRow.h"
