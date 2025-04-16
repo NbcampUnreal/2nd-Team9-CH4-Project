@@ -1,4 +1,4 @@
-﻿PRAGMA_DISABLE_OPTIMIZATION
+﻿// PRAGMA_DISABLE_OPTIMIZATION
 
 #include "PlayerInputComponent.h"
 #include "Gameplay/Defines/InputBuffer/InputBufferEntry.h"

@@ -27,7 +27,8 @@ public class GameUI : ModuleRules
                 "GameCore",
                 "Gameplay",
                 "Sockets",
-                "Networking"
+                "Networking",
+                "OnlineSubsystem"
             }
         );
     }

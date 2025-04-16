@@ -22,8 +22,13 @@ public class Gameplay : ModuleRules
                 "SlateCore",
                 "GameCore",
                 "MessageBus",
-                "GameplayTags"
+                "GameplayTags",
+                "OnlineSubsystem",
+                "OnlineSubsystemUtils",
+                "OnlineSubsystemEOS"
             }
         );
+        
+        PrivateDefinitions.Add("P2PMODE=1");
     }
 }
