@@ -6,6 +6,7 @@
 #include "Animation/AnimNotifies/AnimNotify.h"
 #include "AnimNotify_SpawnHitbox.generated.h"
 
+class AFighter;
 /**
  * 
  */
@@ -18,6 +19,12 @@ class GAMECORE_API UAnimNotify_SpawnHitbox : public UAnimNotify
 
 public:
 	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation) override;
+
+public:
+	void SpawnHitBox(const AFighter* Fighter,const FHitDataInfo& HitDataInfo,const FAnimRow& AnimRow) const;
+
+	UFUNCTION(Server, Reliable)
+	void Server_SpawnHitBox(const AFighter* Fighter,const FHitDataInfo& HitDataInfo,const FAnimRow& AnimRow) const;
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HitBox")
 	TSubclassOf<AHitBox> HitBoxClass;

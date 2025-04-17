@@ -62,5 +62,8 @@ void ASSBPlayerController::OnPossess(APawn* InPawn)
 void ASSBPlayerController::PreProcessInput(const float DeltaTime, const bool bGamePaused)
 {
     Super::PreProcessInput(DeltaTime, bGamePaused);
-    PlayerInputComponent->GetFighter()->SetCheckTickCrouch();
+    if (IsValid(PlayerInputComponent->GetFighter()))
+    {
+        PlayerInputComponent->GetFighter()->SetCheckTickCrouch();
+    }
 }

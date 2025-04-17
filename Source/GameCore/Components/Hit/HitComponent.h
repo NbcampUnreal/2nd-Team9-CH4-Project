@@ -77,6 +77,9 @@ struct FHitDataInfo
 	}
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FGameplayTag HitTag;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName HitAbilityTagName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -144,7 +147,7 @@ protected:
 private:
 	bool CanTakeDamage();
 	
-	void ApplyKnockback(const FVector& LaunchVector) const;
+	void ApplyKnockback(const FVector& LaunchVector, const FGameplayTag& HitTag) const;
 	void EndHitStop() const;
 
 	float CalculateKnockbackDistance(const float KnockbackAmount) const;

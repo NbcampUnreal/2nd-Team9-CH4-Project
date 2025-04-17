@@ -32,7 +32,7 @@ void UPlayerInputComponent::BeginPlay()
 		}
 	}
 
-	if (CommandTable[0].ToSoftObjectPath().IsValid())
+	if (CommandTable[static_cast<int32>(ECharacterType::Fighter)].ToSoftObjectPath().IsValid())
 	{
 		if (const UDataTable* Table = CommandTable[0].LoadSynchronous())
 		{
@@ -40,12 +40,20 @@ void UPlayerInputComponent::BeginPlay()
 			Table->GetAllRows<FCommandRow>(ContextString, CommandRows);
 		}
 	}
-	if (CommandTable[1].ToSoftObjectPath().IsValid())
+	if (CommandTable[static_cast<int32>(ECharacterType::Anubis)].ToSoftObjectPath().IsValid())
 	{
 		if (const UDataTable* Table = CommandTable[1].LoadSynchronous())
 		{
 			const FString ContextString(TEXT("Command Table MoveInput"));
 			Table->GetAllRows<FCommandRow>(ContextString, AnubisCommandRows);
+		}
+	}
+	if (CommandTable[static_cast<int32>(ECharacterType::Gunner)].ToSoftObjectPath().IsValid())
+	{
+		if (const UDataTable* Table = CommandTable[2].LoadSynchronous())
+		{
+			const FString ContextString(TEXT("Command Table MoveInput"));
+			Table->GetAllRows<FCommandRow>(ContextString, GunnerCommandRows);
 		}
 	}
 }
@@ -59,7 +67,7 @@ void UPlayerInputComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	
 	for (int32 i = MoveInputBuffer.Num() - 1; i >= 0; --i)
 	{
-		if (CurrentTime - MoveInputBuffer[i].InputTime > 0.3f)
+		if (CurrentTime - MoveInputBuffer[i].InputTime > 0.5f)
 		{
 			//UE_LOG(LogTemp, Warning, TEXT("Remove Input Tag: %s \n Input Time: %f \n Current Time: %f"), *MoveInputBuffer[i].InputTag.ToString(), MoveInputBuffer[i].InputTime, CurrentTime);
 			MoveInputBuffer.RemoveAt(i);
@@ -120,15 +128,19 @@ void UPlayerInputComponent::AttackInput(const FInputActionValue& InputValue, con
 		bIsAttack = true;
 	}
 
-	TArray<FCommandRow*>* CurrentCommandRows;
-	FString PlayerName = Player->GetName();
-	if (PlayerName.Contains(TEXT("Anubis"), ESearchCase::IgnoreCase))
-	{
-		CurrentCommandRows = &AnubisCommandRows;	
-	}
-	else
+	TArray<FCommandRow*>* CurrentCommandRows = nullptr;
+	ECharacterType PlayerType = Player->GetPlayerType();
+	if (PlayerType == ECharacterType::Fighter)
 	{
 		CurrentCommandRows = &CommandRows;
+	}
+	else if (PlayerType == ECharacterType::Anubis)
+	{
+		CurrentCommandRows = &AnubisCommandRows;
+	}
+	else if (PlayerType == ECharacterType::Gunner)
+	{
+		CurrentCommandRows = &GunnerCommandRows;
 	}
 	
 	FCommandRow* MatchingRow = nullptr;
@@ -318,9 +330,12 @@ void UPlayerInputComponent::BindActions(const ASSBPlayerController* PlayerContro
 		if (UEnhancedInputComponent* InputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
 		{
 			InputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &UPlayerInputComponent::MoveInput);
-			InputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, Player.Get(), &AFighter::Move);
+			InputComponent->BindAction(MoveAction, ETriggerEvent::Started, Player.Get(),  &AFighter::MoveStart);
+			InputComponent->BindAction(MoveAction, ETriggerEvent::Completed, Player.Get(),  &AFighter::MoveEnd);
+			//InputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, Player.Get(), &AFighter::Move);
 			InputComponent->BindAction(JumpAction, ETriggerEvent::Started, Player.Get(), &AFighter::StartJump);
-			InputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, Player.Get(), &AFighter::SetChangeStandTag);
+			InputComponent->BindAction(CrouchAction, ETriggerEvent::Started, Player.Get(), &AFighter::SetCrouch);
+			InputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, Player.Get(), &AFighter::SetUnCrouch);
 			InputComponent->BindAction(ChangeLookAction, ETriggerEvent::Completed, Player.Get(), &AFighter::ChangeLook);
 			InputComponent->BindAction(BlockAction, ETriggerEvent::Started, Player.Get(), &AFighter::StartBlocking);
 			InputComponent->BindAction(BlockAction, ETriggerEvent::Completed, Player.Get(), &AFighter::EndBlocking);

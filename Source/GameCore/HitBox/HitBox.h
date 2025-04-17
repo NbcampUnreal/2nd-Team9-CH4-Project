@@ -31,6 +31,7 @@ public:
 	                     const FHitResult& SweepResult);
 
 	void SetOtherHit(AFighter* OtherFighter);
+	void SetLocation();
 private:
 	UPROPERTY()
 	class UShapeComponent* CollisionComponent;
