@@ -33,7 +33,7 @@ void UEOSSessionSubsystem::CreateSession(const FName KeyName, const FString& Key
 	SessionSettings->bShouldAdvertise = true; // Should be Advertised publicly
 	SessionSettings->bIsDedicated = false; // Dedicated server (true) or a Listen server (false, player-hosted).
 	SessionSettings->bUseLobbiesIfAvailable = true;
-	SessionSettings->bAllowJoinInProgress = true;
+	SessionSettings->bAllowJoinInProgress = false;
 
 	SessionSettings->Settings.Add(
 		KeyName, FOnlineSessionSetting((KeyValue), EOnlineDataAdvertisementType::ViaOnlineService));
@@ -54,15 +54,10 @@ void UEOSSessionSubsystem::HandleCreateLobbyCompleted(const FName LobbyName, con
 	{
 		UE_LOG(LogTemp, Log, TEXT("Lobby: %s Created!"), *LobbyName.ToString());
 		UE_LOG(LogTemp, Log, TEXT("SessionMapName: %s Created!"), *SessionMapName);
-		// FString Map = "Game/Content/Maps/CharacterSelect?listen";
-		// FURL TravelURL;
-		// TravelURL.Map = Map;
-		// GetWorld()->Listen(TravelURL);
 
 		GetWorld()->ServerTravel(SessionMapName + "?listen");
 		SessionMapName = "";
-
-		// SetupNotifications();
+		
 	}
 	else
 	{
@@ -93,10 +88,11 @@ void UEOSSessionSubsystem::HandleStartSessionCompleted(const FName LobbyName, co
 	if (bWasSuccessful)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Session Started! Lobby Name: %s"), *LobbyName.ToString());
+		GetWorld()->ServerTravel("/Game/Maps/PlayMaps/Urban/Map_Post-Apocalyptic_DayLight2");
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Failed to start session! (From Callback)"));
+		UE_LOG(LogTemp, Warning, TEXT("Failed to start session! (From Callback) : %s"), *LobbyName.ToString());
 	}
 
 	Session->ClearOnStartSessionCompleteDelegate_Handle(StartSessionDelegateHandle);
@@ -193,32 +189,8 @@ void UEOSSessionSubsystem::HandleJoinSessionCompleted(FName SessionName, EOnJoin
 		{
 			UE_LOG(LogTemp, Log, TEXT("Is Not Valid PlayerController"));
 		}
-		// SetupNotifications();
 	}
 
 	Session->ClearOnJoinSessionCompleteDelegate_Handle(JoinSessionDelegateHandle);
 	JoinSessionDelegateHandle.Reset();
 }
-
-// void AEOSPlayerController::SetupNotifications()
-// {
-//     IOnlineSubsystem* Subsystem = Online::GetSubsystem(GetWorld());
-//     IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
-//
-//     // In this tutorial we're only giving an example of a notification for when a participant joins/leaves the lobby. The approach is similar for other notifications. 
-//     Session->AddOnSessionParticipantsChangeDelegate_Handle(FOnSessionParticipantsChangeDelegate::CreateUObject(
-//         this,
-//         &ThisClass::HandleParticipantChanged)); 
-// }
-//
-// void AEOSPlayerController::HandleParticipantChanged(FName EOSLobbyName, const FUniqueNetId& NetId, bool bJoined)
-// {
-//     if (bJoined)
-//     {
-//         UE_LOG(LogTemp, Log, TEXT("A player has joined Lobby: %s"), *LobbyName.ToString()); 
-//     }
-//     else
-//     {
-//         UE_LOG(LogTemp, Log, TEXT("A player has left Lobby: %s"), *LobbyName.ToString());
-//     }
-// }

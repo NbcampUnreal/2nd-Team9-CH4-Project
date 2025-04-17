@@ -11,7 +11,8 @@ bool UCharacterSlotWidget::Initialize()
 		return false;
 	}
 
-	SetVisibility(ESlateVisibility::Hidden);
+	SelectPrevButton->SetVisibility(ESlateVisibility::Hidden);
+	SelectNextButton->SetVisibility(ESlateVisibility::Hidden);
 
 	return true;
 }
@@ -20,8 +21,6 @@ void UCharacterSlotWidget::SetupWidget(UCharacterSelectWidget* NewCharacterSelec
 {
 	SelectPrevButton->SetVisibility(ESlateVisibility::Visible);
 	SelectNextButton->SetVisibility(ESlateVisibility::Visible);
-
-	SetVisibility(ESlateVisibility::Visible);
 
 	CharacterSelectWidget = NewCharacterSelectWidget;
 }
@@ -36,7 +35,7 @@ void UCharacterSlotWidget::ChangeReady(const bool bIsReady) const
 {
 	if (IsValid(ReadyTextBorder))
 	{
-		ReadyTextBorder->SetIsEnabled(bIsReady);
+		ReadyTextBorder->SetVisibility(bIsReady ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
 	}
 }
 
