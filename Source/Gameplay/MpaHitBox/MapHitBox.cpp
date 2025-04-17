@@ -38,7 +38,8 @@ AMapHitBox::AMapHitBox()
 void AMapHitBox::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	FallOffEffect->TranslucencySortPriority = 100;
 }
 
 void AMapHitBox::Tick(float DeltaTime)
@@ -68,11 +69,14 @@ void AMapHitBox::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 		return;
 	}
 
-	const FVector SpawnLoc    = OtherActor->GetActorLocation();
+	/*FVector CamLoc = Fighter->GetController()->GetViewTarget()->GetActorLocation();
+	CamLoc.Y = 0.f;
+	const FVector DirToOrigin = (CamLoc - SpawnLoc).GetSafeNormal();*/
+	const FVector SpawnLoc    = OtherActor->GetActorLocation() + FVector(0.0f, 1300.f,0.0f);
 	const FVector DirToOrigin = (FVector::ZeroVector - SpawnLoc).GetSafeNormal();
 	const FQuat Quat = FQuat::FindBetweenNormals(FVector::UpVector, DirToOrigin);
 	const FRotator SpawnRot = Quat.Rotator();
-	Multicast_SpawnEffect(SpawnLoc, SpawnRot);
+	SpawnEffect(SpawnLoc, SpawnRot);
 	
 	OnCameraShake();
 	
@@ -129,11 +133,17 @@ void AMapHitBox::OnCameraEndOverlap(UPrimitiveComponent* OverlappedComponent, AA
 	}
 }
 
-void AMapHitBox::Multicast_SpawnEffect_Implementation(const FVector& SpawnLoc, const FRotator& SpawnRot)
+void AMapHitBox::SpawnEffect(const FVector& SpawnLoc, const FRotator& SpawnRot) const
 {
-	if (FallOffEffect)
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(),FallOffEffect,SpawnLoc,SpawnRot);
+		if (APlayerController* PC = It->Get())
+		{
+			if (ASSBPlayerController* SSBPC = Cast<ASSBPlayerController>(PC))
+			{
+				SSBPC->Multicast_SpawnEffect(FallOffEffect, SpawnLoc, SpawnRot);
+			}
+		}
 	}
 }
 

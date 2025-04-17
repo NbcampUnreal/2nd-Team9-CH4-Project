@@ -1,6 +1,7 @@
 ﻿#include "SSBPlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
+#include "NiagaraFunctionLibrary.h"
 #include "GameCore/Camera/SSBCameraManager.h"
 #include "GameCore/Camera/SSBCamera.h"
 #include "GameCore/Fighter/Fighter.h"
@@ -84,6 +85,16 @@ void ASSBPlayerController::SetupInputComponent()
     //    PlayerInputComponent->BindActions(this);
     }
     
+}
+
+void ASSBPlayerController::Multicast_SpawnEffect_Implementation(UNiagaraSystem* Effect, const FVector& SpawnLoc,
+    const FRotator& SpawnRot)
+{
+    if (Effect)
+    {
+        UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(),Effect,SpawnLoc,SpawnRot,
+            FVector(1), true, true);
+    }
 }
 
 void ASSBPlayerController::TryBindRespawnedPawn()

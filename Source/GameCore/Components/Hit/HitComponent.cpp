@@ -17,7 +17,7 @@ UHitComponent::UHitComponent()
 	bIsHit = false;
 	AttackerHitStopDuration = 0.25f;
 	LaunchThreshold = 1000.0f;
-	MaxPenaltyCount = 5;
+	MaxPenaltyCount = 3;
 	DamageAmplificationPercent = 0.0f;
 }
 
@@ -200,5 +200,5 @@ float UHitComponent::GetDamageScale(const FName InHitAbilityTagName) const
 
 	UKismetSystemLibrary::PrintString(GetOwner(), FString::Printf(TEXT("PenaltyCount: %d"), PenaltyCount));
 
-	return PenaltyCount == 0.0f ? 1.0f : FMath::Pow(0.88f, PenaltyCount);
+	return PenaltyCount == 0.0f ? 1.0f : FMath::Pow(0.95f, PenaltyCount);
 }

@@ -54,10 +54,13 @@ void ASSBCamera::RefreshTrackedPlayers()
         APawn* Pawn = *It;
         if (IsValid(Pawn))
         {
-            if (Cast<AFighter>(Pawn)->GetIsInside())
+            if (const AFighter* Fighter = Cast<AFighter>(Pawn))
             {
-                TrackedPlayers.Add(Pawn);
-                InsideCount++;
+                if (Fighter->GetIsInside())
+                {
+                    TrackedPlayers.Add(Pawn);
+                    InsideCount++;    
+                }
             }
         }
     }
