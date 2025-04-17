@@ -1,3 +1,5 @@
+PRAGMA_DISABLE_OPTIMIZATION
+
 #include "AnimNotify_SpawnHitbox.h"
 
 #include "AbilityData/AnimRow.h"
@@ -6,6 +8,7 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameCore/Fighter/Fighter.h"
 #include "GameCore/HitBox/HitBox.h"
+#include "GameCore/Ability/Projectile.h"
 
 
 void UAnimNotify_SpawnHitbox::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)

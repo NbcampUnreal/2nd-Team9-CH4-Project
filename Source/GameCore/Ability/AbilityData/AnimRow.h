@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
+#include "GameCore/Ability/EffectType.h"
 #include "AnimRow.generated.h"
 
 USTRUCT(BlueprintType)
@@ -30,5 +31,7 @@ struct GAMECORE_API FAnimRow : public FTableRowBase
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HitData")
 	FVector HitComOffSet;
-	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HitData")
+	EEffectType EffectType;
 };

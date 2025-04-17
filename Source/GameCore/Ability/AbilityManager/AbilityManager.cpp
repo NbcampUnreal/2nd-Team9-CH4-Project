@@ -1,3 +1,5 @@
+PRAGMA_DISABLE_OPTIMIZATION
+
 #include "AbilityManager.h"
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
@@ -18,13 +20,38 @@ void UAbilityManager::InitializeManager()
 		//DT
 		HelperInstance = NewObject<UAbilityManagerHelper>(GetTransientPackage(), AbilityManagerHelperClass); //헬프 클래스, GetTransientPackage -> 게임 시작되면 생성되는 가장 원초적인 객체 , "GC가 안된다"
 		FStreamableManager& Streamable = UAssetManager::GetStreamableManager(); //로드 시작
-		Streamable.RequestAsyncLoad(
-			HelperInstance->AbilityTableArray[static_cast<int32>(Type)].ToSoftObjectPath(),
-			FStreamableDelegate::CreateUObject(this, &UAbilityManager::OnAbilityTableLoaded));
-	
-		Streamable.RequestAsyncLoad(
-			HelperInstance->AnimTableArray[static_cast<int32>(Type)].ToSoftObjectPath(),
-			FStreamableDelegate::CreateUObject(this, &UAbilityManager::OnAnimTableLoaded));
+
+		for (int i = 0; i<HelperInstance->AbilityTableArray.Num(); i++)
+		{
+			UObject* LoadedAbilityTable = Streamable.LoadSynchronous(
+			HelperInstance->AbilityTableArray[i].ToSoftObjectPath());
+
+			if (LoadedAbilityTable)
+			{
+				AbilityDataTable.Add(Cast<UDataTable>(LoadedAbilityTable));
+				OnAbilityTableLoaded(i); // 수동 호출
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("AbilityTable 동기 로딩 실패"));
+			}
+		}
+		for (int i = 0; i<HelperInstance->AnimTableArray.Num(); i++)
+		{
+			// 애니메이션 데이터 테이블 동기 로드
+			UObject* LoadedAnimTable = Streamable.LoadSynchronous(
+				HelperInstance->AnimTableArray[i].ToSoftObjectPath());
+
+			if (LoadedAnimTable)
+			{
+				AnimDataTable.Add(Cast<UDataTable>(LoadedAnimTable));
+				OnAnimTableLoaded(i); // 수동 호출
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("AnimTable 동기 로딩 실패"));
+			}
+		}
 	}
 }
 
@@ -65,30 +92,32 @@ void UAbilityManager::RequestCreateAbility(const FGameplayTag& CommandTag, bool 
 	}
 }
 
-void UAbilityManager::OnAbilityTableLoaded() //게임 쓰레드에서 실행됨->안전한 객체 생성, 로직처리
+void UAbilityManager::OnAbilityTableLoaded(int32 Index) 
 {
 	//DT 로드가 완료되면 매핑
 	static const FString ContextString(TEXT("AbilityManager::OnAbilityTableLoaded"));
-	if (HelperInstance->AbilityTableArray[static_cast<int32>(Type)].IsValid())
-	{
-		TArray<FAbilityRow*> AbilityRows;
-		HelperInstance->AbilityTableArray[static_cast<int32>(Type)]->GetAllRows(ContextString, AbilityRows);
+	
+		if (HelperInstance->AbilityTableArray[Index].IsValid())
+		{
+			TArray<FAbilityRow*> AbilityRows;
+			HelperInstance->AbilityTableArray[Index]->GetAllRows(ContextString, AbilityRows);
 
 			for (const auto& Ability : AbilityRows)
 			{
 				FGameplayTag SkillTag = Ability->AbilityTag;
-				FGameplayTag CommandTag = Ability->AbilityTag; Ability->CommandTag;
+				FGameplayTag CommandTag = Ability->AbilityTag;
 				CommandTagMap.Add(CommandTag,SkillTag);
 			}
-	}
+		}
+	
 
 	TArray<FAbilityRow*> Rows;
-	if (HelperInstance->AbilityTableArray[static_cast<int32>(Type)].IsNull())
+	if (HelperInstance->AbilityTableArray[Index].IsNull())
 	{
 		ensureAlways(false); //한번더검증해
 		return;
 	}
-	HelperInstance->AbilityTableArray[static_cast<int32>(Type)]->GetAllRows<FAbilityRow>(ContextString, Rows);
+	HelperInstance->AbilityTableArray[Index]->GetAllRows<FAbilityRow>(ContextString, Rows);
 	FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
 
 	for (const FAbilityRow* Row : Rows)
@@ -126,13 +155,13 @@ void UAbilityManager::OnAbilityTableLoaded() //게임 쓰레드에서 실행됨-
 	}
 }
 
-void UAbilityManager::OnAnimTableLoaded()
+void UAbilityManager::OnAnimTableLoaded(int32 Index)
 {
 	static const FString ContextString(TEXT("AbilityManager::OnAnimTableLoaded"));
-	if (HelperInstance->AnimTableArray[static_cast<int32>(Type)].IsValid())
+	if (HelperInstance->AnimTableArray[Index].IsValid())
 	{
 		TArray<FAnimRow*> AnimRows;
-		HelperInstance->AnimTableArray[static_cast<int32>(Type)]->GetAllRows(ContextString, AnimRows);
+		HelperInstance->AnimTableArray[Index]->GetAllRows(ContextString, AnimRows);
 
 		for (const auto& Anim : AnimRows)
 		{
@@ -145,6 +174,7 @@ void UAbilityManager::OnAnimTableLoaded()
 			AnimInfo.HitComType =  Anim->HitComType;
 			AnimInfo.Radius = Anim->Radius;
 			AnimInfo.HitComOffSet =	Anim->HitComOffSet;
+			AnimInfo.EffectType = Anim->EffectType;
 			AnimInfoMap.Add(Name,AnimInfo);
 		}
 	}
