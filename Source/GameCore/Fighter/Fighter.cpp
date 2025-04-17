@@ -225,48 +225,7 @@ void AFighter::Tick(float DeltaTime)
 		{
 			SetActorRotation(FRotator(0.0f, 180.0f, 0.0f));
 		}
-		/*else
-		{
-			SetActorRotation(FRotator::ZeroRotator);
-		}*/
-		
-		if (GetCharacterMovement()->IsFalling() && !CurrentPlayerTag.MatchesTag(LaunchHitTag))
-		{
-			CurrentPlayerTag = JumpTag;
-		}
-		else if (MoveComp->IsCrouching())
-		{
-			CurrentPlayerTag = CrouchTag;
-		}
-		/*else if (MoveComp->IsMovingOnGround())
-		{
-			float Xvel = MoveComp->Velocity.X;
-			
-			if (FMath::Abs(Xvel) <= KINDA_SMALL_NUMBER)
-			{
-				CurrentPlayerTag = IdleTag;
-			}
-			else
-			{
-				const bool bIsForward = (Xvel > 0.f &&  bLookingRight) || (Xvel < 0.f && !bLookingRight);
-				if (bIsForward)
-				{
-					CurrentPlayerTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Stand.WalkForward"));
-				}
-				else
-				{
-					CurrentPlayerTag = FGameplayTag::RequestGameplayTag(TEXT("PlayerState.Base.Stand.WalkBackward"));
-				}
-			}
-		}*/
-		
 		return;
-		/*if (!AbilityTagContainer.HasTag(AttackTag) && CurrentPlayerTag != JumpTag && CurrentPlayerTag != LandTag &&
-		!CurrentPlayerTag.MatchesTag(HitTag) && !CurrentPlayerTag.MatchesTag(BlockingTag))
-		{
-			CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("PlayerState.Base.%s.Idle"), *CurrentStandTag)));
-			//CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("PlayerState.Base.Stand.Idle"))));
-		}*/
 	}
 
 	if (!bLookingRight)
@@ -277,42 +236,6 @@ void AFighter::Tick(float DeltaTime)
 	{
 		CurrentPlayerTag = JumpTag;
 	}
-	
-	/*if (AbilityTagContainer.HasTag(AttackTag) && CurrentPlayerTag.MatchesTag(BlockingTag))
-	{
-		CurrentPlayerTag = IdleTag;
-	}
-	
-	if (!AbilityTagContainer.HasTag(AttackTag) && !bCheckTickCrouch && CurrentPlayerTag.MatchesTag(CrouchTag))
-	{
-		bCheckTickCrouch = false;
-		CurrentPlayerTag = IdleTag;
-		CurrentStandTag = "Stand";
-	}
-
-	// 매프레임 액터 로테이션을 갱신해줌 왜 매프레임 0으로 초기화되는지 파악안됨 
-	if (!bLookingRight)
-	{
-		SetActorRotation(FRotator(0.0f, 180.0f, 0.0f));
-	}
-	
-	if (!AbilityTagContainer.HasTag(AttackTag) && CurrentPlayerTag != JumpTag && CurrentPlayerTag != LandTag &&
-		!CurrentPlayerTag.MatchesTag(HitTag) && !CurrentPlayerTag.MatchesTag(BlockingTag))
-	{
-		CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("PlayerState.Base.%s.Idle"), *CurrentStandTag)));
-		//CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("PlayerState.Base.Stand.Idle"))));
-	}
-
-	if (CurrentLockTag.MatchesTag(BaseTag) && !CurrentPlayerTag.MatchesTag(BlockingTag))
-	{
-		if (CurrentLockTag.MatchesTag(BlockingTag))
-		{
-			CurrentLockTag = AttackTag;
-			return;
-		}
-		CurrentPlayerTag = CurrentLockTag;
-	}*/
-
 }
 
 void AFighter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -340,55 +263,6 @@ void AFighter::Move(const FInputActionValue& InputValue)
 		AddMovementInput(GetActorForwardVector(), XValue);
 	}
 	
-	/*const FVector2D MovementVector = InputValue.Get<FVector2D>();
-	/* 이번 틱에서 크라우치를 시도했는지 체크하고 이동을 막기 위함 #1#
-	if ((MovementVector.Y < 0.0f && MovementVector.X != 0.0f))
-	{
-		CurrentPlayerTag = CrouchTag;
-		bCheckTickCrouch = true;
-		return;
-	}
-	
-	AddMovementInput(FVector(1.0f, 0.0f, 0.0f), MovementVector.X);
-
-	/* 점프중에는 이동은 하지만 애니메이션은 처리 X #1#
-	if (CurrentPlayerTag == JumpTag)
-	{
-		return;
-	}
-	
-	CurrentStandTag = "Stand";
-	if (MovementVector.Y < 0.0f)
-	{
-		CurrentStandTag = "Crouch";
-		bCheckTickCrouch = true;
-	}
-
-	FString MoveTag = "Idle";
-	if (MovementVector.X > 0.0f)
-	{
-		if (bLookingRight)
-		{
-			MoveTag = "WalkForward";
-		}
-		else
-		{
-			MoveTag = "WalkBackward";
-		}
-	}
-	else if (MovementVector.X < 0.0f)
-	{
-		if (bLookingRight)
-		{
-			MoveTag = "WalkBackward";
-		}
-		else
-		{
-			MoveTag = "WalkForward";
-		}
-	}
-	
-	CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(*FString::Printf(TEXT("PlayerState.Base.%s.%s"), *CurrentStandTag, *MoveTag)));*/
 }
 
 void AFighter::StartJump(const FInputActionValue& InputValue)
@@ -397,13 +271,9 @@ void AFighter::StartJump(const FInputActionValue& InputValue)
 	{
 		return;
 	}
-	// 지상공격 캔슬 ( 밑에 태그 바꾸는것보다 먼저 호출해야됨 )
-	/*if (UAnimInstance* AnimInst = GetMesh()->GetAnimInstance())
-	{
-		AnimInst->Montage_Stop(0.0f);
-	}*/
+
 	CurrentPlayerTag = JumpTag;
-	//Server_UpdatePlayerTag(CurrentPlayerTag);
+
 	Jump();
 }
 
@@ -495,9 +365,6 @@ void AFighter::SetCurrentStandTag(const FString& InStandTag)
 		CurrentPlayerTag = CrouchTag;
 	}
 	Server_UpdatePlayerTag(CurrentPlayerTag);
-	
-	//CurrentStandTag = InStandTag;
-	//Server_UpdateStandTag(CurrentStandTag);
 }
 
 void AFighter::RefreshlockTag()
@@ -535,15 +402,11 @@ void AFighter::SetChangeBaseTag()
 void AFighter::SetCrouch()
 {
 	Crouch();
-	//CurrentPlayerTag = CrouchTag;
-	//Server_UpdatePlayerTag(CurrentPlayerTag);
 }
 
 void AFighter::SetUnCrouch()
 {
 	UnCrouch();
-	//CurrentPlayerTag = IdleTag;
-	//Server_UpdatePlayerTag(CurrentPlayerTag);
 }
 
 void AFighter::LockTag()
