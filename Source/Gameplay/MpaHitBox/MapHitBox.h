@@ -29,10 +29,15 @@ public:
 	UFUNCTION()
 	void OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION()
+	void OnCameraEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	
 	UFUNCTION(NetMulticast, Unreliable)
 	void Multicast_SpawnEffect(const FVector& SpawnLoc, const FRotator& SpawnRot);
-	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UBoxComponent* CameraHitBoxComponent;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UBoxComponent* HitBoxComponent;
 

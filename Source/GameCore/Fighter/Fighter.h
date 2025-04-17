@@ -56,6 +56,9 @@ protected:
 	virtual void Landed(const FHitResult& Hit) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 public:
+	bool GetIsInside() const { return bIsInside; }
+	void SetIsInside(const bool bInIsInside) { bIsInside = bInIsInside; }
+	
 	UFUNCTION(BlueprintCallable)
 	bool GetPlayerLookingRight() const { return bLookingRight; }
 	
@@ -154,5 +157,5 @@ protected:
 	ECharacterType Type;
 
 private:
-	
+	bool bIsInside{true};
 };

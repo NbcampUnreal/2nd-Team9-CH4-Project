@@ -1,6 +1,7 @@
 #include "GameCore/Camera/SSBCamera.h"
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
+#include "GameCore/Fighter/Fighter.h"
 #include "Net/UnrealNetwork.h"
 #include "GameFramework/PlayerController.h"
 
@@ -31,6 +32,11 @@ void ASSBCamera::BeginPlay()
     RefreshTrackedPlayers();
 }
 
+void ASSBCamera::SetStopped(bool bStop)
+{
+    bIsStopped = bStop;
+}
+
 void ASSBCamera::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
@@ -42,19 +48,32 @@ void ASSBCamera::RefreshTrackedPlayers()
 {
     TrackedPlayers.Empty();
 
+    uint32 InsideCount = 0;
     for (TActorIterator<APawn> It(GetWorld()); It; ++It)
     {
         APawn* Pawn = *It;
         if (IsValid(Pawn))
         {
-            TrackedPlayers.Add(Pawn);
+            if (Cast<AFighter>(Pawn)->GetIsInside())
+            {
+                TrackedPlayers.Add(Pawn);
+                InsideCount++;
+            }
+        }
+    }
+
+    if (bIsStopped)
+    {
+        if (InsideCount >= 2)
+        {
+            bIsStopped = false;
         }
     }
 }
 
 void ASSBCamera::UpdateCamera(float DeltaTime)
 {
-    if (TrackedPlayers.Num() == 0)
+    if (TrackedPlayers.Num() == 0 || bIsStopped)
         return;
 
     FVector MidPoint = FVector::ZeroVector;

@@ -21,6 +21,8 @@ public:
 protected:
     virtual void BeginPlay() override;
 
+public:
+    void SetStopped(bool bStop);
 private:
     UPROPERTY(VisibleAnywhere, Category = "Camera")
     USpringArmComponent* CameraBoom;
@@ -40,6 +42,7 @@ private:
     UPROPERTY()
     TArray<APawn*> TrackedPlayers;
 
+    bool bIsStopped = false;
     void UpdateCamera(float DeltaTime);
     void RefreshTrackedPlayers();
 };
