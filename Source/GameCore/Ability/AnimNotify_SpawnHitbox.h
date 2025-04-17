@@ -11,6 +11,7 @@ class AFighter;
  * 
  */
 class AHitBox;
+class AProjectile;
 
 UCLASS(Blueprintable)
 class GAMECORE_API UAnimNotify_SpawnHitbox : public UAnimNotify
@@ -28,4 +29,7 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HitBox")
 	TSubclassOf<AHitBox> HitBoxClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AProjectile")
+	TSubclassOf<AProjectile> ProjectileClass;
 };

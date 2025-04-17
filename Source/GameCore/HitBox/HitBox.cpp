@@ -2,6 +2,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "GameCore/Ability/Projectile.h"
 #include "GameCore/Ability/AbilityManager/AbilityManager.h"
 #include "GameCore/Fighter/Fighter.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -29,9 +30,16 @@ void AHitBox::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	SetLocation();
+	
 	if (bIsDebugMode)
 	{
 		DebugDrawShape(AnimInfo);
+	}
+
+	AccTime += DeltaTime;
+	if (AccTime >= 1.0f)
+	{
+		Destroy();
 	}
 }
 
@@ -52,14 +60,28 @@ void AHitBox::Init(const FHitDataInfo& HitData, const FVector& Pos, const FAnimR
 	
 	if (GetOwner())
 	{
-		if (const AFighter* OwnerFighter = Cast<AFighter>(GetOwner()))
+		if (Cast<AFighter>(GetOwner()) != nullptr)
 		{
+			const AFighter* OwnerFighter = Cast<AFighter>(GetOwner());
 			if (UActorComponent* ActorComponent = OwnerFighter->GetComponentByClass(UHitComponent::StaticClass()))
 			{
 				if (UHitComponent* HitComponent = Cast<UHitComponent>(ActorComponent))
 				{
 					OwnerHitComponent = HitComponent;
-					
+				}
+			}
+		}
+		else
+		{
+			const AProjectile* OwnerProjectile = Cast<AProjectile>(GetOwner());
+			if (OwnerProjectile)
+			{
+				if (UActorComponent* ActorComponent = OwnerProjectile->GetComponentByClass(UHitComponent::StaticClass()))
+				{
+					if (UHitComponent* HitComponent = Cast<UHitComponent>(ActorComponent))
+					{
+						OwnerHitComponent = HitComponent;
+					}
 				}
 			}
 		}
@@ -74,15 +96,11 @@ void AHitBox::SetLocation()
 	{
 		/* 플레이어가 왼쪽 바라보고 있을땐 위치 반전 시켜서 적용시켜야함 */
 		
-		if (AnimInfo.HitComOffSet.X > 0.f)
+		if(AnimInfo.EffectType != EEffectType::Attacked)
 		{
 			//오프셋 적용해서 생성할 때는 플레이어 엑터의 위치로만 판단, 뼈는 애니메이션 동작중에 회전해서 틀어짐
-			FVector PlayerLocation = GetOwner()->GetActorLocation();
-			if (bIsMirrored)
-			{
-				AnimInfo.HitComOffSet *= -1.f;
-			}
-			SetActorLocation(PlayerLocation += AnimInfo.HitComOffSet);
+			FVector ProjectileLocation = GetOwner()->GetActorLocation();
+			SetActorLocation(ProjectileLocation);
 		}
 		else
 		{
@@ -191,6 +209,28 @@ void AHitBox::OnHitBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 				}
 			}
 		}
+		// APawn* Pawn = Cast<APawn>(OtherActor);
+		// if (Pawn)
+		// {
+		//     ACharacter* Character = Cast<ACharacter>(OtherActor);
+		//     if (Character)
+		//     {
+		//         FVector LaunchVelocity = (Character->GetActorLocation() - GetActorLocation()).GetSafeNormal() * 1000.f;
+		//         LaunchVelocity.Z = 500.f;
+		//         Character->LaunchCharacter(LaunchVelocity, true, true);
+		//     }
+		//     else
+		//     {
+		//         UPrimitiveComponent* RootPrimitive = Cast<UPrimitiveComponent>(Pawn->GetRootComponent());
+		//         if (RootPrimitive && RootPrimitive->IsSimulatingPhysics())
+		//         {
+		//             FVector LaunchDirection = Pawn->GetActorLocation() - GetActorLocation();
+		//             LaunchDirection.Z = 0.5f;
+		//             LaunchDirection.Normalize();
+		//             RootPrimitive->AddImpulse(LaunchDirection * 50000.f);
+		//         }
+		//     }
+		// }
 	}
 }
 

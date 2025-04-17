@@ -223,7 +223,7 @@ void AFighter::Tick(float DeltaTime)
 	{
 		SetActorRotation(FRotator(0.0f, 180.0f, 0.0f));
 	}
-	if (GetCharacterMovement()->IsFalling())
+	if (!CurrentPlayerTag.MatchesTag(LaunchHitTag) && GetCharacterMovement()->IsFalling())
 	{
 		CurrentPlayerTag = JumpTag;
 	}
@@ -282,6 +282,10 @@ void AFighter::Landed(const FHitResult& Hit)
 		if (CurrentPlayerTag == FGameplayTag::RequestGameplayTag(FName(TEXT("PlayerState.Base.Hit.Launch"))))
 		{
 			CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(TEXT("PlayerState.Base.Hit.BounceBelly")));
+		}
+		else //추가
+		{
+			CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(TEXT("PlayerState.Base.Land")));	
 		}
 	}
 	else

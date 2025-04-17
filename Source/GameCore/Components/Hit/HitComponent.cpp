@@ -1,5 +1,6 @@
 ﻿#include "HitComponent.h"
 
+#include "NiagaraFunctionLibrary.h"
 #include "GameCore/Fighter/Fighter.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -17,7 +18,7 @@ UHitComponent::UHitComponent()
 	bIsHit = false;
 	AttackerHitStopDuration = 0.25f;
 	LaunchThreshold = 1000.0f;
-	MaxPenaltyCount = 5;
+	MaxPenaltyCount = 3;
 	DamageAmplificationPercent = 0.0f;
 }
 
@@ -162,6 +163,7 @@ void UHitComponent::ApplyKnockback(const FVector& LaunchVector,const FGameplayTa
 			/* 약공격은 밀려나지 않았으면 함 Launch는 결국 공중에 뜬다라는 속성때문에 Landed 함수가 계속 호출되고 있음
 			 * LaunchVector의 값이나 Enum으로 처리하면 될것으로 보임
 			 */
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(),HitEffect,OwnerCharacter->GetActorLocation());
 			Cast<AFighter>(OwnerCharacter)->HitStop(LaunchVector,HitTag,false);
 			// TODO FloorBounce
 		}
@@ -200,5 +202,5 @@ float UHitComponent::GetDamageScale(const FName InHitAbilityTagName) const
 
 	UKismetSystemLibrary::PrintString(GetOwner(), FString::Printf(TEXT("PenaltyCount: %d"), PenaltyCount));
 
-	return PenaltyCount == 0.0f ? 1.0f : FMath::Pow(0.88f, PenaltyCount);
+	return PenaltyCount == 0.0f ? 1.0f : FMath::Pow(0.95f, PenaltyCount);
 }

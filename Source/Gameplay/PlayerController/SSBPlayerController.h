@@ -4,6 +4,7 @@
 #include "GameFramework/PlayerController.h"
 #include "SSBPlayerController.generated.h"
 
+class UNiagaraSystem;
 class UPlayerInputComponent;
 
 UCLASS()
@@ -29,10 +30,11 @@ protected:
 public:
 	UFUNCTION(Client, Reliable)
 	void Client_OnPossess();
-
-	
 	UFUNCTION(Client, Reliable)
 	void Client_OnRespawnedPawn();
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_SpawnEffect(UNiagaraSystem* Effect, const FVector& SpawnLoc, const FRotator& SpawnRot);
 
 	FTimerHandle RespawnPawnCheckTimer;
 

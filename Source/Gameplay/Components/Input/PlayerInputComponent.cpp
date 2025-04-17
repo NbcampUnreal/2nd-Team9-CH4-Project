@@ -130,6 +130,10 @@ void UPlayerInputComponent::MoveInput(const FInputActionValue& InputValue)
 
 void UPlayerInputComponent::AttackInput(const FInputActionValue& InputValue, const FGameplayTag& AttackTag)
 {
+	if (!Player.Get()->GetIsInside())
+	{
+		return;
+	}
 	/* NotifyState : Returns if buffering is true */
 	if (GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->CheckCurrentPlayingMontage()
 		&& !Player.Get()->GetBuffering())

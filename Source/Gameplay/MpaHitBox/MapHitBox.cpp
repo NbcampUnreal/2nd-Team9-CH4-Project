@@ -1,6 +1,7 @@
 ﻿#include "MapHitBox.h"
 
 #include "NiagaraFunctionLibrary.h"
+#include "GameCore/Camera/SSBCamera.h"
 #include "GameCore/Fighter/Fighter.h"
 #include "GameFramework/GameModeBase.h"
 #include "GameFramework/PlayerStart.h"
@@ -20,14 +21,25 @@ AMapHitBox::AMapHitBox()
 	HitBoxComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 	HitBoxComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 
-	HitBoxComponent->OnComponentBeginOverlap.AddDynamic(this, &AMapHitBox::OnBeginOverlap);
+	//HitBoxComponent->OnComponentBeginOverlap.AddDynamic(this, &AMapHitBox::OnBeginOverlap);
 	HitBoxComponent->OnComponentEndOverlap.AddDynamic(this, &AMapHitBox::OnEndOverlap);
+
+	CameraHitBoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("CameraHitBoxComponent"));
+	
+	CameraHitBoxComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	CameraHitBoxComponent->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
+	CameraHitBoxComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	CameraHitBoxComponent->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+
+	CameraHitBoxComponent->OnComponentBeginOverlap.AddDynamic(this, &AMapHitBox::OnBeginOverlap);
+	CameraHitBoxComponent->OnComponentEndOverlap.AddDynamic(this, &AMapHitBox::OnCameraEndOverlap);
 }
 
 void AMapHitBox::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	FallOffEffect->TranslucencySortPriority = 100;
 }
 
 void AMapHitBox::Tick(float DeltaTime)
@@ -39,12 +51,7 @@ void AMapHitBox::Tick(float DeltaTime)
 void AMapHitBox::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	
-	if (OtherActor && OtherActor->IsA(CharacterClass))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("AMapHitBox::OnEndOverlap"));
-		// 굳이 알아야하나
-	}
+	Cast<AFighter>(OtherActor)->SetIsInside(true);
 }
 
 void AMapHitBox::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -62,11 +69,14 @@ void AMapHitBox::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 		return;
 	}
 
-	const FVector SpawnLoc    = OtherActor->GetActorLocation();
+	/*FVector CamLoc = Fighter->GetController()->GetViewTarget()->GetActorLocation();
+	CamLoc.Y = 0.f;
+	const FVector DirToOrigin = (CamLoc - SpawnLoc).GetSafeNormal();*/
+	const FVector SpawnLoc    = OtherActor->GetActorLocation() + FVector(0.0f, 100.f,0.0f);
 	const FVector DirToOrigin = (FVector::ZeroVector - SpawnLoc).GetSafeNormal();
 	const FQuat Quat = FQuat::FindBetweenNormals(FVector::UpVector, DirToOrigin);
 	const FRotator SpawnRot = Quat.Rotator();
-	Multicast_SpawnEffect(SpawnLoc, SpawnRot);
+	SpawnEffect(SpawnLoc, SpawnRot);
 	
 	OnCameraShake();
 	
@@ -102,11 +112,38 @@ void AMapHitBox::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 	}, 3.0f, false);
 }
 
-void AMapHitBox::Multicast_SpawnEffect_Implementation(const FVector& SpawnLoc, const FRotator& SpawnRot)
+void AMapHitBox::OnCameraEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (FallOffEffect)
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(),FallOffEffect,SpawnLoc,SpawnRot);
+		if (APlayerController* PC = It->Get())
+		{
+			ASSBCamera* Camera = Cast<ASSBCamera>(PC->GetViewTarget());
+
+			if (Camera)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("AMapHitBox::OnCameraEndOverlap"));
+
+				Camera->SetStopped(true);
+
+				Cast<AFighter>(OtherActor)->SetIsInside(false);
+			}
+		}
+	}
+}
+
+void AMapHitBox::SpawnEffect(const FVector& SpawnLoc, const FRotator& SpawnRot) const
+{
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		if (APlayerController* PC = It->Get())
+		{
+			if (ASSBPlayerController* SSBPC = Cast<ASSBPlayerController>(PC))
+			{
+				SSBPC->Multicast_SpawnEffect(FallOffEffect, SpawnLoc, SpawnRot);
+			}
+		}
 	}
 }
 

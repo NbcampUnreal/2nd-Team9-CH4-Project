@@ -7,12 +7,14 @@
 #include "GameplayTagContainer.h"
 #include "Fighter.generated.h"
 
+enum class EEffectType : uint8;
 enum class ECharacterType : uint8;
 class UHitComponent;
 class UNiagaraComponent;
 class UNiagaraSystem;
 class UCameraComponent;
 class USpringArmComponent;
+class AProjectile;
 struct FInputActionValue;
 
 //Test
@@ -56,8 +58,13 @@ protected:
 	virtual void Landed(const FHitResult& Hit) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 public:
+	bool GetIsInside() const { return bIsInside; }
+	void SetIsInside(const bool bInIsInside) { bIsInside = bInIsInside; }
+	
 	UFUNCTION(BlueprintCallable)
 	bool GetPlayerLookingRight() const { return bLookingRight; }
+	UFUNCTION(BlueprintCallable)
+	float GetFlightSpeed() const { return FlightSpeed; }
 	
 	UFUNCTION()
 	void ImSleepy(const FString& MessageType, UObject* Payload);
@@ -152,7 +159,9 @@ public:
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentPlayerTag, EditAnywhere, BlueprintReadWrite, Category = "Type")
 	ECharacterType Type;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FlightSpeed")
+	float FlightSpeed;
 
 private:
-	
+	bool bIsInside{true};
 };
