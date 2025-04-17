@@ -223,7 +223,7 @@ void AFighter::Tick(float DeltaTime)
 	{
 		SetActorRotation(FRotator(0.0f, 180.0f, 0.0f));
 	}
-	if (GetCharacterMovement()->IsFalling())
+	if (!CurrentPlayerTag.MatchesTag(LaunchHitTag) && GetCharacterMovement()->IsFalling())
 	{
 		CurrentPlayerTag = JumpTag;
 	}

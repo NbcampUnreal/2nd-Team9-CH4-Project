@@ -93,7 +93,7 @@ void ASSBPlayerController::Multicast_SpawnEffect_Implementation(UNiagaraSystem* 
     if (Effect)
     {
         UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(),Effect,SpawnLoc,SpawnRot,
-            FVector(1), true, true);
+            FVector(0.6), true, true);
     }
 }
 

@@ -1,5 +1,3 @@
-PRAGMA_DISABLE_OPTIMIZATION
-
 #include "AnimNotify_SpawnHitbox.h"
 
 #include "AbilityData/AnimRow.h"
@@ -78,7 +76,7 @@ void UAnimNotify_SpawnHitbox::SpawnHitBox(const AFighter* Fighter,const FHitData
 	{
 		AProjectile* ProjectileInstance = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, SpawnParams);
 		ProjectileInstance->Init(AnimRow);
-
+		ProjectileInstance->OwnerFighter = Fighter->GetMesh()->GetOwner();
 		SpawnParams.Owner = ProjectileInstance;
 	}
 	
@@ -97,7 +95,7 @@ void UAnimNotify_SpawnHitbox::Server_SpawnHitBox_Implementation(const AFighter* 
 	{
 		AProjectile* ProjectileInstance = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, SpawnParams);
 		ProjectileInstance->Init(AnimRow);
-
+		ProjectileInstance->OwnerFighter = Fighter->GetMesh()->GetOwner();
 		SpawnParams.Owner = ProjectileInstance;
 	}
 	

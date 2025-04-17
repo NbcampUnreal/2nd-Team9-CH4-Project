@@ -65,4 +65,6 @@ private:
 	UHitComponent* OwnerHitComponent;
 
 	bool bIsMirrored;
+
+	float AccTime{0.0f};
 };

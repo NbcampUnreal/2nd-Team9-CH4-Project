@@ -72,7 +72,7 @@ void AMapHitBox::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 	/*FVector CamLoc = Fighter->GetController()->GetViewTarget()->GetActorLocation();
 	CamLoc.Y = 0.f;
 	const FVector DirToOrigin = (CamLoc - SpawnLoc).GetSafeNormal();*/
-	const FVector SpawnLoc    = OtherActor->GetActorLocation() + FVector(0.0f, 1300.f,0.0f);
+	const FVector SpawnLoc    = OtherActor->GetActorLocation() + FVector(0.0f, 100.f,0.0f);
 	const FVector DirToOrigin = (FVector::ZeroVector - SpawnLoc).GetSafeNormal();
 	const FQuat Quat = FQuat::FindBetweenNormals(FVector::UpVector, DirToOrigin);
 	const FRotator SpawnRot = Quat.Rotator();

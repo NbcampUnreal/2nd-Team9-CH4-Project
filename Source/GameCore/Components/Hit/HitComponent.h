@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "NiagaraSystem.h"
 #include "Components/ActorComponent.h"
 
 #include "HitComponent.generated.h"
@@ -177,4 +178,6 @@ private:
 
 	TSubclassOf<UUserWidget> UserWidgetClass;
 
+	UPROPERTY(EditAnywhere, Category="Effects")
+	UNiagaraSystem* HitEffect;
 };

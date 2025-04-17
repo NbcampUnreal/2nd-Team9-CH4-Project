@@ -35,6 +35,12 @@ void AHitBox::Tick(float DeltaTime)
 	{
 		DebugDrawShape(AnimInfo);
 	}
+
+	AccTime += DeltaTime;
+	if (AccTime >= 1.0f)
+	{
+		Destroy();
+	}
 }
 
 void AHitBox::Init(const FHitDataInfo& HitData, const FVector& Pos, const FAnimRow AnimRow)

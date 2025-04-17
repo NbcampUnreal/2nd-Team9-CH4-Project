@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AbilityData/AnimRow.h"
+#include "GameCore/Fighter/Fighter.h"
 #include "GameFramework/Actor.h"
 #include "Projectile.generated.h"
 
@@ -30,6 +31,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Projectile")
 	void Init(const FAnimRow AnimRow);
 
+	AActor* OwnerFighter;
 protected:
 	UFUNCTION(BlueprintCallable, Category = "Projectile")
 	void SetLocation();
@@ -53,4 +55,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FTimerHandle DestroyTimerHandle;
+
+	
 };
