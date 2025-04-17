@@ -46,53 +46,47 @@ void AProjectile::Init(const FAnimRow AnimRow)
 		bLookingRight = Cast<AFighter>(GetOwner())->GetPlayerLookingRight();
 	}
 	SetLocation();
+	
 	if (NiagaraEffect[static_cast<int32>(AnimInfo.EffectType)]->IsValid())
 	{
-		switch (AnimInfo.EffectType)
+		if (AnimInfo.EffectType == EEffectType::IceWall)
 		{
-		case EEffectType::Bang:
+			NiagaraComponent.Add(static_cast<int32>(EEffectType::IceWall), UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			NiagaraEffect[static_cast<int32>(EEffectType::IceWall)], // Niagara 시스템
+			RootComponent->GetComponentLocation(),                     // 위치
+			RootComponent->GetComponentRotation(),                     // 회전
+			FVector(1.0f),                                         // 스케일
+			false                                                      // 프리딕션 가능
+			));
+		}
+		else
+		{
+			if (AnimInfo.EffectType == EEffectType::Gravity)
 			{
 				
+				NiagaraComponent.Add(static_cast<int32>(EEffectType::Attacked), UNiagaraFunctionLibrary::SpawnSystemAttached(
+				NiagaraEffect[static_cast<int32>(EEffectType::Attacked)],             // 이펙트 에셋
+				RootComponent,          // 루트 컴포넌트
+				NAME_None,                 // 소켓
+				FVector::ZeroVector,       // 상대 위치
+				FRotator::ZeroRotator,     // 회전
+				EAttachLocation::KeepRelativeOffset,
+				false                       // 자동 파괴
+				));
 			}
 		
-		case EEffectType::IceWall:
-			{
-					NiagaraComponent.Add(static_cast<int32>(EEffectType::SnowWeather), UNiagaraFunctionLibrary::SpawnSystemAttached(
-					NiagaraEffect[static_cast<int32>(EEffectType::SnowWeather)],             // 이펙트 에셋
-					RootComponent,          // 루트 컴포넌트
-					NAME_None,                 // 소켓
-					FVector::ZeroVector,       // 상대 위치
-					FRotator::ZeroRotator,     // 회전
-					EAttachLocation::KeepRelativeOffset,
-					false                       // 자동 파괴
-					));
-				
-			}
-		case EEffectType::Gravity:
-			{
-				
-					NiagaraComponent.Add(static_cast<int32>(EEffectType::Attacked), UNiagaraFunctionLibrary::SpawnSystemAttached(
-					NiagaraEffect[static_cast<int32>(EEffectType::Attacked)],             // 이펙트 에셋
-					RootComponent,          // 루트 컴포넌트
-					NAME_None,                 // 소켓
-					FVector::ZeroVector,       // 상대 위치
-					FRotator::ZeroRotator,     // 회전
-					EAttachLocation::KeepRelativeOffset,
-					false                       // 자동 파괴
-					));
-				
-			}
+			NiagaraComponent.Add(static_cast<int32>(AnimInfo.EffectType), UNiagaraFunctionLibrary::SpawnSystemAttached(
+			NiagaraEffect[static_cast<int32>(AnimInfo.EffectType)],             // 이펙트 에셋
+			RootComponent,          // 루트 컴포넌트
+			NAME_None,                 // 소켓
+			FVector::ZeroVector,       // 상대 위치
+			FRotator::ZeroRotator,     // 회전
+			EAttachLocation::KeepRelativeOffset,
+			false                       // 자동 파괴
+			));
 		}
-		NiagaraComponent.Add(static_cast<int32>(AnimInfo.EffectType), UNiagaraFunctionLibrary::SpawnSystemAttached(
-		NiagaraEffect[static_cast<int32>(AnimInfo.EffectType)],             // 이펙트 에셋
-		RootComponent,          // 루트 컴포넌트
-		NAME_None,                 // 소켓
-		FVector::ZeroVector,       // 상대 위치
-		FRotator::ZeroRotator,     // 회전
-		EAttachLocation::KeepRelativeOffset,
-		false                       // 자동 파괴
-		));
-	
+		
 	}
 }
 
@@ -105,6 +99,10 @@ void AProjectile::SetLocation()
 		{
 			VecDir = FVector(1.f, 0, 0.f);
 		}
+		else if (AnimInfo.EffectType == EEffectType::IceWall)
+		{
+			VecDir = FVector(0.f, 0, 1.f);
+		}
 		else
 		{
 			VecDir = FVector::ZeroVector;
@@ -112,7 +110,10 @@ void AProjectile::SetLocation()
 		if (!bLookingRight)
 		{
 			AnimInfo.HitComOffSet.X *= -1.f;
-			VecDir *= -1;
+			if (AnimInfo.EffectType != EEffectType::IceWall)
+			{
+				VecDir *= -1;
+			}
 		}
 		SetActorLocation(PlayerLocation + AnimInfo.HitComOffSet);
 	}

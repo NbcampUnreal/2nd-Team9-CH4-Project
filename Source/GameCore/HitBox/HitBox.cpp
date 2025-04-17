@@ -2,6 +2,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "GameCore/Ability/Projectile.h"
 #include "GameCore/Ability/AbilityManager/AbilityManager.h"
 #include "GameCore/Fighter/Fighter.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -29,6 +30,7 @@ void AHitBox::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	SetLocation();
+	
 	if (bIsDebugMode)
 	{
 		DebugDrawShape(AnimInfo);
@@ -52,14 +54,28 @@ void AHitBox::Init(const FHitDataInfo& HitData, const FVector& Pos, const FAnimR
 	
 	if (GetOwner())
 	{
-		if (const AFighter* OwnerFighter = Cast<AFighter>(GetOwner()))
+		if (Cast<AFighter>(GetOwner()) != nullptr)
 		{
+			const AFighter* OwnerFighter = Cast<AFighter>(GetOwner());
 			if (UActorComponent* ActorComponent = OwnerFighter->GetComponentByClass(UHitComponent::StaticClass()))
 			{
 				if (UHitComponent* HitComponent = Cast<UHitComponent>(ActorComponent))
 				{
 					OwnerHitComponent = HitComponent;
-					
+				}
+			}
+		}
+		else
+		{
+			const AProjectile* OwnerProjectile = Cast<AProjectile>(GetOwner());
+			if (OwnerProjectile)
+			{
+				if (UActorComponent* ActorComponent = OwnerProjectile->GetComponentByClass(UHitComponent::StaticClass()))
+				{
+					if (UHitComponent* HitComponent = Cast<UHitComponent>(ActorComponent))
+					{
+						OwnerHitComponent = HitComponent;
+					}
 				}
 			}
 		}

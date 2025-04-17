@@ -13,7 +13,11 @@ void UAnimNotifyState_Move::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimS
 
 	if (MeshComp && MeshComp->GetOwner())
 	{
-		bLookingRight = Cast<AFighter>(MeshComp->GetOwner())->GetPlayerLookingRight();
+		AFighter* Fighter = Cast<AFighter>(MeshComp->GetOwner());
+		if (Fighter)
+		{
+			bLookingRight = Fighter->GetPlayerLookingRight();
+		}
 	}
 	if (bLookingRight) // 왼쪽에 서서 오른쪽을 바라보고 있으면
 	{
@@ -32,8 +36,7 @@ void UAnimNotifyState_Move::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSe
 
 	if (MeshComp && MeshComp->GetOwner())
 	{
-		FVector ActorLocation = Cast<AFighter>(MeshComp->GetOwner())->GetActorLocation();
-		Cast<AFighter>(MeshComp->GetOwner())->SetActorLocation(ActorLocation+(VecDir * 1000.f * FrameDeltaTime));
+		Cast<AFighter>(MeshComp->GetOwner())->AddMovementInput(VecDir, 30.f);
 		//Cast<AFighter>(MeshComp->GetOwner())->LaunchCharacter(VecDir,true,true);
 	}
 }

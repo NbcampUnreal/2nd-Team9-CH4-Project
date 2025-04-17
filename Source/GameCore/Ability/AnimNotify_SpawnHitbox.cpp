@@ -13,7 +13,7 @@
 void UAnimNotify_SpawnHitbox::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
 	Super::Notify(MeshComp, Animation);
-	
+
 	if (MeshComp && MeshComp->GetOwner())
 	{
 		if (!GetWorld())
