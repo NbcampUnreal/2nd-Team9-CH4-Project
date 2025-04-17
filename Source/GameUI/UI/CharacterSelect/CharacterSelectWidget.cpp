@@ -64,7 +64,6 @@ void UCharacterSelectWidget::OnClickedReadyButton()
 			if (IsValid(MyCharacterSlotWidget))
 			{
 				MyCharacterSlotWidget->ChangeReady(bIsReady);
-				
 			}
 			
 			OwnerPlayerController->ServerUpdateReady(bIsReady);

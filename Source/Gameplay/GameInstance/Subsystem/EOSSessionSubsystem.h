@@ -41,6 +41,7 @@ public:
 	
 private:
 	IOnlineSubsystem* OnlineSubsystem;
+	// ReSharper disable once CppBoundToDelegateMethodIsNotMarkedAsUFunction
 	IOnlineSessionPtr Session;
 
 	FName DefaultLobbyName = "LobbyName";
@@ -52,10 +53,4 @@ private:
 	FString SessionMapName;
 
 	FOnlineSessionSearchResult* SessionToJoin;
-	
-	// // Function used to setup our listeners to lobby notification events - example on participant change only.
-	// void SetupNotifications();
-	//
-	// // Callback function. This function will run when a lobby participant joins / leaves.
-	// void HandleParticipantChanged(FName EOSLobbyName, const FUniqueNetId& NetId, bool bJoined); 
 };
