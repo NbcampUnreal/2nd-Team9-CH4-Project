@@ -33,6 +33,7 @@ void UEOSSessionSubsystem::CreateSession(const FName KeyName, const FString& Key
 	SessionSettings->bShouldAdvertise = true; // Should be Advertised publicly
 	SessionSettings->bIsDedicated = false; // Dedicated server (true) or a Listen server (false, player-hosted).
 	SessionSettings->bUseLobbiesIfAvailable = true;
+	SessionSettings->bAllowJoinInProgress = true;
 
 	SessionSettings->Settings.Add(
 		KeyName, FOnlineSessionSetting((KeyValue), EOnlineDataAdvertisementType::ViaOnlineService));
