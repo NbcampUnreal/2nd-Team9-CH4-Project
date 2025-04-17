@@ -12,7 +12,11 @@ USTRUCT(BlueprintType)
 struct FCommandRow : public FTableRowBase
 {
 	GENERATED_BODY()
-	
+
+	FCommandRow(): InputTime(0), Priority(0)
+	{
+	}
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Command")
 	FGameplayTag  CommandName;
 

@@ -10,6 +10,10 @@ struct FCharacterModelData
 {
 	GENERATED_BODY()
 
+	FCharacterModelData(): SkeletalMesh(nullptr), IdleAnimation(nullptr), IconTexture(nullptr)
+	{
+	}
+
 	UPROPERTY(EditDefaultsOnly)
 	FGameplayTag CharacterTypeTag;
 	UPROPERTY(EditDefaultsOnly)

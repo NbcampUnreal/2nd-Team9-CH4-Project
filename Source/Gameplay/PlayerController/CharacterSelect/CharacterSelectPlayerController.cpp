@@ -54,6 +54,7 @@ void ACharacterSelectPlayerController::GetLifetimeReplicatedProps(
 	TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ACharacterSelectPlayerController, PlayerIndex);
 	DOREPLIFETIME(ACharacterSelectPlayerController, OwnerPlayerPawn);
 	DOREPLIFETIME(ACharacterSelectPlayerController, SelectedCharacterTypeIndex);
 }

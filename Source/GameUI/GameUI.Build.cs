@@ -13,7 +13,7 @@ public class GameUI : ModuleRules
                 "Core",
                 "InputCore",
                 "UMG",
-                "GamePlayTags"
+                "GameplayTags"
             }
         );
 
