@@ -64,24 +64,43 @@ void UAnimNotify_SpawnHitbox::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 	}
 }
 
+
+
+
 void UAnimNotify_SpawnHitbox::SpawnHitBox(const AFighter* Fighter,const FHitDataInfo& HitDataInfo,const FAnimRow& AnimRow) const
 {
 	const FVector Pos = Fighter->GetMesh()->GetBoneLocation(AnimRow.BoneName);
-
+	
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = Fighter->GetMesh()->GetOwner();
-	AHitBox* Instance = GetWorld()->SpawnActor<AHitBox>(HitBoxClass, SpawnParams);
+	
+	if(AnimRow.EffectType != EEffectType::Attacked)
+	{
+		AProjectile* ProjectileInstance = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, SpawnParams);
+		ProjectileInstance->Init(AnimRow);
 
+		SpawnParams.Owner = ProjectileInstance;
+	}
+	
+	AHitBox* Instance = GetWorld()->SpawnActor<AHitBox>(HitBoxClass, SpawnParams);
 	Instance->Init(HitDataInfo, Pos , AnimRow);
 }
 
 void UAnimNotify_SpawnHitbox::Server_SpawnHitBox_Implementation(const AFighter* Fighter,const FHitDataInfo& HitDataInfo,const FAnimRow& AnimRow) const
 {
 	const FVector Pos = Fighter->GetMesh()->GetBoneLocation(AnimRow.BoneName);
-
+	
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = Fighter->GetMesh()->GetOwner();
-	AHitBox* Instance = GetWorld()->SpawnActor<AHitBox>(HitBoxClass, SpawnParams);
+	
+	if(AnimRow.EffectType != EEffectType::Attacked)
+	{
+		AProjectile* ProjectileInstance = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, SpawnParams);
+		ProjectileInstance->Init(AnimRow);
 
+		SpawnParams.Owner = ProjectileInstance;
+	}
+	
+	AHitBox* Instance = GetWorld()->SpawnActor<AHitBox>(HitBoxClass, SpawnParams);
 	Instance->Init(HitDataInfo, Pos , AnimRow);
 }

@@ -29,9 +29,8 @@ void AProjectile::Tick(float DeltaTime)
 	{
 		UNiagaraComponent** ComPtr = NiagaraComponent.Find(static_cast<int32>(AnimInfo.EffectType));
 		UNiagaraComponent* NiagaraCom = *ComPtr;
-		bool bEnd = NiagaraCom->IsComplete();
-		UE_LOG(LogTemp, Warning, TEXT("NiagaraComponent IsComplete: %s"), bEnd ? TEXT("true") : TEXT("false"));
-		if (bEnd)
+		//UE_LOG(LogTemp, Warning, TEXT("NiagaraComponent IsComplete: %s"), bEnd ? TEXT("true") : TEXT("false"));
+		if (bool bEnd = NiagaraCom->IsComplete())
 		{
 			OnNiagaraFinished();
 		}

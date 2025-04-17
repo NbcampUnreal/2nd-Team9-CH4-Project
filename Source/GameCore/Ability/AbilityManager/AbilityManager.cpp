@@ -1,5 +1,3 @@
-PRAGMA_DISABLE_OPTIMIZATION
-
 #include "AbilityManager.h"
 #include "Engine/AssetManager.h"
 #include "Engine/StreamableManager.h"
