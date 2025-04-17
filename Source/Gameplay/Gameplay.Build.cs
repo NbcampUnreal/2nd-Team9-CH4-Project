@@ -24,8 +24,8 @@ public class Gameplay : ModuleRules
                 "MessageBus",
                 "OnlineSubsystem",
                 "OnlineSubsystemUtils",
-                "OnlineSubsystemEOS"
-                "GameplayTags", "Niagara",
+                "OnlineSubsystemEOS",
+                "GameplayTags", "Niagara"
             }
         );
         
