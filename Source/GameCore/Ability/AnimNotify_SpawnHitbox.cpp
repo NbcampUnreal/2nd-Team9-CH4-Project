@@ -1,4 +1,3 @@
-PRAGMA_DISABLE_OPTIMIZATION
 
 #include "AnimNotify_SpawnHitbox.h"
 
@@ -8,6 +7,7 @@ PRAGMA_DISABLE_OPTIMIZATION
 #include "Engine/SkeletalMeshSocket.h"
 #include "GameCore/Fighter/Fighter.h"
 #include "GameCore/HitBox/HitBox.h"
+#include "GameCore/Ability/Projectile.h"
 
 
 void UAnimNotify_SpawnHitbox::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
@@ -31,13 +31,25 @@ void UAnimNotify_SpawnHitbox::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 		UAbilityManager* Manager = GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>();
 		if (Manager)
 		{
+			FAnimRow AnimRow = Manager->GetAnimRow(Manager->GetAnimName());
+			//만약에 투사체 날리는 애니메이션이면
+			AProjectile* ProjectileInstance = nullptr;
+			if(AnimRow.EffectType != EEffectType::Attacked)
+			{
+				//투사체 생성
+				FActorSpawnParameters SpawnParams;
+				SpawnParams.Owner = MeshComp->GetOwner();
+				ProjectileInstance = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, SpawnParams);
+				ProjectileInstance->Init(AnimRow);
+			}
+			
+			
 			//히트박스 생성
-		
 			//현재 스킬의 데미지, 넉백정도 등 가져옴
 			FHitDataInfo HitDataInfo = Manager->GetHitDataInfo();
 			const FName& AnimName = Manager->GetAnimName();
 			
-			FAnimRow AnimRow = Manager->GetAnimRow(Manager->GetAnimName());
+			
 			if (AnimRow.BoneName.IsNone())
 			{
 				UE_LOG(LogTemp, Warning, TEXT("AnimRow is None"));
@@ -67,7 +79,15 @@ void UAnimNotify_SpawnHitbox::Notify(USkeletalMeshComponent* MeshComp, UAnimSequ
 			}
 			//오너
 			FActorSpawnParameters SpawnParams;
-			SpawnParams.Owner = MeshComp->GetOwner();
+			if (ProjectileInstance)
+			{
+				SpawnParams.Owner =  ProjectileInstance;
+			}
+			else
+			{
+				SpawnParams.Owner = MeshComp->GetOwner();
+			}
+			
 			AHitBox* Instance = GetWorld()->SpawnActor<AHitBox>(HitBoxClass, SpawnParams);
 
 			if (Manager->GetHitBox() != nullptr)

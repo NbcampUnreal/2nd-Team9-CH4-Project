@@ -1,4 +1,3 @@
-PRAGMA_DISABLE_OPTIMIZATION
 
 #include "AbilityManager.h"
 #include "Engine/AssetManager.h"
@@ -147,6 +146,7 @@ void UAbilityManager::OnAnimTableLoaded()
 			AnimInfo.HitComType =  Anim->HitComType;
 			AnimInfo.Radius = Anim->Radius;
 			AnimInfo.HitComOffSet =	Anim->HitComOffSet;
+			AnimInfo.EffectType = Anim->EffectType;
 			AnimInfoMap.Add(Name,AnimInfo);
 		}
 	}

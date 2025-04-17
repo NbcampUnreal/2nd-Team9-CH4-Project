@@ -7,12 +7,14 @@
 #include "GameplayTagContainer.h"
 #include "Fighter.generated.h"
 
+enum class EEffectType : uint8;
 enum class ECharacterType : uint8;
 class UHitComponent;
 class UNiagaraComponent;
 class UNiagaraSystem;
 class UCameraComponent;
 class USpringArmComponent;
+class AProjectile;
 struct FInputActionValue;
 
 //Test
@@ -36,6 +38,8 @@ protected:
 public:
 	UFUNCTION(BlueprintCallable)
 	bool GetPlayerLookingRight() const { return bLookingRight; }
+	UFUNCTION(BlueprintCallable)
+	float GetFlightSpeed() const { return FlightSpeed; }
 	
 	UFUNCTION()
 	void ImSleepy(const FString& MessageType, UObject* Payload);
@@ -119,5 +123,7 @@ public:
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Type")
 	ECharacterType Type;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "FlightSpeed")
+	float FlightSpeed;
 };
 

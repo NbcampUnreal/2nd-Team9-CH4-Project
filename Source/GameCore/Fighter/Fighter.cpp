@@ -267,6 +267,10 @@ void AFighter::Landed(const FHitResult& Hit)
 		{
 			CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(TEXT("PlayerState.Base.Hit.BounceBelly")));
 		}
+		else //추가
+		{
+			CurrentPlayerTag = FGameplayTag::RequestGameplayTag(FName(TEXT("PlayerState.Base.Land")));	
+		}
 	}
 	else
 	{

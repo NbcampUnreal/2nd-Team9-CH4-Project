@@ -74,15 +74,11 @@ void AHitBox::SetLocation()
 	{
 		/* 플레이어가 왼쪽 바라보고 있을땐 위치 반전 시켜서 적용시켜야함 */
 		
-		if (AnimInfo.HitComOffSet.X > 0.f)
+		if(AnimInfo.EffectType != EEffectType::Attacked)
 		{
 			//오프셋 적용해서 생성할 때는 플레이어 엑터의 위치로만 판단, 뼈는 애니메이션 동작중에 회전해서 틀어짐
-			FVector PlayerLocation = GetOwner()->GetActorLocation();
-			if (bIsMirrored)
-			{
-				AnimInfo.HitComOffSet *= -1.f;
-			}
-			SetActorLocation(PlayerLocation += AnimInfo.HitComOffSet);
+			FVector ProjectileLocation = GetOwner()->GetActorLocation();
+			SetActorLocation(ProjectileLocation);
 		}
 		else
 		{
@@ -191,6 +187,7 @@ void AHitBox::OnHitBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 				}
 			}
 		}
+		
 		// APawn* Pawn = Cast<APawn>(OtherActor);
 		// if (Pawn)
 		// {
