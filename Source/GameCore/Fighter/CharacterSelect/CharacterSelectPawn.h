@@ -4,6 +4,7 @@
 #include "GameFramework/Pawn.h"
 #include "CharacterSelectPawn.generated.h"
 
+class UWidgetComponent;
 struct FCharacterModelData;
 
 UCLASS()
@@ -19,13 +20,11 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastChangeCharacterModel(const FCharacterModelData& CharacterModelData) const;
 	
-protected:
-	virtual void BeginPlay() override;
-	
 private:
 	
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	USceneComponent* RootSceneComponent;
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	USkeletalMeshComponent* SkeletalMeshComponent;
+	
 };

@@ -56,14 +56,13 @@ void ACharacterSelectPlayerController::GetLifetimeReplicatedProps(
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ACharacterSelectPlayerController, PlayerIndex);
 	DOREPLIFETIME(ACharacterSelectPlayerController, OwnerPlayerPawn);
-	DOREPLIFETIME(ACharacterSelectPlayerController, SelectedCharacterTypeIndex);
 }
 
-void ACharacterSelectPlayerController::ServerChangeCharacter_Implementation(const bool bIsNextButton)
+void ACharacterSelectPlayerController::ServerChangeCharacter_Implementation(const bool bIsNext)
 {
 	if (IsValid(OwnerPlayerPawn) && IsValid(CharacterModelDataAsset))
 	{
-		if (bIsNextButton)
+		if (bIsNext)
 		{
 			SelectedCharacterTypeIndex++;
 			SelectedCharacterTypeIndex %= MaxCharacterTypeIndex;
@@ -80,10 +79,10 @@ void ACharacterSelectPlayerController::ServerChangeCharacter_Implementation(cons
 			}
 		}
 
-		OnRep_SelectedCharacterTypeIndex();
-		
 		OwnerPlayerPawn->MulticastChangeCharacterModel(
 			CharacterModelDataAsset->GetCharacterModelDataByIndex(SelectedCharacterTypeIndex));
+
+		ClientChangedCharacter();
 	}
 }
 
@@ -97,7 +96,13 @@ void ACharacterSelectPlayerController::ServerUpdateReady_Implementation(const bo
 		ACharacterSelectGameState* GameState = Cast<ACharacterSelectGameState>(GetWorld()->GetGameState());
 		if (IsValid(GameState))
 		{
-			GameState->NotifyPlayerReadyChanged();
+			GameState->UpdateHostStartButtonIsEnabled();
+		}
+
+		ACharacterSelectGameMode* GameMode = Cast<ACharacterSelectGameMode>(GetWorld()->GetAuthGameMode());
+		if (IsValid(GameMode))
+		{
+			GameMode->UpdatePlayerReady(PlayerIndex, bIsReady);
 		}
 	}
 }
@@ -119,23 +124,39 @@ void ACharacterSelectPlayerController::ServerStartGame_Implementation()
 	}
 }
 
-void ACharacterSelectPlayerController::ClientUpdateCharacterIcon_Implementation(const int32 TargetPlayerIndex,
-	const int32 TargetSelectedCharacterIndex)
+void ACharacterSelectPlayerController::ClientUpdatePlayerReady_Implementation(
+	const int32 TargetPlayerIndex, const bool bIsReady)
 {
 	if (IsValid(Cast<UObject>(CharacterSelectHUDInterface)))
 	{
-		CharacterSelectHUDInterface->UpdateCharacterIconTexture(
-			TargetPlayerIndex,
-			CharacterModelDataAsset->GetIconTextureByIndex(TargetSelectedCharacterIndex)
-		);
+		CharacterSelectHUDInterface->UpdatePlayerReady(TargetPlayerIndex, bIsReady);
 	}
 }
 
-void ACharacterSelectPlayerController::UpdateReady(const int32 Index, const bool bIsReady) const
+void ACharacterSelectPlayerController::ClientChangedCharacter_Implementation()
 {
 	if (IsValid(Cast<UObject>(CharacterSelectHUDInterface)))
 	{
-		CharacterSelectHUDInterface->UpdateReady(Index, bIsReady);
+		CharacterSelectHUDInterface->ChangedCharacter();
+	}
+}
+
+void ACharacterSelectPlayerController::ChangeCharacter(const bool bIsNext)
+{
+	USSBGameInstance* GameInstance = Cast<USSBGameInstance>(GetGameInstance());
+	if (IsValid(GameInstance))
+	{
+		GameInstance->SetSelectedCharacterTypeIndex(SelectedCharacterTypeIndex);
+	}
+
+	ServerChangeCharacter(bIsNext);
+}
+
+void ACharacterSelectPlayerController::UpdateButtonIsEnabled(const bool bIsAllPlayersReady) const
+{
+	if (IsValid(Cast<UObject>(CharacterSelectHUDInterface)))
+	{
+		CharacterSelectHUDInterface->UpdateButtonIsEnabled(bIsAllPlayersReady);
 	}
 }
 
@@ -143,7 +164,11 @@ void ACharacterSelectPlayerController::SetPlayerIndex(const int32 NewPlayerIndex
 {
 	PlayerIndex = NewPlayerIndex;
 
-	OnRep_PlayerIndex();
+	// Is Listen Server Host
+	if (NewPlayerIndex == 0)
+	{
+		OnRep_PlayerIndex();
+	}
 }
 
 void ACharacterSelectPlayerController::OnRep_PlayerIndex()
@@ -152,21 +177,6 @@ void ACharacterSelectPlayerController::OnRep_PlayerIndex()
 	if (CharacterSelectHUDInterface)
 	{
 		CharacterSelectHUDInterface->SetupHUD();
-	}
-}
-
-void ACharacterSelectPlayerController::OnRep_SelectedCharacterTypeIndex() const
-{
-	USSBGameInstance* GameInstance = Cast<USSBGameInstance>(GetGameInstance());
-	if (IsValid(GameInstance))
-	{
-		GameInstance->SetSelectedCharacterTypeIndex(SelectedCharacterTypeIndex);
-	}
-
-	ACharacterSelectGameState* GameState = Cast<ACharacterSelectGameState>(GetWorld()->GetGameState());
-	if (IsValid(GameState))
-	{
-		GameState->ServerUpdateCharacterIcon(PlayerIndex, SelectedCharacterTypeIndex);
 	}
 }
 

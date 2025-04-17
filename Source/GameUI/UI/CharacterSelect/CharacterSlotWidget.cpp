@@ -1,10 +1,8 @@
 ﻿#include "CharacterSlotWidget.h"
 
+#include "CharacterSelectWidget.h"
 #include "Components/Border.h"
 #include "Components/Button.h"
-#include "Components/Image.h"
-#include "Components/TextBlock.h"
-#include "Gameplay/PlayerController/CharacterSelect/CharacterSelectPlayerController.h"
 
 bool UCharacterSlotWidget::Initialize()
 {
@@ -18,94 +16,40 @@ bool UCharacterSlotWidget::Initialize()
 	return true;
 }
 
-void UCharacterSlotWidget::SetupWidget(const bool bIsMyWidget, const bool bIsHost)
+void UCharacterSlotWidget::SetupWidget(UCharacterSelectWidget* NewCharacterSelectWidget)
 {
-	OutLineBorder->SetBrushColor(bIsMyWidget ? FLinearColor::Yellow : FLinearColor::Black);
-	SelectPrevButton->SetVisibility(bIsMyWidget ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
-	SelectNextButton->SetVisibility(bIsMyWidget ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+	SelectPrevButton->SetVisibility(ESlateVisibility::Visible);
+	SelectNextButton->SetVisibility(ESlateVisibility::Visible);
 
-	ReadyBorder->SetVisibility(ESlateVisibility::Hidden);
+	SetVisibility(ESlateVisibility::Visible);
 
-	SetVisibility(bIsMyWidget ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
-	
-	if (bIsMyWidget)
+	CharacterSelectWidget = NewCharacterSelectWidget;
+}
+
+void UCharacterSlotWidget::ChangedCharacter() const
+{
+	SelectNextButton->SetIsEnabled(true);
+	SelectPrevButton->SetIsEnabled(true);
+}
+
+void UCharacterSlotWidget::ChangeReady(const bool bIsReady) const
+{
+	if (IsValid(ReadyTextBorder))
 	{
-		bIsHostWidget = bIsHost;
-
-		ReadyButton->SetIsEnabled(!bIsHost);
-		ReadyButton->SetVisibility(bIsMyWidget ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
-		ReadyButtonText->SetText(bIsHost ? FText::FromString(TEXT("Game Start")) : FText::FromString(TEXT("Ready")));
-
-		ACharacterSelectPlayerController* CharacterSelectPlayerController
-			= Cast<ACharacterSelectPlayerController>(GetOwningPlayer());
-		if (IsValid(CharacterSelectPlayerController))
-		{
-			OwnerController = CharacterSelectPlayerController;
-		}
+		ReadyTextBorder->SetIsEnabled(bIsReady);
 	}
 }
 
-void UCharacterSlotWidget::HandleSelectButtonClicked(const bool bIsNextButton)
+void UCharacterSlotWidget::HandleSelectButtonClicked(const bool bIsNext) const
 {
-	if (!IsValid(OwnerController))
+	if (!IsValid(CharacterSelectWidget))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("OwnerController Is Not Valid"));
+		UE_LOG(LogTemp, Warning, TEXT("CharacterSelectWidget Is Not Valid"));
 		return;
 	}
 
-	if (IsValid(OwnerController))
-	{
-		SelectNextButton->SetIsEnabled(false);
-		SelectPrevButton->SetIsEnabled(false);
-		OwnerController->ServerChangeCharacter(bIsNextButton);
-	}
-}
-
-void UCharacterSlotWidget::HandleReadyButtonClicked()
-{
-	if (IsValid(OwnerController))
-	{
-		// Is Host
-		if (bIsHostWidget)
-		{
-			OwnerController->ServerStartGame();
-		}
-		// Is Guest
-		else
-		{
-			ReadyButton->SetIsEnabled(false);
-			ReadyButtonText->SetText(bIsReady ? FText::FromString("Unready") : FText::FromString("Ready"));
-
-			OwnerController->ServerUpdateReady(!bIsReady);
-		}
-	}
-}
-
-void UCharacterSlotWidget::UpdateIconTexture(UTexture2D* IconTexture) const
-{
-	if (IsValid(IconTexture))
-	{
-		CharacterIconImage->SetBrushFromTexture(IconTexture);
-		SelectNextButton->SetIsEnabled(true);
-		SelectPrevButton->SetIsEnabled(true);
-	}
-}
-
-void UCharacterSlotWidget::UpdateReady(const bool bInIsReady)
-{
-	// Is Host
-	if (bIsHostWidget)
-	{
-		ReadyButton->SetIsEnabled(bInIsReady);
-	}
-	// Is Guest
-	else
-	{
-		bIsReady = bInIsReady;
-
-		ReadyBorder->SetVisibility(bIsReady ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
-		
-		ReadyButton->SetIsEnabled(true);
-		ReadyButtonText->SetText(bInIsReady ? FText::FromString(TEXT("준비 취소")) : FText::FromString(TEXT("게임 준비")));
-	}
+	SelectNextButton->SetIsEnabled(false);
+	SelectPrevButton->SetIsEnabled(false);
+	
+	CharacterSelectWidget->ChangeCharacter(bIsNext);
 }

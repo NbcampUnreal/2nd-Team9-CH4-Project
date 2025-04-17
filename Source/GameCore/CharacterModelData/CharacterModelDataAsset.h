@@ -10,7 +10,7 @@ struct FCharacterModelData
 {
 	GENERATED_BODY()
 
-	FCharacterModelData(): SkeletalMesh(nullptr), IdleAnimation(nullptr), IconTexture(nullptr)
+	FCharacterModelData(): SkeletalMesh(nullptr), IdleAnimation(nullptr)
 	{
 	}
 
@@ -22,8 +22,6 @@ struct FCharacterModelData
 	TArray<UMaterialInterface*> MaterialArray;
 	UPROPERTY(EditDefaultsOnly)
 	UAnimationAsset* IdleAnimation;
-	UPROPERTY(EditDefaultsOnly)
-	UTexture2D* IconTexture;
 };
 
 UCLASS(Blueprintable, BlueprintType)
@@ -42,16 +40,6 @@ public:
 	}
 
 	FORCEINLINE int32 GetNumCharacterModelData() const { return CharacterModelDataArray.Num(); }
-
-	FORCEINLINE UTexture2D* GetIconTextureByIndex(const int32 Index) const
-	{
-		if (CharacterModelDataArray.IsValidIndex(Index))
-		{
-			return CharacterModelDataArray[Index].IconTexture;
-		}
-		
-		return nullptr;
-	}
 
 private:
 	UPROPERTY(EditDefaultsOnly)

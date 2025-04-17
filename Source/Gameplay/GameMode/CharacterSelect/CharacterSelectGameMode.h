@@ -13,7 +13,11 @@ protected:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
 public:
+	void UpdateHostReadyButton() const;
+	
 	void TryStartGame() const;
+
+	void UpdatePlayerReady(int32 PlayerIndex, bool bIsReady) const;
 	
 private:
 	int32 NextPlayerIndex = 0;

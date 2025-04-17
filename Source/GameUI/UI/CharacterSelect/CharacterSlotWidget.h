@@ -4,11 +4,9 @@
 #include "Blueprint/UserWidget.h"
 #include "CharacterSlotWidget.generated.h"
 
-class UTextBlock;
-class ACharacterSelectPawn;
-class UImage;
-class ACharacterSelectPlayerController;
+
 class UBorder;
+class UCharacterSelectWidget;
 class UButton;
 
 UCLASS(Abstract, Blueprintable)
@@ -20,35 +18,22 @@ protected:
 	virtual bool Initialize() override;
 	
 public:
-	void SetupWidget(bool bIsMyWidget, bool bIsHost = false);
+	void SetupWidget(UCharacterSelectWidget* NewCharacterSelectWidget);
 
-	void UpdateIconTexture(UTexture2D* IconTexture) const;
-	void UpdateReady(bool bInIsReady);
+	void ChangedCharacter() const;
 
+	void ChangeReady(bool bIsReady) const;
+	
 private:
 	UFUNCTION(BlueprintCallable)
-	void HandleSelectButtonClicked(bool bIsNextButton);
-
-	UFUNCTION(BlueprintCallable)
-	void HandleReadyButtonClicked();
-
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UBorder> OutLineBorder;
+	void HandleSelectButtonClicked(bool bIsNext) const;
+	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> SelectPrevButton;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> SelectNextButton;
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UImage> CharacterIconImage;
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UBorder> ReadyBorder;
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UButton> ReadyButton;
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UTextBlock> ReadyButtonText;
+	TObjectPtr<UBorder> ReadyTextBorder;
 
-	TObjectPtr<ACharacterSelectPlayerController> OwnerController;
-
-	bool bIsHostWidget = false;
-	bool bIsReady = false;
+	TObjectPtr<UCharacterSelectWidget> CharacterSelectWidget;
 };

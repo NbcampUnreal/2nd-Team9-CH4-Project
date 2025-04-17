@@ -36,8 +36,3 @@ void ACharacterSelectPawn::MulticastChangeCharacterModel_Implementation(
 		SkeletalMeshComponent->PlayAnimation(CharacterModelData.IdleAnimation, true);
 	}
 }
-
-void ACharacterSelectPawn::BeginPlay()
-{
-	Super::BeginPlay();
-}

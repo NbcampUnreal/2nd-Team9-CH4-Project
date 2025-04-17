@@ -9,21 +9,7 @@ ACharacterSelectGameState::ACharacterSelectGameState()
 	bIsAllPlayersReady = false;
 }
 
-void ACharacterSelectGameState::ServerUpdateCharacterIcon_Implementation(const int32 TargetPlayerIndex,
-                                                                         const int32 TargetSelectedCharacterIndex)
-{
-	for (const APlayerState* PlayerState : PlayerArray)
-	{
-		ACharacterSelectPlayerController* PlayerController
-		= Cast<ACharacterSelectPlayerController>(PlayerState->GetPlayerController());
-		if (IsValid(PlayerController))
-		{
-			PlayerController->ClientUpdateCharacterIcon(TargetPlayerIndex, TargetSelectedCharacterIndex);
-		}
-	}
-}
-
-void ACharacterSelectGameState::NotifyPlayerReadyChanged()
+void ACharacterSelectGameState::UpdateHostStartButtonIsEnabled()
 {
 	bIsAllPlayersReady = AllPlayersReady();
 	ACharacterSelectPlayerState* CharacterSelectPlayerState = Cast<ACharacterSelectPlayerState>(PlayerArray[0]);

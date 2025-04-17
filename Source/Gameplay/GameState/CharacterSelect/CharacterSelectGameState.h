@@ -13,11 +13,8 @@ class GAMEPLAY_API ACharacterSelectGameState : public AGameState
 
 public:
 	ACharacterSelectGameState();
-
-	UFUNCTION(Server, Reliable)
-	void ServerUpdateCharacterIcon(int32 TargetPlayerIndex, int32 TargetSelectedCharacterIndex);
 	
-	void NotifyPlayerReadyChanged();
+	void UpdateHostStartButtonIsEnabled();
 
 	FORCEINLINE bool IsAllPlayersReady() const { return bIsAllPlayersReady; }
 	

@@ -81,7 +81,7 @@ void UEOSSessionSubsystem::StartSession()
 
 	if (!Session->StartSession(DefaultLobbyName))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Failed to start session!"));
+		UE_LOG(LogTemp, Warning, TEXT("Failed to start session! : %s"), *DefaultLobbyName.ToString());
 		Session->ClearOnStartSessionCompleteDelegate_Handle(StartSessionDelegateHandle);
 		StartSessionDelegateHandle.Reset();
 	}

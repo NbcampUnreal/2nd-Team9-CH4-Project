@@ -24,7 +24,7 @@ protected:
 
 public:
 	UFUNCTION(Server, Reliable)
-	void ServerChangeCharacter(bool bIsNextButton);
+	void ServerChangeCharacter(bool bIsNext);
 
 	UFUNCTION(Server, Reliable)
 	void ServerUpdateReady(bool bIsReady);
@@ -33,11 +33,14 @@ public:
 	void ServerStartGame();
 
 	UFUNCTION(Client, Reliable)
-	void ClientUpdateCharacterIcon(int32 TargetPlayerIndex, int32 TargetSelectedCharacterIndex);
+	void ClientUpdatePlayerReady(int32 TargetPlayerIndex, bool bIsReady);
 
-	void UpdateReady(int32 Index, bool bIsReady) const;
-
-
+	UFUNCTION(Client, Reliable)
+	void ClientChangedCharacter();
+	
+	void ChangeCharacter(bool bIsNext);
+	void UpdateButtonIsEnabled(bool bIsAllPlayersReady) const;
+	
 	FORCEINLINE int32 GetPlayerIndex() const { return PlayerIndex; }
 	FORCEINLINE int32 GetSelectedCharacterTypeIndex() const { return SelectedCharacterTypeIndex; }
 	
@@ -46,8 +49,6 @@ public:
 private:
 	UFUNCTION()
 	void OnRep_PlayerIndex();
-	UFUNCTION()
-	void OnRep_SelectedCharacterTypeIndex() const;
 	
 	void SpawnMainCamera();
 	void UpdateViewTarget();
@@ -67,7 +68,6 @@ private:
 
 	UPROPERTY(ReplicatedUsing = OnRep_PlayerIndex)
 	int32 PlayerIndex;
-	UPROPERTY(ReplicatedUsing = OnRep_SelectedCharacterTypeIndex)
 	int32 SelectedCharacterTypeIndex;
 	int32 MaxCharacterTypeIndex;
 	

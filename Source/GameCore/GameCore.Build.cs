@@ -19,11 +19,11 @@ public class GameCore : ModuleRules
                 "CoreUObject",
                 "Engine",
                 "Slate",
-                "SlateCore", 
+                "SlateCore",
                 "EnhancedInput",
                 "MessageBus",
                 "GameplayTags",
-                "Niagara",
+                "Niagara"
             }
         );
     }

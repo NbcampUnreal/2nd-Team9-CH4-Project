@@ -8,39 +8,46 @@ void ACharacterSelectHUD::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetupHUD();
+	if (HasAuthority())
+	{
+		SetupHUD();
+	}
 }
 
 void ACharacterSelectHUD::SetupHUD()
 {
-	CreateCharacterSelectWidget();
+	ACharacterSelectPlayerController* PlayerController = Cast<ACharacterSelectPlayerController>(GetOwner());
+	if (IsValid(PlayerController) && IsValid(CharacterSelectWidgetClass))
+    	{
+    		CharacterSelectWidget = CreateWidget<UCharacterSelectWidget>(GetWorld(), CharacterSelectWidgetClass);
+    		if (IsValid(CharacterSelectWidget))
+    		{
+    			CharacterSelectWidget->SetupCharacterSelectWidget(PlayerController);
+    			CharacterSelectWidget->AddToViewport();
+    		}
+    	}
 }
 
-void ACharacterSelectHUD::UpdateCharacterIconTexture(const int32 PlayerIndex, UTexture2D* IconTexture)
+void ACharacterSelectHUD::ChangedCharacter()
 {
-	CharacterSelectWidget->UpdateCharacterIconTexture(PlayerIndex, IconTexture);
-}
-
-void ACharacterSelectHUD::UpdateReady(const int32 PlayerIndex, const bool bIsReady)
-{
-	CharacterSelectWidget->UpdateReady(PlayerIndex, bIsReady);
-}
-
-void ACharacterSelectHUD::CreateCharacterSelectWidget()
-{
-	if (IsValid(CharacterSelectWidgetClass))
+	if (IsValid(CharacterSelectWidget))
 	{
-		CharacterSelectWidget = CreateWidget<UCharacterSelectWidget>(GetWorld(), CharacterSelectWidgetClass);
-		if (IsValid(CharacterSelectWidget))
-		{
-			ACharacterSelectPlayerController* OwnerPlayerController
-				= Cast<ACharacterSelectPlayerController>(GetOwner());
-			if (IsValid(OwnerPlayerController))
-			{
-				const int32 PlayerIndex = OwnerPlayerController->GetPlayerIndex();
-				CharacterSelectWidget->SetupCharacterSlotWidget(PlayerIndex);
-				CharacterSelectWidget->AddToViewport();
-			}
-		}
+		CharacterSelectWidget->ChangedCharacter();
+	}
+}
+
+void ACharacterSelectHUD::UpdateButtonIsEnabled(const bool bIsAllPlayersReady)
+{
+	if (IsValid(CharacterSelectWidget))
+	{
+		CharacterSelectWidget->UpdateButtonIsEnabled(bIsAllPlayersReady);
+	}
+}
+
+void ACharacterSelectHUD::UpdatePlayerReady(const int32 PlayerIndex, const bool bIsReady)
+{
+	if (IsValid(CharacterSelectWidget))
+	{
+		CharacterSelectWidget->UpdatePlayerReady(PlayerIndex, bIsReady);
 	}
 }

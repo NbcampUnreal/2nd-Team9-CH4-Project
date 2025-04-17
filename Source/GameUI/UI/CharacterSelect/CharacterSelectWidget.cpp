@@ -1,7 +1,10 @@
 ﻿#include "CharacterSelectWidget.h"
 
 #include "CharacterSlotWidget.h"
+#include "Components/Button.h"
 #include "Components/HorizontalBox.h"
+#include "Components/TextBlock.h"
+#include "Gameplay/PlayerController/CharacterSelect/CharacterSelectPlayerController.h"
 
 bool UCharacterSelectWidget::Initialize()
 {
@@ -19,37 +22,88 @@ bool UCharacterSelectWidget::Initialize()
 		}
 	}
 
+	bIsHost = false;
+	bIsReady = false;
+
 	return true;
 }
 
-void UCharacterSelectWidget::SetupCharacterSlotWidget(const int32 PlayerIndex)
+void UCharacterSelectWidget::SetupCharacterSelectWidget(ACharacterSelectPlayerController* PlayerController)
 {
-	int32 Index = 0;
-	for (UCharacterSlotWidget* CharacterSlotWidget : CharacterSlotWidgetArray)
+	OwnerPlayerController = PlayerController;
+	if (IsValid(OwnerPlayerController))
 	{
-		if (IsValid(CharacterSlotWidget))
-		{
-			CharacterSlotWidget->SetupWidget(PlayerIndex == Index, Index == 0);
-		}
-		Index++;
-	}
-}
+		const int32 PlayerIndex = OwnerPlayerController->GetPlayerIndex();
+		bIsHost = PlayerIndex == 0;
+		ReadyButton->SetIsEnabled(!bIsHost);
+		ReadyButton->OnClicked.AddUniqueDynamic(this, &ThisClass::OnClickedReadyButton);
+		ReadyButtonTextBlock->SetText(bIsHost ? FText::FromString(TEXT("Start Game")) : FText::FromString(TEXT("Ready")));
 
-void UCharacterSelectWidget::UpdateCharacterIconTexture(const int32 InPlayerIndex, UTexture2D* IconTexture)
-{
-	if (CharacterSlotWidgetArray.IsValidIndex(InPlayerIndex))
-	{
-		if (IsValid(CharacterSlotWidgetArray[InPlayerIndex]))
+		if (CharacterSlotWidgetArray.IsValidIndex(PlayerIndex))
 		{
-			CharacterSlotWidgetArray[InPlayerIndex]->UpdateIconTexture(IconTexture);
+			MyCharacterSlotWidget = CharacterSlotWidgetArray[PlayerIndex];
+			MyCharacterSlotWidget->SetupWidget(this);
 		}
 	}
 }
 
-void UCharacterSelectWidget::UpdateReady(const int32 PlayerIndex, const bool bIsReady)
+void UCharacterSelectWidget::OnClickedReadyButton()
 {
-	if (CharacterSlotWidgetArray.IsValidIndex(PlayerIndex) && IsValid(CharacterSlotWidgetArray[PlayerIndex]))
+	if (OwnerPlayerController)
 	{
-		CharacterSlotWidgetArray[PlayerIndex]->UpdateReady(bIsReady);
+		if (bIsHost)
+		{
+			OwnerPlayerController->ServerStartGame();
+		}
+		else
+		{
+			bIsReady = !bIsReady;
+			ReadyButton->SetIsEnabled(false);
+			ReadyButtonTextBlock->SetText(bIsReady ? FText::FromString("UnReady") : FText::FromString("Ready"));
+
+			if (IsValid(MyCharacterSlotWidget))
+			{
+				MyCharacterSlotWidget->ChangeReady(bIsReady);
+				
+			}
+			
+			OwnerPlayerController->ServerUpdateReady(bIsReady);
+		}
+	}
+}
+
+void UCharacterSelectWidget::ChangeCharacter(const bool bIsNext) const
+{
+	if (IsValid(OwnerPlayerController))
+	{
+		OwnerPlayerController->ChangeCharacter(bIsNext);
+	}
+}
+
+void UCharacterSelectWidget::ChangedCharacter() const
+{
+	if (IsValid(MyCharacterSlotWidget))
+	{
+		MyCharacterSlotWidget->ChangedCharacter();
+	}
+}
+
+void UCharacterSelectWidget::UpdateButtonIsEnabled(const bool bIsAllPlayersReady) const
+{
+	if (bIsHost)
+	{
+		ReadyButton->SetIsEnabled(bIsAllPlayersReady);
+	}
+	else
+	{
+		ReadyButton->SetIsEnabled(true);
+	}
+}
+
+void UCharacterSelectWidget::UpdatePlayerReady(const int32 PlayerIndex, const bool bTargetIsReady) const
+{
+	if (CharacterSlotWidgetArray.IsValidIndex(PlayerIndex))
+	{
+		CharacterSlotWidgetArray[PlayerIndex]->ChangeReady(bTargetIsReady);
 	}
 }

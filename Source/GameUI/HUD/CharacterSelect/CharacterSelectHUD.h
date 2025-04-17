@@ -19,14 +19,12 @@ protected:
 public:
 	// ~ICharacterSelectHUDInterface
 	virtual void SetupHUD() override;
-	virtual void UpdateCharacterIconTexture(int32 PlayerIndex, UTexture2D* IconTexture) override;
-	virtual void UpdateReady(int32 PlayerIndex, bool bIsReady) override;
+	virtual void ChangedCharacter() override;
+	virtual void UpdateButtonIsEnabled(bool bIsAllPlayersReady) override;
+	virtual void UpdatePlayerReady(int32 PlayerIndex, bool bIsReady) override;
 	// ~End of ICharacterSelectHUDInterface
 
 private:
-	UFUNCTION()
-	void CreateCharacterSelectWidget();
-
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UCharacterSelectWidget> CharacterSelectWidgetClass;
 
