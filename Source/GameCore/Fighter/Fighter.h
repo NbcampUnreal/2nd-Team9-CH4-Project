@@ -26,13 +26,35 @@ class GAMECORE_API AFighter : public ACharacter
 
 public:
 	AFighter();
+public:
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_PlayMontage(UAnimMontage* Montage, float PlayRate = 1.f, FName StartSection = NAME_None);
+
+	UFUNCTION(Server, Reliable)
+	void Server_RequestPlayMontage(UAnimMontage* Montage, float PlayRate = 1.f, FName StartSection = NAME_None);
+
+	void PlayMontageOnAllClients(UAnimMontage* Montage, float PlayRate = 1.f, FName StartSection = NAME_None);
+	UFUNCTION(Server, Unreliable)
+	void Server_UpdatePlayerTag(const FGameplayTag& NewTag);
+	UFUNCTION(Server, Unreliable)
+	void Server_UpdatePlayerTagContainer(const FGameplayTagContainer& NewTagContainer);
+	UFUNCTION(Server, Unreliable)
+	void Server_UpdateStandTag(const FString& NewStandTag);
+	UFUNCTION(Server, Unreliable)
+	void Server_UpdateLockTag(const FGameplayTag& NewTag);
+	UFUNCTION(Server, Unreliable)
+	void Server_UpdateLookingRight(const bool bInLookRight);
+	UFUNCTION(Server, Unreliable)
+	void Server_UpdateTickCrouch(const bool bInCheckTickCrouch);
+	void MoveStart(const FInputActionValue& InputActionValue);
+	void MoveEnd();
 
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Landed(const FHitResult& Hit) override;
-	
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 public:
 	UFUNCTION(BlueprintCallable)
 	bool GetPlayerLookingRight() const { return bLookingRight; }
@@ -65,12 +87,14 @@ public:
 	TArray<UNiagaraComponent*> NiagaraComponents;
 	
 public:
+	UFUNCTION()
+	void OnRep_CurrentPlayerTag();
 	UFUNCTION(BlueprintCallable)
 	void UnlockedTag();
 	UFUNCTION(BlueprintCallable)
-	void SetGameplayTag(const FGameplayTag& GameplayTag) { CurrentPlayerTag = GameplayTag; }
+	void SetGameplayTag(const FGameplayTag& GameplayTag);
 	UFUNCTION(BlueprintCallable)
-	void SetCurrentStandTag(const FString& InStandTag) { CurrentStandTag = InStandTag; }
+	void SetCurrentStandTag(const FString& InStandTag);
 	UFUNCTION(BlueprintCallable)
 	FGameplayTag GetGameplayTag() const { return CurrentPlayerTag; }
 	UFUNCTION(BlueprintCallable)
@@ -78,12 +102,13 @@ public:
 	
 	void LockTag();
 	void ChangeLook();
-	void SetIdleTag() { CurrentPlayerTag = IdleTag; };
-	void AddAttackTag() { AbilityTagContainer.AddTag(AttackTag); }
+	void SetIdleTag();;
+	void AddAttackTag();
 	void RefreshlockTag();
-	void RemoveAttackTag() { AbilityTagContainer.RemoveTag(AttackTag); };
-	void SetChangeBaseTag() { CurrentPlayerTag = BaseTag; }
-	void SetChangeStandTag();
+	void RemoveAttackTag();
+	void SetChangeBaseTag();
+	void SetCrouch();
+	void SetUnCrouch();
 	/* Define 에 옮겨놔야할듯 */
 	static FGameplayTag AttackTag;
 	static FGameplayTag BaseTag;
@@ -103,23 +128,36 @@ private: /* 카메라 완성되면 지워야함*/
 	UCameraComponent* Camera;
 private:
 	// 앉아있는지 서있는지 초기화 할때 쓰이는 변수
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentPlayerTag)
 	FString CurrentStandTag;
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentPlayerTag)
 	FGameplayTag CurrentPlayerTag; //로코모션담김
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentPlayerTag)
 	FGameplayTag CurrentLockTag; //로코모션담김
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentPlayerTag)
 	FGameplayTagContainer AbilityTagContainer; //공격중인지, 인트로중인지 태그
-	
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentPlayerTag)
 	bool bLookingRight{ true}; //오른쪽을 보고있는지
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentPlayerTag)
 	bool bCheckTickCrouch{ false }; // crouch 상태인지
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentPlayerTag)
 	bool bOnBuffering{ false };
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentPlayerTag)
 	bool bBlocking{ false };
 
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentPlayerTag)
 	FVector HitStopVector;
+
+	FGameplayTag LastSentPlayerTag; //로코모션담김
 	FTimerHandle HitStopTimerHandle;
 public:
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentPlayerTag)
 	FString CurrentMontageName;
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Type")
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentPlayerTag, EditAnywhere, BlueprintReadWrite, Category = "Type")
 	ECharacterType Type;
-};
 
+private:
+	
+};

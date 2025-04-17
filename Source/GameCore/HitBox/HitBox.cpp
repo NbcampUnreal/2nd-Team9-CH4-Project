@@ -191,28 +191,6 @@ void AHitBox::OnHitBoxOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 				}
 			}
 		}
-		// APawn* Pawn = Cast<APawn>(OtherActor);
-		// if (Pawn)
-		// {
-		//     ACharacter* Character = Cast<ACharacter>(OtherActor);
-		//     if (Character)
-		//     {
-		//         FVector LaunchVelocity = (Character->GetActorLocation() - GetActorLocation()).GetSafeNormal() * 1000.f;
-		//         LaunchVelocity.Z = 500.f;
-		//         Character->LaunchCharacter(LaunchVelocity, true, true);
-		//     }
-		//     else
-		//     {
-		//         UPrimitiveComponent* RootPrimitive = Cast<UPrimitiveComponent>(Pawn->GetRootComponent());
-		//         if (RootPrimitive && RootPrimitive->IsSimulatingPhysics())
-		//         {
-		//             FVector LaunchDirection = Pawn->GetActorLocation() - GetActorLocation();
-		//             LaunchDirection.Z = 0.5f;
-		//             LaunchDirection.Normalize();
-		//             RootPrimitive->AddImpulse(LaunchDirection * 50000.f);
-		//         }
-		//     }
-		// }
 	}
 }
 

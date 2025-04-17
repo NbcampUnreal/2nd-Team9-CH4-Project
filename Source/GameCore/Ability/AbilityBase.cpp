@@ -75,7 +75,7 @@ void UAbilityBase::PlayMontage()
 			int32 Random = FMath::RandRange(0,AirAbilityMontage.Num()-1);
 			FString StringName = AirAbilityMontage[Random]->GetName();
 			GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->SetAnimName(FName(*StringName));
-			Fighter->PlayAnimMontage(AirAbilityMontage[Random]);
+			Fighter->PlayMontageOnAllClients(AirAbilityMontage[Random]);
 			
 			CurrentMontage = AirAbilityMontage[Random];
 		}
@@ -84,7 +84,7 @@ void UAbilityBase::PlayMontage()
 			int32 Random = FMath::RandRange(0,AbilityMontage.Num()-1);
 			FString StringName = AbilityMontage[Random]->GetName();
 			GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->SetAnimName(FName(*StringName));
-			Fighter->PlayAnimMontage(AbilityMontage[Random]);
+			Fighter->PlayMontageOnAllClients(AbilityMontage[Random]);
 			
 			CurrentMontage = AbilityMontage[Random];
 		}

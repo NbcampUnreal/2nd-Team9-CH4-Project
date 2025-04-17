@@ -330,9 +330,12 @@ void UPlayerInputComponent::BindActions(const ASSBPlayerController* PlayerContro
 		if (UEnhancedInputComponent* InputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
 		{
 			InputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &UPlayerInputComponent::MoveInput);
-			InputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, Player.Get(), &AFighter::Move);
+			InputComponent->BindAction(MoveAction, ETriggerEvent::Started, Player.Get(),  &AFighter::MoveStart);
+			InputComponent->BindAction(MoveAction, ETriggerEvent::Completed, Player.Get(),  &AFighter::MoveEnd);
+			//InputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, Player.Get(), &AFighter::Move);
 			InputComponent->BindAction(JumpAction, ETriggerEvent::Started, Player.Get(), &AFighter::StartJump);
-			InputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, Player.Get(), &AFighter::SetChangeStandTag);
+			InputComponent->BindAction(CrouchAction, ETriggerEvent::Started, Player.Get(), &AFighter::SetCrouch);
+			InputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, Player.Get(), &AFighter::SetUnCrouch);
 			InputComponent->BindAction(ChangeLookAction, ETriggerEvent::Completed, Player.Get(), &AFighter::ChangeLook);
 			InputComponent->BindAction(BlockAction, ETriggerEvent::Started, Player.Get(), &AFighter::StartBlocking);
 			InputComponent->BindAction(BlockAction, ETriggerEvent::Completed, Player.Get(), &AFighter::EndBlocking);
