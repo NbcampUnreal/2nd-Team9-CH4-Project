@@ -121,11 +121,6 @@ public:
 	static FGameplayTag WeakHitTag;
 	static FGameplayTag HeavyHitTag;
 	static FGameplayTag LaunchHitTag;
-private: /* 카메라 완성되면 지워야함*/
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
-	USpringArmComponent* SpringArm;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
-	UCameraComponent* Camera;
 private:
 	// 앉아있는지 서있는지 초기화 할때 쓰이는 변수
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentPlayerTag)

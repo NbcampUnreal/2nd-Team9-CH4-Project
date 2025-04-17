@@ -33,17 +33,6 @@ FGameplayTag AFighter::LaunchHitTag = FGameplayTag::RequestGameplayTag(TEXT("Pla
 AFighter::AFighter()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
-	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
-	SpringArm->SetupAttachment(RootComponent);
-	SpringArm->SetWorldRotation(FRotator(-5.f, -90.f, 0.f));
-	SpringArm->SetAbsolute(false, true, false);
-	SpringArm->TargetArmLength = 1000.0f;
-	SpringArm->bDoCollisionTest = false;
-
-	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	Camera->SetupAttachment(SpringArm);
-	Camera->SetFieldOfView(40.0f);
 	
 	GetCharacterMovement()->MaxWalkSpeed = 300.0f;
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
