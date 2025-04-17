@@ -4,9 +4,10 @@
 #include "Blueprint/UserWidget.h"
 #include "CharacterSlotWidget.generated.h"
 
+class UTextBlock;
+class ACharacterSelectPawn;
 class UImage;
 class ACharacterSelectPlayerController;
-struct FGameplayTag;
 class UBorder;
 class UButton;
 
@@ -15,33 +16,39 @@ class GAMEUI_API UCharacterSlotWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
+protected:
+	virtual bool Initialize() override;
+	
 public:
-	void InitWidget(bool bIsMyWidget) const;
+	void SetupWidget(bool bIsMyWidget, bool bIsHost = false);
+
+	void UpdateIconTexture(UTexture2D* IconTexture) const;
+	void UpdateReady(bool bInIsReady);
 
 private:
-	
-	bool CanButtonClickAction() const;
+	UFUNCTION(BlueprintCallable)
+	void HandleSelectButtonClicked(bool bIsNextButton);
 
 	UFUNCTION(BlueprintCallable)
-	void HandleButtonClicked(bool bIsUpButton);
+	void HandleReadyButtonClicked();
 
-	void ChangeCharacterModel();
-	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UBorder> OutLineBorder;
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UButton> SelectUpButton;
+	TObjectPtr<UButton> SelectPrevButton;
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UButton> SelectDownButton;
+	TObjectPtr<UButton> SelectNextButton;
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> CharacterIconImage;
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<UImage> CharacterPreviewImage;
-
-	UPROPERTY(EditDefaultsOnly)
-	TArray<FGameplayTag> CharacterTypeTagArray;
-	
-	int32 CharacterTypeTagIndex = 0;
+	TObjectPtr<UBorder> ReadyBorder;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> ReadyButton;
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> ReadyButtonText;
 
 	TObjectPtr<ACharacterSelectPlayerController> OwnerController;
+
+	bool bIsHostWidget = false;
+	bool bIsReady = false;
 };

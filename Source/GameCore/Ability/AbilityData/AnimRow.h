@@ -9,6 +9,10 @@ struct GAMECORE_API FAnimRow : public FTableRowBase
 {
 	GENERATED_BODY()
 
+	FAnimRow(): HitComScale(FVector::ZeroVector), HitComType(0), Radius(0), HitComOffSet(FVector::ZeroVector)
+	{
+	}
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HitData")
 	FName AnimName;
 	

@@ -22,8 +22,13 @@ public class Gameplay : ModuleRules
                 "SlateCore",
                 "GameCore",
                 "MessageBus",
-                "GameplayTags", "Niagara", "Niagara"
+                "OnlineSubsystem",
+                "OnlineSubsystemUtils",
+                "OnlineSubsystemEOS"
+                "GameplayTags", "Niagara",
             }
         );
+        
+        PrivateDefinitions.Add("P2PMODE=1");
     }
 }

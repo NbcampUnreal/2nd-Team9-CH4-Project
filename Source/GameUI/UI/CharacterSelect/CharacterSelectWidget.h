@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+
 #include "CharacterSelectWidget.generated.h"
 
 class UCharacterSlotWidget;
@@ -12,17 +13,17 @@ class GAMEUI_API UCharacterSelectWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
+protected:
+	virtual bool Initialize() override;
+	
 public:
-	void InitWidget();
-	
-private:
+	void SetupCharacterSlotWidget(int32 PlayerIndex);
+	void UpdateCharacterIconTexture(int32 InPlayerIndex, UTexture2D* IconTexture);
+	void UpdateReady(int32 PlayerIndex, bool bIsReady);
 
-	void SetCharacterSlotArray();
-	
+private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UHorizontalBox> CharacterSlotBox;
-
+	
 	TArray<TObjectPtr<UCharacterSlotWidget>> CharacterSlotWidgetArray;
-
-	int32 PlayerIndex = 0;
 };

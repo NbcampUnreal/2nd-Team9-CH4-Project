@@ -1,21 +1,36 @@
 ﻿#include "CharacterSelectGameMode.h"
 
-#include "GameCore/Fighter/CharacterSelect/CharacterSelectPawn.h"
+#include "Gameplay/GameInstance/Subsystem/EOSSessionSubsystem.h"
+#include "Gameplay/GameState/CharacterSelect/CharacterSelectGameState.h"
+#include "Gameplay/PlayerController/CharacterSelect/CharacterSelectPlayerController.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 void ACharacterSelectGameMode::PostLogin(APlayerController* NewPlayer)
 {
-	Super::PostLogin(NewPlayer);
-
-	const int32 PlayerIndex = GetWorld()->GetNumPlayerControllers() - 1;
-	
-	if (IsValid(NewPlayer))
+	ACharacterSelectPlayerController* PlayerController = Cast<ACharacterSelectPlayerController>(NewPlayer);
+	if (IsValid(PlayerController))
 	{
-		APawn* Pawn = NewPlayer->GetPawn();
-		ACharacterSelectPawn* CharacterSelectPawn = Cast<ACharacterSelectPawn>(Pawn);
-		if (IsValid(CharacterSelectPawn))
+		UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Post Login : %d"), NextPlayerIndex));
+		PlayerController->SetPlayerIndex(NextPlayerIndex++);
+	}
+	
+	Super::PostLogin(NewPlayer);
+}
+
+void ACharacterSelectGameMode::TryStartGame() const
+{
+	// Check All Players Ready
+	const ACharacterSelectGameState* CharacterSelectGameState = GetGameState<ACharacterSelectGameState>();
+	if (IsValid(CharacterSelectGameState) && CharacterSelectGameState->IsAllPlayersReady())
+	{
+		UEOSSessionSubsystem* SessionSubsystem = GetGameInstance()->GetSubsystem<UEOSSessionSubsystem>();
+		if (IsValid(SessionSubsystem))
 		{
-			const float OffsetY = PlayerIndex * 100.0f;
-			CharacterSelectPawn->AddActorWorldOffset(FVector(0.0f, OffsetY, 0.0f));
+			SessionSubsystem->StartSession();
 		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Is Not All Players Ready"));
 	}
 }

@@ -13,7 +13,7 @@ public class GameUI : ModuleRules
                 "Core",
                 "InputCore",
                 "UMG",
-                "GamePlayTags"
+                "GameplayTags"
             }
         );
 
@@ -27,7 +27,8 @@ public class GameUI : ModuleRules
                 "GameCore",
                 "Gameplay",
                 "Sockets",
-                "Networking"
+                "Networking",
+                "OnlineSubsystem"
             }
         );
     }

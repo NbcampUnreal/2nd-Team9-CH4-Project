@@ -304,6 +304,7 @@ void AFighter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetime
 	DOREPLIFETIME(AFighter, bBlocking);
 	DOREPLIFETIME(AFighter, CurrentMontageName);
 	DOREPLIFETIME(AFighter,	HitStopVector);
+	DOREPLIFETIME(AFighter, Type);
 }
 
 FGameplayTagContainer& AFighter::GetCurrentTags()

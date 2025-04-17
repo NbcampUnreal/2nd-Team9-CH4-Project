@@ -2,40 +2,54 @@
 
 #include "CharacterSlotWidget.h"
 #include "Components/HorizontalBox.h"
-#include "Gameplay/GameInstance/SSBGameInstance.h"
-#include "Kismet/KismetSystemLibrary.h"
 
-void UCharacterSelectWidget::InitWidget()
+bool UCharacterSelectWidget::Initialize()
 {
-	UGameInstance* GameInstance = GetGameInstance();
-	if (IsValid(GameInstance))
+	if (!Super::Initialize())
 	{
-		const USSBGameInstance* SSBGameInstance = Cast<USSBGameInstance>(GameInstance);
-		if (IsValid(SSBGameInstance))
-		{
-			PlayerIndex = SSBGameInstance->GetPlayerIndex();
+		return false;
+	}
 
-			UKismetSystemLibrary::PrintString(GetWorld(), FString::Printf(TEXT("Player Index : %d"), PlayerIndex));
+	for (UWidget* Widget : CharacterSlotBox->GetAllChildren())
+	{
+		UCharacterSlotWidget* CharacterSlotWidget = Cast<UCharacterSlotWidget>(Widget);
+		if (IsValid(CharacterSlotWidget))
+		{
+			CharacterSlotWidgetArray.Add(CharacterSlotWidget);
 		}
 	}
 
-	SetCharacterSlotArray();
+	return true;
 }
 
-void UCharacterSelectWidget::SetCharacterSlotArray()
+void UCharacterSelectWidget::SetupCharacterSlotWidget(const int32 PlayerIndex)
 {
-	if (IsValid(CharacterSlotBox))
+	int32 Index = 0;
+	for (UCharacterSlotWidget* CharacterSlotWidget : CharacterSlotWidgetArray)
 	{
-		int32 Index = 0;
-		for (UWidget* Widget : CharacterSlotBox->GetAllChildren())
+		if (IsValid(CharacterSlotWidget))
 		{
-			UCharacterSlotWidget* CharacterSlotWidget = Cast<UCharacterSlotWidget>(Widget);
-			if (IsValid(CharacterSlotWidget))
-			{
-				CharacterSlotWidget->InitWidget(PlayerIndex == Index);
-				CharacterSlotWidgetArray.Add(CharacterSlotWidget);
-				Index++;
-			}
+			CharacterSlotWidget->SetupWidget(PlayerIndex == Index, Index == 0);
 		}
+		Index++;
+	}
+}
+
+void UCharacterSelectWidget::UpdateCharacterIconTexture(const int32 InPlayerIndex, UTexture2D* IconTexture)
+{
+	if (CharacterSlotWidgetArray.IsValidIndex(InPlayerIndex))
+	{
+		if (IsValid(CharacterSlotWidgetArray[InPlayerIndex]))
+		{
+			CharacterSlotWidgetArray[InPlayerIndex]->UpdateIconTexture(IconTexture);
+		}
+	}
+}
+
+void UCharacterSelectWidget::UpdateReady(const int32 PlayerIndex, const bool bIsReady)
+{
+	if (CharacterSlotWidgetArray.IsValidIndex(PlayerIndex) && IsValid(CharacterSlotWidgetArray[PlayerIndex]))
+	{
+		CharacterSlotWidgetArray[PlayerIndex]->UpdateReady(bIsReady);
 	}
 }
