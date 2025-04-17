@@ -27,7 +27,7 @@ protected:
 							   FActorComponentTickFunction* ThisTickFunction) override;
 
 public:
-	AFighter* GetFighter() const { return Player.Get(); }
+	AFighter* GetFighter() const { return Player; }
 	void SetFighter(AFighter* InFighter);
 	
 	void AddMappingContext(const ASSBPlayerController* PlayerController) const;
@@ -48,7 +48,7 @@ protected: /* Command Input */
 	TArray<FCommandRow*>		CommandRows;
 	TArray<FCommandRow*>		AnubisCommandRows;
 	TArray<FCommandRow*>		GunnerCommandRows;
-	TWeakObjectPtr<AFighter> Player;
+	AFighter* Player;
 private: /* Key Input */
 	
 	

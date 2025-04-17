@@ -2,6 +2,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
 #include "NiagaraFunctionLibrary.h"
+#include "GameCore/Ability/AbilityManager/AbilityManager.h"
 #include "GameCore/Camera/SSBCameraManager.h"
 #include "GameCore/Camera/SSBCamera.h"
 #include "GameCore/Fighter/Fighter.h"
@@ -58,14 +59,9 @@ void ASSBPlayerController::OnPossess(APawn* InPawn)
             }
         }
 
-        if (AFighter* FighterPawn = Cast<AFighter>(InPawn))
-        {
-            if (PlayerInputComponent)
-            {
-                PlayerInputComponent->SetFighter(FighterPawn);
-            }
-        }
+        Client_OnRespawnedPawn();
     }
+    
 }
 
 void ASSBPlayerController::PreProcessInput(const float DeltaTime, const bool bGamePaused)
@@ -87,8 +83,20 @@ void ASSBPlayerController::SetupInputComponent()
     
 }
 
+void ASSBPlayerController::OnRep_Pawn()
+{
+    Super::OnRep_Pawn();
+
+    if (AFighter* F = Cast<AFighter>(GetPawn()))
+    {
+        PlayerInputComponent->SetFighter(F);
+        PlayerInputComponent->BindActions(this);
+        GetGameInstance()->GetSubsystem<UAbilityManager>()->UpdateCharacter(F, F->GetPlayerType());    
+    }
+}
+
 void ASSBPlayerController::Multicast_SpawnEffect_Implementation(UNiagaraSystem* Effect, const FVector& SpawnLoc,
-    const FRotator& SpawnRot)
+                                                                const FRotator& SpawnRot)
 {
     if (Effect)
     {
@@ -102,7 +110,9 @@ void ASSBPlayerController::TryBindRespawnedPawn()
     if (AFighter* F = Cast<AFighter>(GetPawn()))
     {
         PlayerInputComponent->SetFighter(F);
-
+        PlayerInputComponent->BindActions(this);
+        GetGameInstance()->GetSubsystem<UAbilityManager>()->UpdateCharacter(F, F->GetPlayerType());
+        
         GetWorld()->GetTimerManager().ClearTimer(RespawnPawnCheckTimer);
     }
 }
@@ -112,6 +122,8 @@ void ASSBPlayerController::Client_OnRespawnedPawn_Implementation()
     if (AFighter* F = Cast<AFighter>(GetPawn()))
     {
         PlayerInputComponent->SetFighter(F);
+        PlayerInputComponent->BindActions(this);
+        GetGameInstance()->GetSubsystem<UAbilityManager>()->UpdateCharacter(F, F->GetPlayerType());
         return;
     }
     

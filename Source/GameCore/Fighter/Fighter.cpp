@@ -172,10 +172,12 @@ void AFighter::BeginPlay()
 		));
 	}
 
+	/* 복제가 완료되기전에 서버 캐릭터 생성시 컨트롤러가 인식을 못하고 있음 */
 	if (IsLocallyControlled())
 	{
 		GetGameInstance()->GetSubsystem<UAbilityManager>()->UpdateCharacter(this, Type);
 		GetGameInstance()->GetSubsystem<UAbilityManager>()->InitializeManager();
+		
 	}
 
 	/* 리스폰시 게임인스턴스에서 그걸 체크해서 이 초기화처리 작업들을 건너뛸지 나중에 판단 */

@@ -16,15 +16,15 @@ void UAbilityBase::Initialize()
 {
 	bIsActive = false;
 
-	if (UAnimInstance* AnimInst = OwnerCharacter->GetMesh()->GetAnimInstance())
+	if (OwnerCharacter)
 	{
-		// 한틱차이로 T포즈 애니메이션이 보임 수정해야함
-		//AnimInst->OnMontageEnded.AddDynamic(this, &UAbilityBase::OnMontageEnd);
-
-		// 이게맞나? 애님몽타쥬 블렌드아웃 시간을 살짝 준다음 그 사이에 해결..
-		//AnimInst->OnMontageBlendingOut.RemoveDynamic(this, &UAbilityBase::OnMontageBlendingOut);
-		AnimInst->OnMontageBlendingOut.AddDynamic(this, &UAbilityBase::OnMontageBlendingOut);
-		
+		if (OwnerCharacter->GetMesh())
+		{
+			if (UAnimInstance* AnimInst = OwnerCharacter->GetMesh()->GetAnimInstance())
+			{
+				AnimInst->OnMontageBlendingOut.AddDynamic(this, &UAbilityBase::OnMontageBlendingOut);
+			}
+		}
 	}
 }
 
@@ -53,12 +53,9 @@ bool UAbilityBase::CanActivate()
 
 void UAbilityBase::Activate(AFighter* Player)
 {
-	if (!OwnerCharacter)
-	{
-		OwnerCharacter = Player;
-		Initialize();
-	}
-	
+	OwnerCharacter = Player;
+	Initialize();
+
 	if(CanActivate()) //태그 체크, Tag check
 	{
 		PlayMontage(); //몽타주에서 특정 프레임에 이펙트 생성 등등 이벤트
@@ -67,15 +64,15 @@ void UAbilityBase::Activate(AFighter* Player)
 
 void UAbilityBase::PlayMontage()
 {
-	if (AFighter* Fighter = Cast<AFighter>(OwnerCharacter))
+	if (OwnerCharacter)
 	{
-		Fighter->AddAttackTag();
-		if (!AirAbilityMontage.IsEmpty() && Fighter->GetGameplayTag().MatchesTag(Fighter->JumpTag))
+		OwnerCharacter->AddAttackTag();
+		if (!AirAbilityMontage.IsEmpty() && OwnerCharacter->GetGameplayTag().MatchesTag(OwnerCharacter->JumpTag))
 		{
 			int32 Random = FMath::RandRange(0,AirAbilityMontage.Num()-1);
 			FString StringName = AirAbilityMontage[Random]->GetName();
 			GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->SetAnimName(FName(*StringName));
-			Fighter->PlayMontageOnAllClients(AirAbilityMontage[Random]);
+			OwnerCharacter->PlayMontageOnAllClients(AirAbilityMontage[Random]);
 			
 			CurrentMontage = AirAbilityMontage[Random];
 		}
@@ -84,7 +81,7 @@ void UAbilityBase::PlayMontage()
 			int32 Random = FMath::RandRange(0,AbilityMontage.Num()-1);
 			FString StringName = AbilityMontage[Random]->GetName();
 			GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->SetAnimName(FName(*StringName));
-			Fighter->PlayMontageOnAllClients(AbilityMontage[Random]);
+			OwnerCharacter->PlayMontageOnAllClients(AbilityMontage[Random]);
 			
 			CurrentMontage = AbilityMontage[Random];
 		}
@@ -100,7 +97,7 @@ void UAbilityBase::OnAbilityFinished()
 void UAbilityBase::OnMontageEnd(UAnimMontage* Montage, bool bInterrupted)
 {
 	bIsActive = false;
-	Cast<AFighter>(OwnerCharacter)->RemoveAttackTag();
+	OwnerCharacter->RemoveAttackTag();
 	
 }
 
@@ -138,10 +135,17 @@ void UAbilityBase::OnMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted
 
 bool UAbilityBase::CheckIsPlayingMontage() const
 {
-	AFighter* Fighter = Cast<AFighter>(OwnerCharacter);
-	if (Fighter->GetMesh()->GetAnimInstance()->Montage_IsPlaying(CurrentMontage))
+	if (OwnerCharacter && CurrentMontage)
 	{
-		return true;
+		if (OwnerCharacter->GetMesh())
+		{
+			if (OwnerCharacter->GetMesh()->GetAnimInstance())
+			{
+				if (OwnerCharacter->GetMesh()->GetAnimInstance()->Montage_IsPlaying(CurrentMontage))
+					return true;
+			}
+		}
+		
 	}
 	
 	return false;

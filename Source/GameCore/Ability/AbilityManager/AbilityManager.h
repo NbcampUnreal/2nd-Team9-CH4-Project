@@ -39,7 +39,7 @@ public:
 
 	bool CheckCurrentPlayingMontage() const;
 	FString GetNextMontageName() const;
-	AFighter* GetPlayerInstance() const { return PlayerInstance.Get(); }
+	AFighter* GetPlayerInstance() const { return PlayerInstance; }
 protected:
 	UPROPERTY()
 	TArray<TSoftObjectPtr<UDataTable>> AbilityDataTable;
@@ -57,7 +57,7 @@ protected:
 
 	FHitDataInfo CurrentHitInfo;
 	
-	TWeakObjectPtr<AFighter> PlayerInstance;
+	AFighter* PlayerInstance;
 
 	UPROPERTY(Config)  //Config -> 디폴트.ini, 헬프 클래스
 	TSubclassOf<UAbilityManagerHelper> AbilityManagerHelperClass;
@@ -79,6 +79,8 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CharacterType")
 	ECharacterType Type;
+
+	bool bIsOnlyOne{false};
 };
 
 

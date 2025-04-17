@@ -27,6 +27,8 @@ protected:
 
 	virtual void SetupInputComponent() override;
 
+	virtual void OnRep_Pawn() override;
+
 public:
 	UFUNCTION(Client, Reliable)
 	void Client_OnPossess();

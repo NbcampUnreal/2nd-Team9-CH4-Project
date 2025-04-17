@@ -33,6 +33,8 @@ AMapHitBox::AMapHitBox()
 
 	CameraHitBoxComponent->OnComponentBeginOverlap.AddDynamic(this, &AMapHitBox::OnBeginOverlap);
 	CameraHitBoxComponent->OnComponentEndOverlap.AddDynamic(this, &AMapHitBox::OnCameraEndOverlap);
+
+	bReplicates = true;
 }
 
 void AMapHitBox::BeginPlay()
@@ -100,13 +102,15 @@ void AMapHitBox::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* 
 		
 		if (AGameModeBase* GM = GetWorld()->GetAuthGameMode())
 		{
+		//	GM->RestartPlayerAtPlayerStart(PC, RespawnTarget);
 			if (APawn* NewPawn = GM->SpawnDefaultPawnFor(PC, RespawnTarget))
 			{
 				PC->Possess(NewPawn);
-				if (ASSBPlayerController* SSBPC = Cast<ASSBPlayerController>(PC))
+				//NewPawn->BeginPlay();
+				/*if (ASSBPlayerController* SSBPC = Cast<ASSBPlayerController>(PC))
 				{
 					SSBPC->Client_OnRespawnedPawn();
-				}
+				}#1#*/
 			}
 		}
 	}, 3.0f, false);

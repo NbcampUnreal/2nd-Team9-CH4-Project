@@ -13,41 +13,45 @@ void UAbilityManager::Initialize(FSubsystemCollectionBase& Collection)
 
 void UAbilityManager::InitializeManager()
 {
-	if (PlayerInstance.IsValid())
+	if (IsValid(PlayerInstance))
 	{
-		//DT
-		HelperInstance = NewObject<UAbilityManagerHelper>(GetTransientPackage(), AbilityManagerHelperClass); //헬프 클래스, GetTransientPackage -> 게임 시작되면 생성되는 가장 원초적인 객체 , "GC가 안된다"
-		FStreamableManager& Streamable = UAssetManager::GetStreamableManager(); //로드 시작
-
-		for (int i = 0; i<HelperInstance->AbilityTableArray.Num(); i++)
+		if (!bIsOnlyOne)
 		{
-			UObject* LoadedAbilityTable = Streamable.LoadSynchronous(
-			HelperInstance->AbilityTableArray[i].ToSoftObjectPath());
+			bIsOnlyOne = true;
+			//DT
+			HelperInstance = NewObject<UAbilityManagerHelper>(GetTransientPackage(), AbilityManagerHelperClass); //헬프 클래스, GetTransientPackage -> 게임 시작되면 생성되는 가장 원초적인 객체 , "GC가 안된다"
+			FStreamableManager& Streamable = UAssetManager::GetStreamableManager(); //로드 시작
 
-			if (LoadedAbilityTable)
+			for (int i = 0; i<HelperInstance->AbilityTableArray.Num(); i++)
 			{
-				AbilityDataTable.Add(Cast<UDataTable>(LoadedAbilityTable));
-				OnAbilityTableLoaded(i); // 수동 호출
-			}
-			else
-			{
-				UE_LOG(LogTemp, Error, TEXT("AbilityTable 동기 로딩 실패"));
-			}
-		}
-		for (int i = 0; i<HelperInstance->AnimTableArray.Num(); i++)
-		{
-			// 애니메이션 데이터 테이블 동기 로드
-			UObject* LoadedAnimTable = Streamable.LoadSynchronous(
-				HelperInstance->AnimTableArray[i].ToSoftObjectPath());
+				UObject* LoadedAbilityTable = Streamable.LoadSynchronous(
+				HelperInstance->AbilityTableArray[i].ToSoftObjectPath());
 
-			if (LoadedAnimTable)
-			{
-				AnimDataTable.Add(Cast<UDataTable>(LoadedAnimTable));
-				OnAnimTableLoaded(i); // 수동 호출
+				if (LoadedAbilityTable)
+				{
+					AbilityDataTable.Add(Cast<UDataTable>(LoadedAbilityTable));
+					OnAbilityTableLoaded(i); // 수동 호출
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("AbilityTable 동기 로딩 실패"));
+				}
 			}
-			else
+			for (int i = 0; i<HelperInstance->AnimTableArray.Num(); i++)
 			{
-				UE_LOG(LogTemp, Error, TEXT("AnimTable 동기 로딩 실패"));
+				// 애니메이션 데이터 테이블 동기 로드
+				UObject* LoadedAnimTable = Streamable.LoadSynchronous(
+					HelperInstance->AnimTableArray[i].ToSoftObjectPath());
+
+				if (LoadedAnimTable)
+				{
+					AnimDataTable.Add(Cast<UDataTable>(LoadedAnimTable));
+					OnAnimTableLoaded(i); // 수동 호출
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("AnimTable 동기 로딩 실패"));
+				}
 			}
 		}
 	}
@@ -69,11 +73,11 @@ void UAbilityManager::RequestCreateAbility(const FGameplayTag& CommandTag, bool 
 		{
 			if (const FHitDataInfo* HitData = HitInfoMap.Find(CommandTag))
 			{
-				// || (bIsNext && PlayerInstance.Get()->GetCurrentTags().HasTag(PlayerInstance.Get()->AttackTag))
+				// || (bIsNext && PlayerInstance->GetCurrentTags().HasTag(PlayerInstance->AttackTag))
 				if (!bIsNext)
 				{
 					CurrentHitInfo = *HitData; // 사용 끝나면 초기화 시키는 코드 추가해야함!!!!!!!!
-					Ability->Activate(PlayerInstance.Get()); //어빌리티 활성화
+					Ability->Activate(PlayerInstance); //어빌리티 활성화
 					CurrentAbility = Ability; 
 				}
 				else
@@ -180,9 +184,10 @@ void UAbilityManager::OnAnimTableLoaded(int32 Index)
 
 void UAbilityManager::UpdateCharacter(ACharacter* InOwner,  const ECharacterType InType) //매핑이 완료되고 각 어빌리티들의 오너를 설정해줌
 {
+	
 	PlayerInstance = Cast<AFighter>(InOwner);
 	Type = InType;
-	if (!PlayerInstance.IsValid())
+	if (!IsValid(PlayerInstance))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("AbilityManager : PlayerInstance is not valid!"));
 	}
@@ -240,11 +245,11 @@ void UAbilityManager::AbilityMontageDone()
 {
 	if (NextAbility)
 	{
-		NextAbility->Activate(PlayerInstance.Get());
+		NextAbility->Activate(PlayerInstance);
 		CurrentHitInfo = NextHitInfo;
 		CurrentAbility = NextAbility;
-		//PlayerInstance.Get()->CurrentMontageName = NextAbility->GetMontageName();
-		//PlayerInstance.Get()->RefreshlockTag();
+		//PlayerInstance->CurrentMontageName = NextAbility->GetMontageName();
+		//PlayerInstance->RefreshlockTag();
 		NextAbility = nullptr;
 		NextHitInfo = FHitDataInfo();
 	}
@@ -252,7 +257,7 @@ void UAbilityManager::AbilityMontageDone()
 	{
 		if (CurrentAbility && !CurrentAbility->CheckIsPlayingMontage())
 		{
-			PlayerInstance.Get()->RemoveAttackTag();
+			PlayerInstance->RemoveAttackTag();
 		}
 	}
 }

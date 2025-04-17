@@ -1,4 +1,4 @@
-﻿// PRAGMA_DISABLE_OPTIMIZATION
+﻿PRAGMA_DISABLE_OPTIMIZATION
 
 #include "PlayerInputComponent.h"
 #include "Gameplay/Defines/InputBuffer/InputBufferEntry.h"
@@ -88,7 +88,7 @@ void UPlayerInputComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void UPlayerInputComponent::SetFighter(AFighter* InFighter)
 {
-	Player = TWeakObjectPtr<AFighter>(InFighter);
+	Player = InFighter;
 }
 
 void UPlayerInputComponent::MoveInput(const FInputActionValue& InputValue)
@@ -124,7 +124,7 @@ void UPlayerInputComponent::MoveInput(const FInputActionValue& InputValue)
 		MoveInputBuffer.Add(NewEntry);
 	}
 
-	if (Player.IsValid())
+	if (IsValid(Player))
 	{
 		Player->Move(InputValue);	
 	}
@@ -133,18 +133,18 @@ void UPlayerInputComponent::MoveInput(const FInputActionValue& InputValue)
 
 void UPlayerInputComponent::AttackInput(const FInputActionValue& InputValue, const FGameplayTag& AttackTag)
 {
-	if (!Player.IsValid())
+	if (!IsValid(Player))
 	{
 		return;
 	}
 	
-	if (!Player.Get()->GetIsInside())
+	if (!Player->GetIsInside())
 	{
 		return;
 	}
 	/* NotifyState : Returns if buffering is true */
 	if (GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->CheckCurrentPlayingMontage()
-		&& !Player.Get()->GetBuffering())
+		&& !Player->GetBuffering())
 	{
 		return;
 	}
@@ -230,7 +230,7 @@ void UPlayerInputComponent::AttackInput(const FInputActionValue& InputValue, con
 				MoveInputBuffer.Empty();
 			}),	0.1f,false);
 		UE_LOG(LogTemp, Warning, TEXT("Command Matching!!: %s"), *MatchingRow->CommandName.ToString());
-		GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->RequestCreateAbility(MatchingRow->CommandName, bIsAttack);
+		GetWorld()->GetGameInstance()->GetSubsystem<UAbilityManager>()->RequestCreateAbility(MatchingRow->CommandName, false);
 		if (!bIsAttack)
 		{
 			Player->LockTag();	
@@ -253,7 +253,7 @@ FGameplayTag UPlayerInputComponent::GetInputTagFromValue(const FInputActionValue
 	FString XTag;
 	if (Direction.X < 0)
 	{
-		if (!Player.Get()->GetPlayerLookingRight())
+		if (!Player->GetPlayerLookingRight())
 		{
 			XTag = TEXT("Right");
 		}
@@ -264,7 +264,7 @@ FGameplayTag UPlayerInputComponent::GetInputTagFromValue(const FInputActionValue
 	}
 	else if (Direction.X > 0)
 	{
-		if (!Player.Get()->GetPlayerLookingRight())
+		if (!Player->GetPlayerLookingRight())
 		{
 			XTag = TEXT("Left");
 		}
@@ -355,20 +355,20 @@ void UPlayerInputComponent::BindActions(const ASSBPlayerController* PlayerContro
 {
 	if (Cast<ASSBPlayerController>(GetOwner())->IsLocalController())
 	{
-		if (Player.IsValid())
+		if (IsValid(Player))
 		{
 			if (UEnhancedInputComponent* InputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
 			{
 				InputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &UPlayerInputComponent::MoveInput);
-				InputComponent->BindAction(MoveAction, ETriggerEvent::Started, Player.Get(),  &AFighter::MoveStart);
-				InputComponent->BindAction(MoveAction, ETriggerEvent::Completed, Player.Get(),  &AFighter::MoveEnd);
-				//InputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, Player.Get(), &AFighter::Move);
-				InputComponent->BindAction(JumpAction, ETriggerEvent::Started, Player.Get(), &AFighter::StartJump);
-				InputComponent->BindAction(CrouchAction, ETriggerEvent::Started, Player.Get(), &AFighter::SetCrouch);
-				InputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, Player.Get(), &AFighter::SetUnCrouch);
-				InputComponent->BindAction(ChangeLookAction, ETriggerEvent::Completed, Player.Get(), &AFighter::ChangeLook);
-				InputComponent->BindAction(BlockAction, ETriggerEvent::Started, Player.Get(), &AFighter::StartBlocking);
-				InputComponent->BindAction(BlockAction, ETriggerEvent::Completed, Player.Get(), &AFighter::EndBlocking);
+				InputComponent->BindAction(MoveAction, ETriggerEvent::Started, Player,  &AFighter::MoveStart);
+				InputComponent->BindAction(MoveAction, ETriggerEvent::Completed, Player,  &AFighter::MoveEnd);
+				//InputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, Player, &AFighter::Move);
+				InputComponent->BindAction(JumpAction, ETriggerEvent::Started, Player, &AFighter::StartJump);
+				InputComponent->BindAction(CrouchAction, ETriggerEvent::Started, Player, &AFighter::SetCrouch);
+				InputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, Player, &AFighter::SetUnCrouch);
+				InputComponent->BindAction(ChangeLookAction, ETriggerEvent::Completed, Player, &AFighter::ChangeLook);
+				InputComponent->BindAction(BlockAction, ETriggerEvent::Started, Player, &AFighter::StartBlocking);
+				InputComponent->BindAction(BlockAction, ETriggerEvent::Completed, Player, &AFighter::EndBlocking);
 			
 				InputComponent->BindAction(WeakAttackAction, ETriggerEvent::Started, this, &UPlayerInputComponent::OnWeakAttack);
 				InputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Started, this, &UPlayerInputComponent::OnHeavyAttack);
