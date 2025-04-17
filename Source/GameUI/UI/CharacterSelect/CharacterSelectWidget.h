@@ -5,7 +5,6 @@
 
 #include "CharacterSelectWidget.generated.h"
 
-struct FCharacterSlotData;
 class UCharacterSlotWidget;
 class UHorizontalBox;
 
@@ -14,19 +13,17 @@ class GAMEUI_API UCharacterSelectWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
+protected:
+	virtual bool Initialize() override;
+	
 public:
-
-	void InitWidget();
-	
-	void UpdateWidget(const FCharacterSlotData& CharacterSlotData);
-	
+	void SetupCharacterSlotWidget(int32 PlayerIndex);
 	void UpdateCharacterIconTexture(int32 InPlayerIndex, UTexture2D* IconTexture);
-	void UpdatePlayerReady(int32 InPlayerIndex, bool bIsReady, bool bIsAllReady);
+	void UpdateReady(int32 PlayerIndex, bool bIsReady);
 
 private:
-	
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UHorizontalBox> CharacterSlotBox;
-
+	
 	TArray<TObjectPtr<UCharacterSlotWidget>> CharacterSlotWidgetArray;
 };

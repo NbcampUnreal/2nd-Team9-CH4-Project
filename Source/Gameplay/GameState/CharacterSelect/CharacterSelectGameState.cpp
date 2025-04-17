@@ -1,40 +1,47 @@
 ﻿#include "CharacterSelectGameState.h"
 
-#include "GameFramework/PlayerState.h"
 #include "Gameplay/PlayerController/CharacterSelect/CharacterSelectPlayerController.h"
-#include "Kismet/KismetSystemLibrary.h"
+#include "Gameplay/PlayerState/CharacterSelectPlayerState.h"
+
 
 ACharacterSelectGameState::ACharacterSelectGameState()
 {
-	ReadyCount = 0;
-	PlayerReadyArray.Init(false, 4);
+	bIsAllPlayersReady = false;
 }
 
-void ACharacterSelectGameState::UpdatePlayerReady(const int32 PlayerIndex, const bool bIsReady)
+void ACharacterSelectGameState::ServerUpdateCharacterIcon_Implementation(const int32 TargetPlayerIndex,
+                                                                         const int32 TargetSelectedCharacterIndex)
 {
-	if (PlayerReadyArray.IsValidIndex(PlayerIndex))
+	for (const APlayerState* PlayerState : PlayerArray)
 	{
-		ReadyCount = bIsReady ? ReadyCount + 1 : ReadyCount - 1;
-
-		PlayerReadyArray[PlayerIndex] = bIsReady;
-
-		for (const APlayerState* PlayerState : PlayerArray)
+		ACharacterSelectPlayerController* PlayerController
+		= Cast<ACharacterSelectPlayerController>(PlayerState->GetPlayerController());
+		if (IsValid(PlayerController))
 		{
-			if (IsValid(PlayerState))
-			{
-				ACharacterSelectPlayerController* PlayerController
-					= Cast<ACharacterSelectPlayerController>(PlayerState->GetPlayerController());
-				if (IsValid(PlayerController))
-				{
-					const bool bIsAllReady = ReadyCount == PlayerArray.Num() - 1;
-					PlayerController->ClientUpdatePlayerReady(PlayerIndex, bIsReady, bIsAllReady);
-				}
-			}
+			PlayerController->ClientUpdateCharacterIcon(TargetPlayerIndex, TargetSelectedCharacterIndex);
 		}
 	}
 }
 
-void ACharacterSelectGameState::GoMapSelect() const
+void ACharacterSelectGameState::NotifyPlayerReadyChanged()
 {
-	UKismetSystemLibrary::PrintString(GetWorld(), TEXT("Go Map Select!"));
+	bIsAllPlayersReady = AllPlayersReady();
+	ACharacterSelectPlayerState* CharacterSelectPlayerState = Cast<ACharacterSelectPlayerState>(PlayerArray[0]);
+	if (IsValid(CharacterSelectPlayerState))
+	{
+		CharacterSelectPlayerState->UpdateReady(bIsAllPlayersReady);
+	}
+}
+
+bool ACharacterSelectGameState::AllPlayersReady()
+{
+	for (int32 Index = 1; Index < PlayerArray.Num(); Index++)
+	{
+		const ACharacterSelectPlayerState* CharacterSelectPlayerState = Cast<ACharacterSelectPlayerState>(PlayerArray[Index]);
+		if (IsValid(CharacterSelectPlayerState) && !CharacterSelectPlayerState->IsReady())
+		{
+			return false;
+		}
+	}
+	return true;
 }

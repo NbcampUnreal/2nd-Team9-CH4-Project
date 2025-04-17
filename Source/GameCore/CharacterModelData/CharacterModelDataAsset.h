@@ -39,6 +39,16 @@ public:
 
 	FORCEINLINE int32 GetNumCharacterModelData() const { return CharacterModelDataArray.Num(); }
 
+	FORCEINLINE UTexture2D* GetIconTextureByIndex(const int32 Index) const
+	{
+		if (CharacterModelDataArray.IsValidIndex(Index))
+		{
+			return CharacterModelDataArray[Index].IconTexture;
+		}
+		
+		return nullptr;
+	}
+
 private:
 	UPROPERTY(EditDefaultsOnly)
 	TArray<FCharacterModelData> CharacterModelDataArray;

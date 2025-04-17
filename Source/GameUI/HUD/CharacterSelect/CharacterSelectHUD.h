@@ -13,13 +13,15 @@ class GAMEUI_API ACharacterSelectHUD : public AHUD, public ICharacterSelectHUDIn
 {
 	GENERATED_BODY()
 
-public:
-	
-	virtual void UpdateCharacterIconTexture(int32 PlayerIndex, UTexture2D* IconTexture) override;
-	virtual void UpdatePlayerReady(int32 PlayerIndex, bool bIsReady, bool bIsAllReady) override;
-
 protected:
 	virtual void BeginPlay() override;
+	
+public:
+	// ~ICharacterSelectHUDInterface
+	virtual void SetupHUD() override;
+	virtual void UpdateCharacterIconTexture(int32 PlayerIndex, UTexture2D* IconTexture) override;
+	virtual void UpdateReady(int32 PlayerIndex, bool bIsReady) override;
+	// ~End of ICharacterSelectHUDInterface
 
 private:
 	UFUNCTION()

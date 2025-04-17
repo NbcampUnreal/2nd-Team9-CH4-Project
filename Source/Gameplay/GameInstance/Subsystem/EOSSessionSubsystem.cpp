@@ -6,11 +6,23 @@
 #include "Kismet/GameplayStatics.h"
 #include "Online/OnlineSessionNames.h"
 
+void UEOSSessionSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+{
+	Super::Initialize(Collection);
+
+	OnlineSubsystem = Online::GetSubsystem(GetWorld());
+	if (OnlineSubsystem)
+	{
+		Session = OnlineSubsystem->GetSessionInterface();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("OnlineSubsystem Is Not Loaded"));
+	}
+}
+
 void UEOSSessionSubsystem::CreateSession(const FName KeyName, const FString& KeyValue, const FString& MapName)
 {
-	OnlineSubsystem = Online::GetSubsystem(GetWorld());
-	const IOnlineSessionPtr Session = OnlineSubsystem->GetSessionInterface();
-
 	CreateLobbyDelegateHandle =
 		Session->AddOnCreateSessionCompleteDelegate_Handle(FOnCreateSessionCompleteDelegate::CreateUObject(
 			this,
@@ -28,7 +40,7 @@ void UEOSSessionSubsystem::CreateSession(const FName KeyName, const FString& Key
 	UE_LOG(LogTemp, Log, TEXT("Creating Lobby..."));
 
 	SessionMapName = MapName;
-	
+
 	if (!Session->CreateSession(0, DefaultLobbyName, *SessionSettings))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Failed to create Lobby!"));
@@ -37,8 +49,6 @@ void UEOSSessionSubsystem::CreateSession(const FName KeyName, const FString& Key
 
 void UEOSSessionSubsystem::HandleCreateLobbyCompleted(const FName LobbyName, const bool bWasSuccessful)
 {
-	OnlineSubsystem = Online::GetSubsystem(GetWorld());
-	const IOnlineSessionPtr Session = OnlineSubsystem->GetSessionInterface();
 	if (bWasSuccessful)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Lobby: %s Created!"), *LobbyName.ToString());
@@ -47,7 +57,7 @@ void UEOSSessionSubsystem::HandleCreateLobbyCompleted(const FName LobbyName, con
 		// FURL TravelURL;
 		// TravelURL.Map = Map;
 		// GetWorld()->Listen(TravelURL);
-		
+
 		GetWorld()->ServerTravel(SessionMapName + "?listen");
 		SessionMapName = "";
 
@@ -62,10 +72,38 @@ void UEOSSessionSubsystem::HandleCreateLobbyCompleted(const FName LobbyName, con
 	CreateLobbyDelegateHandle.Reset();
 }
 
+void UEOSSessionSubsystem::StartSession()
+{
+	StartSessionDelegateHandle =
+		Session->AddOnStartSessionCompleteDelegate_Handle(FOnStartSessionCompleteDelegate::CreateUObject(
+			this,
+			&ThisClass::HandleStartSessionCompleted));
+
+	if (!Session->StartSession(DefaultLobbyName))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to start session!"));
+		Session->ClearOnStartSessionCompleteDelegate_Handle(StartSessionDelegateHandle);
+		StartSessionDelegateHandle.Reset();
+	}
+}
+
+void UEOSSessionSubsystem::HandleStartSessionCompleted(const FName LobbyName, const bool bWasSuccessful)
+{
+	if (bWasSuccessful)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Session Started! Lobby Name: %s"), *LobbyName.ToString());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to start session! (From Callback)"));
+	}
+
+	Session->ClearOnStartSessionCompleteDelegate_Handle(StartSessionDelegateHandle);
+	StartSessionDelegateHandle.Reset();
+}
+
 void UEOSSessionSubsystem::FindSessions(const FName SearchKey, const FString& SearchValue)
 {
-	OnlineSubsystem = Online::GetSubsystem(GetWorld());
-	const IOnlineSessionPtr Session = OnlineSubsystem->GetSessionInterface();
 	TSharedRef<FOnlineSessionSearch> Search = MakeShared<FOnlineSessionSearch>();
 
 	Search->QuerySettings.SearchParams.Empty();
@@ -91,11 +129,9 @@ void UEOSSessionSubsystem::FindSessions(const FName SearchKey, const FString& Se
 }
 
 // ReSharper disable once CppPassValueParameterByConstReference
-void UEOSSessionSubsystem::HandleFindSessionsCompleted(const bool bWasSuccessful, TSharedRef<FOnlineSessionSearch> Search)
+void UEOSSessionSubsystem::HandleFindSessionsCompleted(const bool bWasSuccessful,
+                                                       TSharedRef<FOnlineSessionSearch> Search)
 {
-	OnlineSubsystem = Online::GetSubsystem(GetWorld());
-	const IOnlineSessionPtr Session = OnlineSubsystem->GetSessionInterface();
-	
 	if (bWasSuccessful)
 	{
 		if (Search->SearchResults.Num() == 0)
@@ -110,7 +146,7 @@ void UEOSSessionSubsystem::HandleFindSessionsCompleted(const bool bWasSuccessful
 		{
 			SessionToJoin = &Search->SearchResults[0];
 		}
-		
+
 		UE_LOG(LogTemp, Log, TEXT("Found lobby."));
 		OnFindingSession.Broadcast(true);
 	}
@@ -125,9 +161,6 @@ void UEOSSessionSubsystem::HandleFindSessionsCompleted(const bool bWasSuccessful
 
 void UEOSSessionSubsystem::JoinSession()
 {
-	OnlineSubsystem = Online::GetSubsystem(GetWorld());
-	const IOnlineSessionPtr Session = OnlineSubsystem->GetSessionInterface();
-
 	JoinSessionDelegateHandle =
 		Session->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionCompleteDelegate::CreateUObject(
 			this,
@@ -146,13 +179,10 @@ void UEOSSessionSubsystem::JoinSession()
 
 void UEOSSessionSubsystem::HandleJoinSessionCompleted(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
 {
-	OnlineSubsystem = Online::GetSubsystem(GetWorld());
-	IOnlineSessionPtr Session = OnlineSubsystem->GetSessionInterface();
-
 	if (Result == EOnJoinSessionCompleteResult::Success)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Joined lobby."));
-		
+
 		APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 		if (IsValid(PlayerController))
 		{

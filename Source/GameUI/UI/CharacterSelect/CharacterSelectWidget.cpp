@@ -3,30 +3,35 @@
 #include "CharacterSlotWidget.h"
 #include "Components/HorizontalBox.h"
 
-void UCharacterSelectWidget::InitWidget()
+bool UCharacterSelectWidget::Initialize()
 {
+	if (!Super::Initialize())
+	{
+		return false;
+	}
+
 	for (UWidget* Widget : CharacterSlotBox->GetAllChildren())
 	{
-		UCharacterSlotWidget* CharacterSlotWidget
-			= Cast<UCharacterSlotWidget>(Widget);
-
+		UCharacterSlotWidget* CharacterSlotWidget = Cast<UCharacterSlotWidget>(Widget);
 		if (IsValid(CharacterSlotWidget))
 		{
 			CharacterSlotWidgetArray.Add(CharacterSlotWidget);
 		}
 	}
+
+	return true;
 }
 
-void UCharacterSelectWidget::UpdateWidget(const FCharacterSlotData& CharacterSlotData)
+void UCharacterSelectWidget::SetupCharacterSlotWidget(const int32 PlayerIndex)
 {
-	if (CharacterSlotWidgetArray.IsValidIndex(CharacterSlotData.PlayerIndex))
+	int32 Index = 0;
+	for (UCharacterSlotWidget* CharacterSlotWidget : CharacterSlotWidgetArray)
 	{
-		UCharacterSlotWidget* CharacterSlotWidget
-			= Cast<UCharacterSlotWidget>(CharacterSlotWidgetArray[CharacterSlotData.PlayerIndex]);
 		if (IsValid(CharacterSlotWidget))
 		{
-			CharacterSlotWidget->UpdateWidget(CharacterSlotData);
+			CharacterSlotWidget->SetupWidget(PlayerIndex == Index, Index == 0);
 		}
+		Index++;
 	}
 }
 
@@ -41,15 +46,10 @@ void UCharacterSelectWidget::UpdateCharacterIconTexture(const int32 InPlayerInde
 	}
 }
 
-void UCharacterSelectWidget::UpdatePlayerReady(const int32 InPlayerIndex, const bool bIsReady, const bool bIsAllReady)
+void UCharacterSelectWidget::UpdateReady(const int32 PlayerIndex, const bool bIsReady)
 {
-	if (CharacterSlotWidgetArray.IsValidIndex(InPlayerIndex))
+	if (CharacterSlotWidgetArray.IsValidIndex(PlayerIndex) && IsValid(CharacterSlotWidgetArray[PlayerIndex]))
 	{
-		if (IsValid(CharacterSlotWidgetArray[InPlayerIndex]))
-		{
-			CharacterSlotWidgetArray[InPlayerIndex]->UpdatePlayerReady(bIsReady);
-
-			CharacterSlotWidgetArray[0]->UpdatePlayerReady(bIsAllReady);
-		}
+		CharacterSlotWidgetArray[PlayerIndex]->UpdateReady(bIsReady);
 	}
 }

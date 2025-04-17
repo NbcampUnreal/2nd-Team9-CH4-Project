@@ -4,21 +4,26 @@
 #include "Gameplay/PlayerController/CharacterSelect/CharacterSelectPlayerController.h"
 #include "GameUI/UI/CharacterSelect/CharacterSelectWidget.h"
 
+void ACharacterSelectHUD::BeginPlay()
+{
+	Super::BeginPlay();
+
+	SetupHUD();
+}
+
+void ACharacterSelectHUD::SetupHUD()
+{
+	CreateCharacterSelectWidget();
+}
+
 void ACharacterSelectHUD::UpdateCharacterIconTexture(const int32 PlayerIndex, UTexture2D* IconTexture)
 {
 	CharacterSelectWidget->UpdateCharacterIconTexture(PlayerIndex, IconTexture);
 }
 
-void ACharacterSelectHUD::UpdatePlayerReady(const int32 PlayerIndex, const bool bIsReady, const bool bIsAllReady)
+void ACharacterSelectHUD::UpdateReady(const int32 PlayerIndex, const bool bIsReady)
 {
-	CharacterSelectWidget->UpdatePlayerReady(PlayerIndex, bIsReady, bIsAllReady);
-}
-
-void ACharacterSelectHUD::BeginPlay()
-{
-	Super::BeginPlay();
-
-	CreateCharacterSelectWidget();
+	CharacterSelectWidget->UpdateReady(PlayerIndex, bIsReady);
 }
 
 void ACharacterSelectHUD::CreateCharacterSelectWidget()
@@ -32,7 +37,8 @@ void ACharacterSelectHUD::CreateCharacterSelectWidget()
 				= Cast<ACharacterSelectPlayerController>(GetOwner());
 			if (IsValid(OwnerPlayerController))
 			{
-				CharacterSelectWidget->InitWidget();
+				const int32 PlayerIndex = OwnerPlayerController->GetPlayerIndex();
+				CharacterSelectWidget->SetupCharacterSlotWidget(PlayerIndex);
 				CharacterSelectWidget->AddToViewport();
 			}
 		}

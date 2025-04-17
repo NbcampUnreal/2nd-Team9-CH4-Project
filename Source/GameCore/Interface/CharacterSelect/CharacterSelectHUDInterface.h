@@ -16,6 +16,7 @@ class GAMECORE_API ICharacterSelectHUDInterface
 	GENERATED_BODY()
 
 public:
+	virtual void SetupHUD() = 0;
 	virtual void UpdateCharacterIconTexture(int32 PlayerIndex, UTexture2D* IconTexture) = 0;
-	virtual void UpdatePlayerReady(int32 PlayerIndex, bool bIsReady, bool bIsAllReady) = 0;
+	virtual void UpdateReady(int32 PlayerIndex, bool bIsReady) = 0;
 };

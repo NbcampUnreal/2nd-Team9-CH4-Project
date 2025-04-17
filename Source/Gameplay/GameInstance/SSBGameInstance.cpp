@@ -9,7 +9,7 @@ USSBGameInstance::USSBGameInstance()
 	CurrentLevelTag = FGameplayTag::RequestGameplayTag(FName("GameLevel.MainMenu"));
 
 	PlayerIndex = 0;
-	CharacterTypeIndex = 0;
+	SelectedCharacterTypeIndex = 0;
 }
 
 void USSBGameInstance::Init()

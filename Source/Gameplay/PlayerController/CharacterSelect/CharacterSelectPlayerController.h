@@ -6,6 +6,7 @@
 
 #include "CharacterSelectPlayerController.generated.h"
 
+class ICharacterSelectHUDInterface;
 class ACharacterSelectPawn;
 
 UCLASS(Abstract, Blueprintable)
@@ -16,38 +17,38 @@ class GAMEPLAY_API ACharacterSelectPlayerController : public APlayerController
 public:
 	ACharacterSelectPlayerController();
 
+protected:
+	virtual void BeginPlay() override;
+	virtual void OnPossess(APawn* InPawn) override;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
+public:
 	UFUNCTION(Server, Reliable)
-	void ServerChangeCharacter(int32 TargetPlayerIndex, int32 CharacterTypeIndex);
+	void ServerChangeCharacter(bool bIsNextButton);
+
+	UFUNCTION(Server, Reliable)
+	void ServerUpdateReady(bool bIsReady);
+
+	UFUNCTION(Server, Reliable)
+	void ServerStartGame();
 
 	UFUNCTION(Client, Reliable)
-	void ClientUpdateCharacterIconTexture(int32 TargetPlayerIndex, UTexture2D* IconTexture);
+	void ClientUpdateCharacterIcon(int32 TargetPlayerIndex, int32 TargetSelectedCharacterIndex);
 
-	UFUNCTION(Client, Reliable)
-	void ClientUpdatePlayerReady(int32 TargetPlayerIndex, bool bIsReady, bool bIsAllReady);
+	void UpdateReady(int32 Index, bool bIsReady) const;
 
-
-	FORCEINLINE int32 GetNumCharacterModelData() const
-	{
-		if (IsValid(CharacterModelDataAsset))
-		{
-			return CharacterModelDataAsset->GetNumCharacterModelData();
-		}
-
-		return 0;
-	}
 
 	FORCEINLINE int32 GetPlayerIndex() const { return PlayerIndex; }
 	FORCEINLINE int32 GetSelectedCharacterTypeIndex() const { return SelectedCharacterTypeIndex; }
 	
-	FORCEINLINE void SetPlayerIndex(const int32 NewPlayerIndex) { PlayerIndex = NewPlayerIndex; }
-
-protected:
-	virtual void BeginPlay() override;
-	virtual void OnPossess(APawn* InPawn) override;
-
-	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	void SetPlayerIndex(const int32 NewPlayerIndex);
 
 private:
+	UFUNCTION()
+	void OnRep_PlayerIndex();
+	UFUNCTION()
+	void OnRep_SelectedCharacterTypeIndex() const;
+	
 	void SpawnMainCamera();
 	void UpdateViewTarget();
 	void InitPawnLocation() const;
@@ -63,7 +64,12 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "CharacterModelData")
 	TObjectPtr<UCharacterModelDataAsset> CharacterModelDataAsset;
-	
+
+	UPROPERTY(ReplicatedUsing = OnRep_PlayerIndex)
 	int32 PlayerIndex;
+	UPROPERTY(ReplicatedUsing = OnRep_SelectedCharacterTypeIndex)
 	int32 SelectedCharacterTypeIndex;
+	int32 MaxCharacterTypeIndex;
+	
+	ICharacterSelectHUDInterface* CharacterSelectHUDInterface;
 };

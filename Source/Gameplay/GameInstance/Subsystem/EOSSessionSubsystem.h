@@ -14,11 +14,20 @@ UCLASS()
 class GAMEPLAY_API UEOSSessionSubsystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
+	
+protected:
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 public:
+	
 	void CreateSession(FName KeyName, const FString& KeyValue, const FString& MapName);
 	void HandleCreateLobbyCompleted(FName LobbyName, bool bWasSuccessful);
 	FDelegateHandle CreateLobbyDelegateHandle;
+
+	void StartSession();
+	void HandleStartSessionCompleted(FName LobbyName, bool bWasSuccessful); 
+	FDelegateHandle StartSessionDelegateHandle;
+	
 	
 	void FindSessions(FName SearchKey, const FString& SearchValue);
 	void HandleFindSessionsCompleted(bool bWasSuccessful, TSharedRef<FOnlineSessionSearch> Search);
@@ -32,6 +41,7 @@ public:
 	
 private:
 	IOnlineSubsystem* OnlineSubsystem;
+	IOnlineSessionPtr Session;
 
 	FName DefaultLobbyName = "LobbyName";
 	FName DefaultSearchKey = "KeyName";

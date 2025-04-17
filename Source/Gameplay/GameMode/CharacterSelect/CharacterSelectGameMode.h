@@ -12,6 +12,9 @@ class GAMEPLAY_API ACharacterSelectGameMode : public AGameMode
 protected:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 
+public:
+	void TryStartGame() const;
+	
 private:
 	int32 NextPlayerIndex = 0;
 };

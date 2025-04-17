@@ -39,14 +39,14 @@ public:
 	FORCEINLINE int32 GetPlayerIndex() const { return PlayerIndex; }
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE void SetPlayerIndex(const int32 Index) { PlayerIndex = Index; }
-	FORCEINLINE int32 GetCharacterTypeIndex() const { return CharacterTypeIndex; }
-	FORCEINLINE void SetCharacterTypeIndex(const int32 NewCharacterTypeIndex) { CharacterTypeIndex = NewCharacterTypeIndex; }
+	FORCEINLINE int32 GetCharacterTypeIndex() const { return SelectedCharacterTypeIndex; }
+	FORCEINLINE void SetSelectedCharacterTypeIndex(const int32 NewCharacterTypeIndex) { SelectedCharacterTypeIndex = NewCharacterTypeIndex; }
 
 private:
 	FGameplayTag CurrentLevelTag;
 
 	int32 PlayerIndex;
-	int32 CharacterTypeIndex;
+	int32 SelectedCharacterTypeIndex;
 
 	TObjectPtr<UEOSSessionSubsystem> EOSSessionSubsystem;
 };

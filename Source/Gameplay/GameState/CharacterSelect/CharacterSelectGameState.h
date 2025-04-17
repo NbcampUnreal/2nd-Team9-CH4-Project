@@ -4,8 +4,7 @@
 #include "GameFramework/GameState.h"
 #include "CharacterSelectGameState.generated.h"
 
-struct FCharacterSlotData;
-class ACharacterSelectPlayerController;
+class ACharacterSelectPlayerState;
 
 UCLASS()
 class GAMEPLAY_API ACharacterSelectGameState : public AGameState
@@ -14,14 +13,16 @@ class GAMEPLAY_API ACharacterSelectGameState : public AGameState
 
 public:
 	ACharacterSelectGameState();
-	
-	void InitHUD(ACharacterSelectPlayerController* TargetController);
-	
-	void UpdatePlayerReady(int32 PlayerIndex, bool bIsReady);
 
-	void GoMapSelect() const;
+	UFUNCTION(Server, Reliable)
+	void ServerUpdateCharacterIcon(int32 TargetPlayerIndex, int32 TargetSelectedCharacterIndex);
+	
+	void NotifyPlayerReadyChanged();
+
+	FORCEINLINE bool IsAllPlayersReady() const { return bIsAllPlayersReady; }
 	
 private:
-	int32 ReadyCount;
-	TArray<bool> PlayerReadyArray;
+	bool AllPlayersReady();
+
+	bool bIsAllPlayersReady;
 };
