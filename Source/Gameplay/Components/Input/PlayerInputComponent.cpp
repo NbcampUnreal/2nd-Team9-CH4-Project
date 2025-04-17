@@ -124,12 +124,20 @@ void UPlayerInputComponent::MoveInput(const FInputActionValue& InputValue)
 		MoveInputBuffer.Add(NewEntry);
 	}
 
-	Player->Move(InputValue);
+	if (Player.IsValid())
+	{
+		Player->Move(InputValue);	
+	}
 }
 
 
 void UPlayerInputComponent::AttackInput(const FInputActionValue& InputValue, const FGameplayTag& AttackTag)
 {
+	if (!Player.IsValid())
+	{
+		return;
+	}
+	
 	if (!Player.Get()->GetIsInside())
 	{
 		return;
