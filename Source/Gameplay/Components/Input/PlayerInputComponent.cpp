@@ -58,6 +58,17 @@ void UPlayerInputComponent::BeginPlay()
 	}
 }
 
+void UPlayerInputComponent::FindFighter()
+{
+	if (const ASSBPlayerController* PC = Cast<ASSBPlayerController>(GetOwner()))
+	{
+		if (PC->IsLocalController())
+		{
+			Player = PC->GetPawn<AFighter>();
+		}
+	}
+}
+
 void UPlayerInputComponent::TickComponent(float DeltaTime, ELevelTick TickType,
                                           FActorComponentTickFunction* ThisTickFunction)
 {
@@ -73,6 +84,11 @@ void UPlayerInputComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 			MoveInputBuffer.RemoveAt(i);
 		}
 	}
+}
+
+void UPlayerInputComponent::SetFighter(AFighter* InFighter)
+{
+	Player = TWeakObjectPtr<AFighter>(InFighter);
 }
 
 void UPlayerInputComponent::MoveInput(const FInputActionValue& InputValue)
@@ -325,25 +341,28 @@ void UPlayerInputComponent::AddMappingContext(const ASSBPlayerController* Player
 
 void UPlayerInputComponent::BindActions(const ASSBPlayerController* PlayerController)
 {
-	if (Player.IsValid())
+	if (Cast<ASSBPlayerController>(GetOwner())->IsLocalController())
 	{
-		if (UEnhancedInputComponent* InputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
+		if (Player.IsValid())
 		{
-			InputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &UPlayerInputComponent::MoveInput);
-			InputComponent->BindAction(MoveAction, ETriggerEvent::Started, Player.Get(),  &AFighter::MoveStart);
-			InputComponent->BindAction(MoveAction, ETriggerEvent::Completed, Player.Get(),  &AFighter::MoveEnd);
-			//InputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, Player.Get(), &AFighter::Move);
-			InputComponent->BindAction(JumpAction, ETriggerEvent::Started, Player.Get(), &AFighter::StartJump);
-			InputComponent->BindAction(CrouchAction, ETriggerEvent::Started, Player.Get(), &AFighter::SetCrouch);
-			InputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, Player.Get(), &AFighter::SetUnCrouch);
-			InputComponent->BindAction(ChangeLookAction, ETriggerEvent::Completed, Player.Get(), &AFighter::ChangeLook);
-			InputComponent->BindAction(BlockAction, ETriggerEvent::Started, Player.Get(), &AFighter::StartBlocking);
-			InputComponent->BindAction(BlockAction, ETriggerEvent::Completed, Player.Get(), &AFighter::EndBlocking);
+			if (UEnhancedInputComponent* InputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
+			{
+				InputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &UPlayerInputComponent::MoveInput);
+				InputComponent->BindAction(MoveAction, ETriggerEvent::Started, Player.Get(),  &AFighter::MoveStart);
+				InputComponent->BindAction(MoveAction, ETriggerEvent::Completed, Player.Get(),  &AFighter::MoveEnd);
+				//InputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, Player.Get(), &AFighter::Move);
+				InputComponent->BindAction(JumpAction, ETriggerEvent::Started, Player.Get(), &AFighter::StartJump);
+				InputComponent->BindAction(CrouchAction, ETriggerEvent::Started, Player.Get(), &AFighter::SetCrouch);
+				InputComponent->BindAction(CrouchAction, ETriggerEvent::Completed, Player.Get(), &AFighter::SetUnCrouch);
+				InputComponent->BindAction(ChangeLookAction, ETriggerEvent::Completed, Player.Get(), &AFighter::ChangeLook);
+				InputComponent->BindAction(BlockAction, ETriggerEvent::Started, Player.Get(), &AFighter::StartBlocking);
+				InputComponent->BindAction(BlockAction, ETriggerEvent::Completed, Player.Get(), &AFighter::EndBlocking);
 			
-			InputComponent->BindAction(WeakAttackAction, ETriggerEvent::Started, this, &UPlayerInputComponent::OnWeakAttack);
-			InputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Started, this, &UPlayerInputComponent::OnHeavyAttack);
-			InputComponent->BindAction(SmashAttackAction, ETriggerEvent::Started, this, &UPlayerInputComponent::OnSmashAttack);
-			InputComponent->BindAction(GrabAttackAction, ETriggerEvent::Started, this, &UPlayerInputComponent::OnGrabAttack);
+				InputComponent->BindAction(WeakAttackAction, ETriggerEvent::Started, this, &UPlayerInputComponent::OnWeakAttack);
+				InputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Started, this, &UPlayerInputComponent::OnHeavyAttack);
+				InputComponent->BindAction(SmashAttackAction, ETriggerEvent::Started, this, &UPlayerInputComponent::OnSmashAttack);
+				InputComponent->BindAction(GrabAttackAction, ETriggerEvent::Started, this, &UPlayerInputComponent::OnGrabAttack);
+			}
 		}
 	}
 }

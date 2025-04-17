@@ -28,7 +28,12 @@ protected:
 
 public:
 	AFighter* GetFighter() const { return Player.Get(); }
+	void SetFighter(AFighter* InFighter);
 	
+	void AddMappingContext(const ASSBPlayerController* PlayerController) const;
+	void BindActions(const ASSBPlayerController* PlayerController);
+	void FindFighter();
+
 protected: /* Command Input */
 	void MoveInput(const FInputActionValue& InputValue);
 	void AttackInput(const FInputActionValue& InputValue, const FGameplayTag& AttackTag);
@@ -45,8 +50,8 @@ protected: /* Command Input */
 	TArray<FCommandRow*>		GunnerCommandRows;
 	TWeakObjectPtr<AFighter> Player;
 private: /* Key Input */
-	void AddMappingContext(const ASSBPlayerController* PlayerController) const;
-	void BindActions(const ASSBPlayerController* PlayerController);
+	
+	
 
 	void OnWeakAttack(const FInputActionValue& InputValue);
 	void OnHeavyAttack(const FInputActionValue& InputValue);
@@ -83,3 +88,5 @@ private: /* Key Input */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* BlockAction{ nullptr };
 };
+
+

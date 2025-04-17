@@ -23,4 +23,19 @@ protected:
 	virtual void OnPossess(APawn* InPawn) override;
 
 	virtual void PreProcessInput(const float DeltaTime, const bool bGamePaused) override;
+
+	virtual void SetupInputComponent() override;
+
+public:
+	UFUNCTION(Client, Reliable)
+	void Client_OnPossess();
+
+	
+	UFUNCTION(Client, Reliable)
+	void Client_OnRespawnedPawn();
+
+	FTimerHandle RespawnPawnCheckTimer;
+
+	// 타이머 콜백
+	void TryBindRespawnedPawn();
 };

@@ -34,6 +34,7 @@ void ASSBPlayerController::BeginPlay()
             }
         }
     }
+    
 }
 
 void ASSBPlayerController::OnPossess(APawn* InPawn)
@@ -52,8 +53,15 @@ void ASSBPlayerController::OnPossess(APawn* InPawn)
                 {
                     SetViewTarget(Camera);
                     UE_LOG(LogTemp, Warning, TEXT("[ASSBPlayerController] OnPossess: SetViewTarget to SSBCamera: %s"), *Camera->GetName());
-                    return;
                 }
+            }
+        }
+
+        if (AFighter* FighterPawn = Cast<AFighter>(InPawn))
+        {
+            if (PlayerInputComponent)
+            {
+                PlayerInputComponent->SetFighter(FighterPawn);
             }
         }
     }
@@ -66,4 +74,49 @@ void ASSBPlayerController::PreProcessInput(const float DeltaTime, const bool bGa
     {
         PlayerInputComponent->GetFighter()->SetCheckTickCrouch();
     }
+}
+
+void ASSBPlayerController::SetupInputComponent()
+{
+    Super::SetupInputComponent();
+    if (IsLocalController())
+    {
+    //    PlayerInputComponent->BindActions(this);
+    }
+    
+}
+
+void ASSBPlayerController::TryBindRespawnedPawn()
+{
+    if (AFighter* F = Cast<AFighter>(GetPawn()))
+    {
+        PlayerInputComponent->SetFighter(F);
+
+        GetWorld()->GetTimerManager().ClearTimer(RespawnPawnCheckTimer);
+    }
+}
+
+void ASSBPlayerController::Client_OnRespawnedPawn_Implementation()
+{
+    if (AFighter* F = Cast<AFighter>(GetPawn()))
+    {
+        PlayerInputComponent->SetFighter(F);
+        return;
+    }
+    
+    GetWorld()->GetTimerManager().SetTimer(RespawnPawnCheckTimer,this,&ASSBPlayerController::TryBindRespawnedPawn,
+        0.1f,
+        true 
+    );
+}
+
+void ASSBPlayerController::Client_OnPossess_Implementation()
+{
+    if (AFighter* F = Cast<AFighter>(GetPawn()))
+    {
+        PlayerInputComponent->SetFighter(F);
+    }
+
+    
+    PlayerInputComponent->FindFighter();
 }

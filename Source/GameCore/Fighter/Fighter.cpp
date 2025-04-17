@@ -177,6 +177,8 @@ void AFighter::BeginPlay()
 		GetGameInstance()->GetSubsystem<UAbilityManager>()->UpdateCharacter(this, Type);
 		GetGameInstance()->GetSubsystem<UAbilityManager>()->InitializeManager();
 	}
+
+	/* 리스폰시 게임인스턴스에서 그걸 체크해서 이 초기화처리 작업들을 건너뛸지 나중에 판단 */
 }
 
 /* 체크해야됨 상대를 바라보고 있는 쪽으로 180도 회전 해야됨

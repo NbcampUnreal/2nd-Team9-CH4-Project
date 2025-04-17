@@ -22,7 +22,7 @@ public class Gameplay : ModuleRules
                 "SlateCore",
                 "GameCore",
                 "MessageBus",
-                "GameplayTags"
+                "GameplayTags", "Niagara", "Niagara"
             }
         );
     }
